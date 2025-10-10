@@ -3,14 +3,12 @@
     <draggable
         v-if="model.urls && model.urls.length"
         v-model="model.urls"
-        @change="onOrderChange"
+        @end="onOrderChange"
+        item-key="tgIndex"
+        handle=".draggable-icon"
     >
-      <transition-group name="draggable">
-        <div
-            v-for="(url, index) in model.urls"
-            :key="url.tgIndex"
-            class="panel panel-default draggable-item"
-        >
+      <template #item="{ element: url, index }">
+        <div class="panel panel-default draggable-item">
           <div class="panel-body row">
             <div class="col-xs-1">
               <i class="fa fa-arrows draggable-icon" />
@@ -21,34 +19,44 @@
               <strong>Title</strong> {{ url.title }}
             </div>
             <div class="col-xs-2 text-right">
-              <a
-                  href="#"
-                  title="Edit"
-                  class="action"
-                  @click.prevent="edit(index)"
+
+              <a href="#"
+              title="Edit"
+              class="action"
+              @click.prevent="edit(index)"
               >
-                <i class="fa fa-pencil-square-o" />
+              <i class="fa fa-pencil-square-o" />
               </a>
-              <a
-                  href="#"
-                  title="Delete"
-                  class="action"
-                  @click.prevent="del(index)"
+
+              <a href="#"
+              title="Delete"
+              class="action"
+              @click.prevent="del(index)"
               >
-                <i class="fa fa-trash-o" />
+              <i class="fa fa-trash-o" />
               </a>
             </div>
           </div>
         </div>
-      </transition-group>
+      </template>
     </draggable>
     <btn @click="add()"><i class="fa fa-plus" />&nbsp;Add a url</btn>
-    <modal append-to-body
-           v-model="editModal"
-           size="lg"
-           auto-focus
-           :backdrop="false"
+    <modal
+        v-model="editModal"
+        size="lg"
+        auto-focus
+        :backdrop="false"
     >
+      <template #header>
+        <h4 class="modal-title">
+          <template v-if="editModel.index != null">
+            Edit url
+          </template>
+          <template v-else>
+            Add url
+          </template>
+        </h4>
+      </template>
       <div class="pbottom-default">
         <vue-form-generator
             ref="editForm"
@@ -58,17 +66,7 @@
             @validated="onFormValidated"
         />
       </div>
-      <div slot="header">
-        <h4 class="modal-title">
-          <template v-if="editModel.index">
-            Edit url
-          </template>
-          <template v-else>
-            Add url
-          </template>
-        </h4>
-      </div>
-      <div slot="footer">
+      <template #footer>
         <btn @click="editModal=false">Cancel</btn>
         <btn
             type="success"
@@ -77,15 +75,15 @@
         >
           {{ editModel.index != null ? 'Update' : 'Add' }}
         </btn>
-      </div>
+      </template>
     </modal>
-    <modal append-to-body
-           v-model="delModal"
-           title="Delete url"
-           auto-focus
+    <modal
+        v-model="delModal"
+        title="Delete url"
+        auto-focus
     >
       <p>Are you sure you want to delete this url?</p>
-      <div slot="footer">
+      <template #footer>
         <btn @click="delModal=false">Cancel</btn>
         <btn
             type="danger"
@@ -93,269 +91,274 @@
         >
           Delete
         </btn>
-      </div>
+      </template>
     </modal>
   </panel>
 </template>
-<script>
-import Vue from 'vue';
-import draggable from 'vuedraggable'
 
-import Panel from '../Panel'
-import {disableFields, enableFields} from "@/helpers/formFieldUtils";
-import {calcChanges} from "@/helpers/modelChangeUtil";
+<script setup>
+import { ref, computed, watch, onMounted } from 'vue';
+import { disableFields, enableFields } from "@/helpers/formFieldUtils";
+import { calcChanges } from "@/helpers/modelChangeUtil";
 import validatorUtil from "@/helpers/validatorUtil";
 
-Vue.component('panel', Panel)
-Vue.component('draggable', draggable)
-
-export default {
-  props: {
-    asSlot: {
-      type: Boolean,
-      default: false,
-    },
-    header: {
-      type: String,
-      default: '',
-    },
-    links: {
-      type: Array,
-      default: () => {return []},
-    },
-    model: {
-      type: Object,
-      default: () => {return {}},
-    },
-    keys: {
-      type: Object,
-      default: () => {return {}},
-    },
-    reloads: {
-      type: Array,
-      default: () => {return []},
-    },
-    values: {
-      type: Array,
-      default: () => {return []},
-    },
-
+const props = defineProps({
+  asSlot: {
+    type: Boolean,
+    default: false,
   },
-  computed: {
-    fields() {
-      return {
-        occurrenceOrder: {
-          label: 'Occurrence Order',
-        },
-      }
-    },
-    canSubmit() {
-      return this.isValid && this.hasFormChanges;
-    }
+  header: {
+    type: String,
+    default: '',
   },
-  data() {
-    return {
-      delModal: false,
-      editModal: false,
-      editModel: {
-        index: null,
-        id: null,
-        url: null,
-        title: null,
-      },
-      originalEditModel: {},
-      hasFormChanges: false,
-      editSchema: {
-        fields: {
-          url: {
-            type: 'input',
-            inputType: 'text',
-            label: 'Url',
-            labelClasses: 'control-label',
-            model: 'url',
-            required: true,
-            validator: [
-              validatorUtil.url,
-              validatorUtil.required,
-            ],
-          },
-          title: {
-            type: 'input',
-            inputType: 'text',
-            label: 'URL title',
-            labelClasses: 'control-label',
-            model: 'title',
-            validator: [
-              validatorUtil.string,
-            ],
-          },
-        },
-      },
-      changes: [],
-      formOptions: {
-        validateAfterChanged: true,
-        validationErrorClass: 'has-error',
-        validationSuccessClass: 'success',
-      },
-      isValid: true,
-      originalModel: {}
-    }
+  links: {
+    type: Array,
+    default: () => [],
   },
-  watch: {
-    editModel: {
-      handler() {
-        this.checkFormChanges();
-      },
-      deep: true
-    }
+  model: {
+    type: Object,
+    default: () => ({}),
   },
-  methods: {
-    init() {
-      this.originalModel = JSON.parse(JSON.stringify(this.model));
-      this.enableFields()
-    },
-    add() {
-      this.editModel.id = null
-      this.editModel.url = null
-      this.editModel.title = null
-      this.editModel.index = null
-      this.editModel.tgIndex = this.maxTgIndex() + 1
+  keys: {
+    type: Object,
+    default: () => ({}),
+  },
+  reloads: {
+    type: Array,
+    default: () => [],
+  },
+  values: {
+    type: Array,
+    default: () => [],
+  },
+});
 
-      this.originalEditModel = JSON.parse(JSON.stringify(this.editModel));
-      this.hasFormChanges = false;
-      this.isValid = false;
+const emit = defineEmits(['validated', 'reload']);
 
-      this.editModal = true
-    },
-    edit(index) {
-      this.editModel.id = this.model.urls[index].id
-      this.editModel.url = this.model.urls[index].url
-      this.editModel.title = this.model.urls[index].title
-      this.editModel.index = index
-      this.editModel.tgIndex = this.model.urls[index].tgIndex
+const delModal = ref(false);
+const editModal = ref(false);
+const editModel = ref({
+  index: null,
+  id: null,
+  url: null,
+  title: null,
+  tgIndex: null,
+});
+const originalEditModel = ref({});
+const hasFormChanges = ref(false);
+const isValid = ref(true);
+const originalModel = ref({});
+const editForm = ref(null);
+const changes = ref([]);
 
-      this.originalEditModel = JSON.parse(JSON.stringify(this.editModel));
-      this.hasFormChanges = false;
-      this.isValid = false;
+const fields = computed(() => ({
+  occurrenceOrder: {
+    label: 'Occurrence Order',
+  },
+}));
 
-      this.editModal = true
-    },
-    del(index) {
-      this.editModel.index = index;
-      this.delModal = true;
-    },
-    submit() {
-      this.$refs.editForm.validate();
-      if (this.$refs.editForm.errors.length === 0) {
-        let item = {
-          id: this.editModel.id,
-          url: this.editModel.url,
-          title: this.editModel.title,
-          tgIndex: this.editModel.tgIndex,
-        }
+const canSubmit = computed(() => isValid.value && hasFormChanges.value);
 
-        if (this.editModel.index != null) {
-          this.model.urls[this.editModel.index] = item
-        }
-        else if (this.model.urls) {
-          this.model.urls.push(item)
-        }
-        else {
-          this.model.urls = [item]
-        }
-        this.calcChanges();
-        this.$emit('validated', 0, null, this);
-        if (this.asSlot) {
-          this.$parent.$parent.validate()
-        }
-        this.editModal = false
-      }
+const editSchema = ref({
+  fields: {
+    url: {
+      type: 'input',
+      inputType: 'text',
+      label: 'Url',
+      labelClasses: 'control-label',
+      model: 'url',
+      required: true,
+      validator: [
+        validatorUtil.url,
+        validatorUtil.required,
+      ],
     },
-    submitDelete() {
-      this.model.urls.splice(this.editModel.index, 1);
-      if (this.model.urls.length === 0) {
-        this.model.urls = null;
-      }
-      this.calcChanges();
-      this.$emit('validated', 0, null, this);
-      if (this.asSlot) {
-        this.$parent.$parent.validate()
-      }
-      this.delModal = false;
+    title: {
+      type: 'input',
+      inputType: 'text',
+      label: 'URL title',
+      labelClasses: 'control-label',
+      model: 'title',
+      validator: [
+        validatorUtil.string,
+      ],
     },
-    validate() {
-      this.calcChanges()
-    },
-    calcChanges() {
-      if (JSON.stringify(this.model.urls) !== JSON.stringify(this.originalModel.urls) && !(this.model.urls == null && this.originalModel.urls == null)) {
-        this.changes = [{
-          'key': 'urls',
-          'label': 'Urls',
-          'old': this.displayUrls(this.originalModel.urls),
-          'new': this.displayUrls(this.model.urls),
-          'value': this.model.urls,
-        }]
-      }
-      else {
-        this.changes = []
-      }
-    },
-    displayUrls(urls) {
-      if (urls == null) {
-        return null
-      }
-      const displays = []
-      for (let url of urls) {
-        let display = '<strong>Url</strong> ' + url.url
-        if (url.title) {
-          display += '<br /><strong>Title</strong> ' + url.title
-        }
-        displays.push(display)
-      }
-      return displays
-    },
-    onOrderChange() {
-      this.calcChanges()
-      this.$emit('validated')
-      if (this.asSlot) {
-        this.$parent.$parent.validate()
-      }
-    },
-    maxTgIndex: function() {
-      if (this.model.urls == null || this.model.urls.length == 0) {
-        return 0;
-      }
-      return Math.max.apply(Math, this.model.urls.map(u => u.tgIndex));
-    },
-    reload(type) {
-      if (!this.reloads.includes(type)) {
-        this.$emit('reload', type);
-      }
-    },
-    disableFields(disableKeys) {
-      disableFields(this.keys, this.fields, disableKeys);
-    },
-    enableFields(enableKeys) {
-      enableFields(this.keys, this.fields, this.values, enableKeys);
-    },
-    validated(isValid, errors) {
-      this.isValid = isValid
-      this.changes = calcChanges(this.model, this.originalModel, this.fields);
-      this.$emit('validated', isValid, this.errors, this)
-    },
-    onFormValidated(isValid, errors) {
-      this.isValid = isValid;
-    },
-    checkFormChanges() {
-      if (this.editModel.index === null) {
-        this.hasFormChanges = !!(this.editModel.url || this.editModel.title);
-      } else {
-        this.hasFormChanges = (
-            this.editModel.url !== this.originalEditModel.url ||
-            this.editModel.title !== this.originalEditModel.title
-        );
-      }
-    }
+  },
+});
+
+const formOptions = ref({
+  validateAfterChanged: true,
+  validationErrorClass: 'has-error',
+  validationSuccessClass: 'success',
+});
+
+const init = () => {
+  originalModel.value = JSON.parse(JSON.stringify(props.model));
+  enableFieldsFunc();
+};
+
+const maxTgIndex = () => {
+  if (props.model.urls == null || props.model.urls.length === 0) {
+    return 0;
   }
-}
+  return Math.max(...props.model.urls.map(u => u.tgIndex));
+};
+
+const add = () => {
+  editModel.value.id = null;
+  editModel.value.url = null;
+  editModel.value.title = null;
+  editModel.value.index = null;
+  editModel.value.tgIndex = maxTgIndex() + 1;
+
+  originalEditModel.value = JSON.parse(JSON.stringify(editModel.value));
+  hasFormChanges.value = false;
+  isValid.value = false;
+
+  editModal.value = true;
+};
+
+const edit = (index) => {
+  editModel.value.id = props.model.urls[index].id;
+  editModel.value.url = props.model.urls[index].url;
+  editModel.value.title = props.model.urls[index].title;
+  editModel.value.index = index;
+  editModel.value.tgIndex = props.model.urls[index].tgIndex;
+
+  originalEditModel.value = JSON.parse(JSON.stringify(editModel.value));
+  hasFormChanges.value = false;
+  isValid.value = false;
+
+  editModal.value = true;
+};
+
+const del = (index) => {
+  editModel.value.index = index;
+  delModal.value = true;
+};
+
+const submit = () => {
+  editForm.value.validate();
+  if (editForm.value.errors.length === 0) {
+    const item = {
+      id: editModel.value.id,
+      url: editModel.value.url,
+      title: editModel.value.title,
+      tgIndex: editModel.value.tgIndex,
+    };
+
+    if (editModel.value.index != null) {
+      props.model.urls[editModel.value.index] = item;
+    } else if (props.model.urls) {
+      props.model.urls.push(item);
+    } else {
+      props.model.urls = [item];
+    }
+
+    calcChangesFunc();
+    emit('validated', 0, null);
+    editModal.value = false;
+  }
+};
+
+const submitDelete = () => {
+  props.model.urls.splice(editModel.value.index, 1);
+  if (props.model.urls.length === 0) {
+    props.model.urls = null;
+  }
+
+  calcChangesFunc();
+  emit('validated', 0, null);
+  delModal.value = false;
+};
+
+const validate = () => {
+  calcChangesFunc();
+};
+
+const calcChangesFunc = () => {
+  if (
+      JSON.stringify(props.model.urls) !== JSON.stringify(originalModel.value.urls) &&
+      !(props.model.urls == null && originalModel.value.urls == null)
+  ) {
+    changes.value = [{
+      key: 'urls',
+      label: 'Urls',
+      old: displayUrls(originalModel.value.urls),
+      new: displayUrls(props.model.urls),
+      value: props.model.urls,
+    }];
+  } else {
+    changes.value = [];
+  }
+};
+
+const displayUrls = (urls) => {
+  if (urls == null) {
+    return null;
+  }
+  const displays = [];
+  for (const url of urls) {
+    let display = '<strong>Url</strong> ' + url.url;
+    if (url.title) {
+      display += '<br /><strong>Title</strong> ' + url.title;
+    }
+    displays.push(display);
+  }
+  return displays;
+};
+
+const onOrderChange = () => {
+  calcChangesFunc();
+  emit('validated');
+};
+
+const reload = (type) => {
+  if (!props.reloads.includes(type)) {
+    emit('reload', type);
+  }
+};
+
+const disableFieldsFunc = (disableKeys) => {
+  disableFields(props.keys, fields.value, disableKeys);
+};
+
+const enableFieldsFunc = (enableKeys) => {
+  enableFields(props.keys, fields.value, props.values, enableKeys);
+};
+
+const validated = (isValidValue, errors) => {
+  isValid.value = isValidValue;
+  changes.value = calcChanges(props.model, originalModel.value, fields.value);
+  emit('validated', isValidValue, errors);
+};
+
+const onFormValidated = (isValidValue) => {
+  isValid.value = isValidValue;
+};
+
+const checkFormChanges = () => {
+  if (editModel.value.index === null) {
+    hasFormChanges.value = !!(editModel.value.url || editModel.value.title);
+  } else {
+    hasFormChanges.value = (
+        editModel.value.url !== originalEditModel.value.url ||
+        editModel.value.title !== originalEditModel.value.title
+    );
+  }
+};
+
+watch(editModel, checkFormChanges, { deep: true });
+
+onMounted(() => {
+  init();
+});
+
+// Expose methods for parent component access
+defineExpose({
+  validate,
+  disableFields: disableFieldsFunc,
+  enableFields: enableFieldsFunc,
+  reload,
+});
 </script>

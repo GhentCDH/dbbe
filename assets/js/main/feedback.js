@@ -1,9 +1,10 @@
-import Vue from 'vue';
+import { createApp } from 'vue';
 import FeedbackApp from '@/apps/FeedbackApp'
-
-new Vue({
+const app = createApp({
     el: '#feedback-app',
     components: {
         FeedbackApp
     }
-})
+});
+
+app.mount('#feedback-app');

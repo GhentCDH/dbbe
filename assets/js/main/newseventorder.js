@@ -1,9 +1,10 @@
-import Vue from 'vue';
+import { createApp } from 'vue';
 import NewsEventOrderApp from '@/apps/NewsEventOrderApp'
-
-new Vue({
+const app = createApp({
     el: '#news-event-order-app',
     components: {
         NewsEventOrderApp
     }
-})
+});
+
+app.mount('#news-event-order-app');

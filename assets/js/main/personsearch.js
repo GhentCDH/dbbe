@@ -1,30 +1,22 @@
-import Vue from 'vue';
+import { createApp } from 'vue';
 import PersonSearchApp from '@/apps/PersonSearchApp'
-import VueTables from 'vue-tables-2';
+
 import Alerts from '../components/Alerts.vue'
 import axios from 'axios';
-import VueFormGenerator from 'vue-form-generator'
-import VueMultiselect from 'vue-multiselect';
-import fieldMultiselectClear from '@/components/FormFields/fieldMultiselectClear.vue';
+import VueFormGenerator from 'vue3-form-generator-legacy'
 import fieldCheckboxes from '../components/FormFields/fieldCheckboxes.vue';
 import * as uiv from 'uiv'
-
-Vue.use(uiv);
-Vue.component('multiselect', VueMultiselect);
-Vue.component('field-multiselect', fieldMultiselectClear);
-Vue.use(VueFormGenerator);
-Vue.component('FieldCheckboxes', fieldCheckboxes);
-
-
-Vue.use(VueTables.ServerTable);
-Vue.component('multiselect', VueMultiselect)
-Vue.component('fieldMultiselectClear', fieldMultiselectClear)
-Vue.component('alerts', Alerts)
-window.axios = axios;
-
-new Vue({
+const app = createApp({
     el: '#person-search-app',
     components: {
         PersonSearchApp
     }
-})
+});
+
+app.use(uiv);
+app.use(VueFormGenerator);
+app.component('FieldCheckboxes', fieldCheckboxes);
+app.component('alerts', Alerts)
+window.axios = axios;
+
+app.mount('#person-search-app');

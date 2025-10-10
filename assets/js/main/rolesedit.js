@@ -1,17 +1,19 @@
 import RolesEditApp from '@/apps/RolesEditApp'
-import VueFormGenerator from 'vue-form-generator'
-import Vue from 'vue';
+import VueFormGenerator from 'vue3-form-generator-legacy'
+import { createApp } from 'vue';
 import VueMultiselect from 'vue-multiselect';
 import fieldMultiselectClear from '@/components/FormFields/fieldMultiselectClear.vue';
 import * as uiv from 'uiv';
-
-Vue.use(uiv);
-Vue.component('multiselect', VueMultiselect);
-Vue.component('field-multiselect', fieldMultiselectClear);
-Vue.use(VueFormGenerator);
-new Vue({
+const app = createApp({
     el: '#roles-edit-app',
     components: {
         RolesEditApp
     }
-})
+});
+
+
+app.use(uiv);
+app.component('multiselect', VueMultiselect);
+app.component('field-multiselect', fieldMultiselectClear);
+app.use(VueFormGenerator);
+app.mount('#roles-edit-app');

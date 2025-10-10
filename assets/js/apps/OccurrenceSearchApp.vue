@@ -286,7 +286,6 @@
 <script setup>
 import { computed, onMounted, reactive, ref, watch } from 'vue';
 import qs from 'qs';
-
 import Delete from '../components/Edit/Modals/Delete.vue';
 import Alerts from "@/components/Alerts.vue";
 import ActiveFilters from '../components/Search/ActiveFilters.vue';

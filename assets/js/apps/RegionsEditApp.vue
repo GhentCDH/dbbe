@@ -122,7 +122,7 @@
 <script setup>
 import { reactive, computed, watch, onMounted } from 'vue'
 import axios from 'axios'
-import VueFormGenerator from 'vue-form-generator'
+import VueFormGenerator from 'vue3-form-generator-legacy'
 import { isLoginError } from '@/helpers/errorUtil'
 import { useEditMergeMigrateDelete } from '@/composables/editAppComposables/useEditMergeMigrateDelete'
 import Alerts from '@/components/Alerts.vue'

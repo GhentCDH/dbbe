@@ -1,13 +1,21 @@
 import symfonyPlugin from 'vite-plugin-symfony';
 import { defineConfig } from 'vite';
 import path from 'path';
-import vue from '@vitejs/plugin-vue2';
 import { viteStaticCopy } from 'vite-plugin-static-copy'
-
+import createVuePlugin from '@vitejs/plugin-vue'
 export default defineConfig({
     plugins: [
         symfonyPlugin(),
-        vue(),
+        createVuePlugin({
+            template: {
+                compilerOptions: {
+                    compatConfig: {
+                        MODE: 2
+                    },
+                    whitespace: 'condense'
+                }
+            }
+        }),
         viteStaticCopy({
             targets: [
                 {
@@ -84,7 +92,7 @@ export default defineConfig({
     resolve: {
         alias: {
             '@': path.resolve(__dirname, 'assets/js'),
-            'vue': 'vue/dist/vue.esm.js',
+            vue: '@vue/compat'
         },
         extensions: ['.js', '.ts', '.tsx', '.jsx', '.vue'],
         dedupe: ['vue']

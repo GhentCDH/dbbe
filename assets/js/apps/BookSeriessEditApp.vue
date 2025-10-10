@@ -112,7 +112,7 @@ import UrlPanel from '@/components/Edit/Panels/Url.vue'
 
 import { isLoginError } from '@/helpers/errorUtil'
 import { createMultiSelect, enableField } from '@/helpers/formFieldUtils'
-import VueFormGenerator from 'vue-form-generator'
+import VueFormGenerator from 'vue3-form-generator-legacy'
 import { useEditMergeMigrateDelete } from '@/composables/editAppComposables/useEditMergeMigrateDelete'
 
 const depUrls = computed(() => ({}))

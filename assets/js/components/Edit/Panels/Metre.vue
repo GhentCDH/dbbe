@@ -24,7 +24,6 @@ import {
 import Panel from '../Panel'
 import {calcChanges} from "@/helpers/modelChangeUtil";
 
-Vue.component('panel', Panel)
 
 export default {
 

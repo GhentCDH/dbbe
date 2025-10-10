@@ -1,30 +1,24 @@
-import Vue from 'vue';
+import { createApp } from 'vue';
 import BibliographySearchApp from '@/apps/BibliographySearchApp'
 import fieldRadio from '../components/FormFields/fieldRadio.vue';
-import VueTables from 'vue-tables-2';
 import Alerts from '../components/Alerts.vue'
 import axios from 'axios';
-import VueFormGenerator from 'vue-form-generator'
-import VueMultiselect from 'vue-multiselect';
-import fieldMultiselectClear from '@/components/FormFields/fieldMultiselectClear.vue';
+import VueFormGenerator from 'vue3-form-generator-legacy'
 import fieldCheckboxes from '../components/FormFields/fieldCheckboxes.vue';
 import * as uiv from 'uiv'
-
-Vue.use(uiv);
-Vue.use(VueFormGenerator);
-Vue.use(VueTables.ServerTable);
-
-Vue.component('multiselect', VueMultiselect);
-Vue.component('field-multiselect', fieldMultiselectClear);
-Vue.component('FieldCheckboxes', fieldCheckboxes);
-Vue.component('FieldRadio', fieldRadio);
-Vue.component('alerts', Alerts)
-
-window.axios = axios;
-
-new Vue({
+const app = createApp({
     el: '#bibliography-search-app',
     components: {
         BibliographySearchApp
     }
-})
+});
+
+
+app.use(uiv);
+app.use(VueFormGenerator);
+app.component('FieldCheckboxes', fieldCheckboxes);
+app.component('FieldRadio', fieldRadio);
+app.component('alerts', Alerts)
+
+window.axios = axios;
+app.mount('#bibliography-search-app');

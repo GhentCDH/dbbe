@@ -58,12 +58,13 @@ import {
   removeGreekAccents
 } from '@/helpers/formFieldUtils';
 import Panel from '../Panel.vue';
+import draggable from 'vuedraggable'
 import {calcChanges} from "@/helpers/modelChangeUtil";
 
-Vue.component('panel', Panel);
-
 export default {
-
+  components: {
+    draggable,
+  },
     props: {
         header: {
           type: String,

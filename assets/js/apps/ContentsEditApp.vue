@@ -84,7 +84,7 @@
 <script setup>
 import { reactive, ref, watch, onMounted, computed } from 'vue'
 import axios from 'axios'
-import VueFormGenerator from 'vue-form-generator'
+import VueFormGenerator from 'vue3-form-generator-legacy'
 
 import Edit from '@/components/Edit/Modals/Edit.vue'
 import Merge from '@/components/Edit/Modals/Merge.vue'

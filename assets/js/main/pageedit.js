@@ -1,9 +1,10 @@
-import Vue from 'vue';
+import { createApp } from 'vue';
 import PageEditApp from '@/apps/PageEditApp'
-
-new Vue({
+const app = createApp({
     el: '#page-edit-app',
     components: {
         PageEditApp
     }
-})
+});
+
+app.mount('#page-edit-app');

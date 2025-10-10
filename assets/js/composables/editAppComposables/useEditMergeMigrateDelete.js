@@ -21,10 +21,10 @@ export function useEditMergeMigrateDelete(initUrls = '{}', initData = '{}', depU
 
     const delDependencies = reactive({});
 
-    const deleteModal = ref(false);
-    const editModalValue = ref(false);
-    const mergeModal = ref(false);
-    const migrateModal = ref(false);
+    const deleteModal = ref(null);
+    const editModalValue = ref(null);
+    const mergeModal = ref(null);
+    const migrateModal = ref(null);
 
     const originalMergeModel = reactive({});
     const originalMigrateModel = reactive({});
@@ -76,19 +76,19 @@ export function useEditMergeMigrateDelete(initUrls = '{}', initData = '{}', depU
     }
 
     function cancelEdit() {
-        editModalValue.value = false;
+        editModalValue.value = null;
         editAlerts.value = [];
     }
     function cancelMerge() {
-        mergeModal.value = false;
+        mergeModal.value = null;
         mergeAlerts.value = [];
     }
     function cancelMigrate() {
-        migrateModal.value = false;
+        migrateModal.value = null;
         migrateAlerts.value = [];
     }
     function cancelDelete() {
-        deleteModal.value = false;
+        deleteModal.value = null;
         deleteAlerts.value = [];
     }
     function isOrIsChild(valueFromList, value, visited = new Set()) {

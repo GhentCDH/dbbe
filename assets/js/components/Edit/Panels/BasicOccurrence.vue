@@ -27,7 +27,6 @@ import Panel from '../Panel'
 import validatorUtil from "@/helpers/validatorUtil";
 import {calcChanges} from "@/helpers/modelChangeUtil";
 
-Vue.component('panel', Panel)
 
 export default {
    

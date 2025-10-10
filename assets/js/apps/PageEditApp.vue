@@ -36,7 +36,7 @@ import axios from 'axios'
 
 import Vue from 'vue';
 import * as uiv from 'uiv'
-import VueFormGenerator from 'vue-form-generator'
+import VueFormGenerator from 'vue3-form-generator-legacy'
 import VueCkeditor from 'vue-ckeditor2'
 
 import Alerts from '../components/Alerts'

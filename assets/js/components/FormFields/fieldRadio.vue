@@ -144,8 +144,7 @@ export default {
             this.value = this.getItemValue(item);
         },
         isItemChecked(item) {
-            const currentValue = this.getItemValue(item);
-            return (currentValue === this.value);
+          return (this.getItemValue(item) === this.value) ? true : null;
         },
       validate(calledParent) {
         this.clearValidationErrors();

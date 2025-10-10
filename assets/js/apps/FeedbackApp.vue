@@ -46,7 +46,7 @@ import axios from 'axios'
 
 import Vue from 'vue';
 import * as uiv from 'uiv'
-import VueFormGenerator from 'vue-form-generator'
+import VueFormGenerator from 'vue3-form-generator-legacy'
 import Recaptcha from '../components/Recaptcha'
 
 Vue.use(uiv)

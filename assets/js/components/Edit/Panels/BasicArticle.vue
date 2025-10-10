@@ -16,7 +16,7 @@
 </template>
 <script>
 import Vue from 'vue';
-import VueFormGenerator from 'vue-form-generator'
+import VueFormGenerator from 'vue3-form-generator-legacy'
 
 import {
   createMultiSelect,

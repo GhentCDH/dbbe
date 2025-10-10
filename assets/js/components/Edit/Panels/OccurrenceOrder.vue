@@ -18,14 +18,10 @@
 </template>
 
 <script>
-import Vue from 'vue';
-import draggable from 'vuedraggable'
-import Panel from '../Panel'
+
 import {disableFields, enableFields} from "@/helpers/formFieldUtils";
 import {calcChanges} from "@/helpers/modelChangeUtil";
 
-Vue.component('panel', Panel)
-Vue.component('draggable', draggable)
 
 export default {
   props: {

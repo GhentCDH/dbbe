@@ -1,6 +1,6 @@
 <template>
     <modal
-        :value="show"
+        :value="show || null"
         title="Invalid fields"
         auto-focus
         @input="$emit('cancel')">
