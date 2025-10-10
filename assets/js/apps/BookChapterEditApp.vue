@@ -75,13 +75,13 @@
           @reload="reload"
       />
 
-      <btn id="actions" type="warning" :disabled="diff.length === 0" @click="resetModal = true">
+      <btn id="actions" type="warning" :disabled="diff.length === 0" @click.native="resetModal = true">
         Reset
       </btn>
       <btn
           type="success"
           :disabled="diff.length === 0"
-          @click="saveButton()"
+          @click.native="saveButton()"
       >
         {{ bookChapter ? 'Save changes' : 'Save' }}
       </btn>

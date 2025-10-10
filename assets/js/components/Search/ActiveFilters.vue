@@ -3,7 +3,7 @@
         <button
             v-if="filters.length"
             class="btn btn-sm btn-primary active-filter-item"
-            @click="resetFilters()"
+            @click.native="resetFilters()"
         >
             Reset all filters
             <i

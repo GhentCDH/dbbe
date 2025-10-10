@@ -18,7 +18,7 @@
         />
         <btn
             :disabled="invalid || (data.title === originalData.title && data.content === originalData.content && data.display_navigation === originalData.display_navigation)"
-            @click="submit()"
+            @click.native="submit()"
         >
             Save
         </btn>

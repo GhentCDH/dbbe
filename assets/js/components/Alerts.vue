@@ -15,7 +15,7 @@
 
       <p v-if="item.login">
         Is it possible your login timed out? Try
-        <btn @click="login(index)">
+        <btn @click.native="login(index)">
           logging in
         </btn>
         again.

@@ -49,32 +49,31 @@
         </td>
         <td>{{ item.publicComment }}</td>
         <td>
-
           <a href="#"
-          title="Edit"
-          class="action"
-          @click.prevent="update(item, index)"
+             title="Edit"
+             class="action"
+             @click.prevent="update(item, index)"
           >
-          <i class="fa fa-pencil-square-o" />
+            <i class="fa fa-pencil-square-o" />
           </a>
 
           <a href="#"
-          title="Delete"
-          class="action"
-          @click.prevent="del(item, index)"
+             title="Delete"
+             class="action"
+             @click.prevent="del(item, index)"
           >
-          <i class="fa fa-trash-o" />
+            <i class="fa fa-trash-o" />
           </a>
         </td>
       </tr>
       </tbody>
     </table>
-    <btn @click="add()"><i class="fa fa-plus" />&nbsp;Add a translation</btn>
+    <btn @click.native="add()"><i class="fa fa-plus" />&nbsp;Add a translation</btn>
     <modal
-        v-model="editModal"
+        :model-value="editModal"
         size="lg"
         auto-focus
-        :backdrop="false"
+        :backdrop="null"
     >
       <template #header>
         <h4 class="modal-title">
@@ -83,6 +82,7 @@
       </template>
 
       <vue-form-generator
+          v-if="editModal"
           ref="editForm"
           :schema="schema"
           :model="editModel"
@@ -90,6 +90,7 @@
           @validated="validated"
       />
       <Bibliography
+          v-if="editModal"
           id="translationBibliography"
           ref="translationBibliography"
           header="Bibliography"
@@ -110,6 +111,7 @@
           @reload="reload"
       />
       <Person
+          v-if="editModal"
           id="translators"
           ref="translators"
           header="Translators"
@@ -124,27 +126,27 @@
       />
 
       <template #footer>
-        <btn @click="editModal = false">Cancel</btn>
+        <btn @click.native="editModal = false">Cancel</btn>
         <btn
             type="success"
             :disabled="!isValid"
-            @click="submitEdit()"
+            @click.native="submitEdit()"
         >
           {{ editModel.index == null ? 'Add' : 'Update' }}
         </btn>
       </template>
     </modal>
     <modal
-        v-model="delModal"
+        :model-value="delModal"
         title="Delete translation"
         auto-focus
     >
       <p>Are you sure you want to delete this translation?</p>
       <template #footer>
-        <btn @click="delModal = false">Cancel</btn>
+        <btn @click.native="delModal = false">Cancel</btn>
         <btn
             type="danger"
-            @click="submitDelete()"
+            @click.native="submitDelete()"
         >
           Delete
         </btn>
@@ -154,13 +156,14 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, reactive } from 'vue'
+import { ref, computed, watch, reactive, nextTick } from 'vue'
 import { createMultiSelect, enableField } from '@/helpers/formFieldUtils'
 import Panel from '../Panel.vue'
 import { calcChanges as calcChangesHelper } from "@/helpers/modelChangeUtil"
 import validatorUtil from "@/helpers/validatorUtil"
 import Bibliography from "@/components/Edit/Panels/Bibliography.vue"
 import Person from "@/components/Edit/Panels/Person.vue"
+import { Btn as btn, Modal as modal } from 'uiv'
 
 const props = defineProps({
   header: {
@@ -227,8 +230,8 @@ const editModel = reactive({
   personRoles: createPersonRoles(),
 })
 
-// Schema
-const schema = ref({
+// Schema - computed to handle reactive updates
+const schema = computed(() => ({
   fields: {
     language: createMultiSelect(
         'Language',
@@ -256,7 +259,7 @@ const schema = ref({
       validator: validatorUtil.string,
     },
   },
-})
+}))
 
 const formOptions = ref({
   validateAfterChanged: true,
@@ -265,13 +268,6 @@ const formOptions = ref({
 })
 
 const fields = computed(() => schema.value.fields)
-
-// Watch for language changes
-watch(() => props.values?.languages, (newVal) => {
-  if (schema.value.fields.language) {
-    schema.value.fields.language.values = newVal || []
-  }
-}, { deep: true })
 
 // Methods
 const init = () => {
@@ -288,7 +284,9 @@ const reload = (type) => {
 const enableFields = (enableKeys) => {
   if (enableKeys == null) {
     enableField(schema.value.fields.language)
-    translators.value?.enableFields(['modernPersons'])
+    nextTick(() => {
+      translators.value?.enableFields(['modernPersons'])
+    })
   } else {
     if (
         enableKeys.includes('articles') ||
@@ -299,10 +297,14 @@ const enableFields = (enableKeys) => {
         enableKeys.includes('phds') ||
         enableKeys.includes('bibVarias')
     ) {
-      translationBibliography.value?.enableFields(enableKeys)
+      nextTick(() => {
+        translationBibliography.value?.enableFields(enableKeys)
+      })
     }
     if (enableKeys.includes('modernPersons')) {
-      translators.value?.enableFields(enableKeys)
+      nextTick(() => {
+        translators.value?.enableFields(enableKeys)
+      })
     }
   }
 }
@@ -317,10 +319,14 @@ const disableFields = (disableKeys) => {
       disableKeys.includes('phds') ||
       disableKeys.includes('bibVarias')
   ) {
-    translationBibliography.value?.disableFields(disableKeys)
+    nextTick(() => {
+      translationBibliography.value?.disableFields(disableKeys)
+    })
   }
   if (disableKeys.includes('modernPersons')) {
-    translators.value?.disableFields(disableKeys)
+    nextTick(() => {
+      translators.value?.disableFields(disableKeys)
+    })
   }
 }
 

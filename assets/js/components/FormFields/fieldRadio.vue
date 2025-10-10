@@ -13,11 +13,11 @@
                     :value="getItemValue(item)"
                     :checked="isItemChecked(item)"
                     :class="schema.fieldClasses"
-                    @click="onSelection(item)"
+                    @click.native="onSelection(item)"
                 >
                 <label
                     :for="id"
-                    @click="onSelection(item)"
+                    @click.native="onSelection(item)"
                 >
                     {{ getItemName(item) }}
                 </label>

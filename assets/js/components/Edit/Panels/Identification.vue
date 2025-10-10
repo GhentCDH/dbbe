@@ -47,10 +47,10 @@
                     </tr>
                 </tbody>
             </table>
-            <btn @click="add(identifier)"><i class="fa fa-plus" />&nbsp;Add an identification ({{ identifier.name }})</btn>
+            <btn @click.native="add(identifier)"><i class="fa fa-plus" />&nbsp;Add an identification ({{ identifier.name }})</btn>
         </div>
         <modal
-            v-model="editModal"
+            :model-value="editModal"
             size="lg"
             auto-focus
         >
@@ -61,7 +61,7 @@
                 :options="formOptions"
                 @validated="validated"
             />
-            <div slot="header">
+          <template #header>
                 <h4
                     v-if="editModel.index"
                     class="modal-title"
@@ -74,33 +74,33 @@
                 >
                     Add a new identification
                 </h4>
-            </div>
-            <div slot="footer">
-                <btn @click="editModal=false">Cancel</btn>
+            </template>
+          <template #footer>
+                <btn @click.native="editModal=false">Cancel</btn>
                 <btn
                     type="success"
                     :disabled="!isValid"
-                    @click="submit()"
+                    @click.native="submit()"
                 >
                     {{ editModel.index != null ? 'Update' : 'Add' }}
                 </btn>
-            </div>
+            </template>
         </modal>
         <modal
-            v-model="delModal"
+            :model-value="delModal"
             title="Delete identification"
             auto-focus
         >
             <p>Are you sure you want to delete this identification?</p>
-            <div slot="footer">
-                <btn @click="delModal=false">Cancel</btn>
+          <template #footer>
+                <btn @click.native="delModal=false">Cancel</btn>
                 <btn
                     type="danger"
-                    @click="submitDelete()"
+                    @click.native="submitDelete()"
                 >
                     Delete
                 </btn>
-            </div>
+          </template>
         </modal>
     </panel>
 </template>
@@ -111,13 +111,17 @@ import {
   createMultiSelect, disableFields,
   enableField, enableFields,
 } from '@/helpers/formFieldUtils';
-import Panel from '../Panel'
 import {calcChanges} from "@/helpers/modelChangeUtil";
 import validatorUtil from "@/helpers/validatorUtil";
-
-Vue.component('panel', Panel);
+import {Btn, Modal} from "uiv";
+import Alerts from "@/components/Alerts.vue";
 
 export default {
+    components:{
+      modal: Modal,
+      btn: Btn,
+      alerts: Alerts
+    },
     props: {
         identifiers: {
             type: Array,

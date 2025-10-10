@@ -57,7 +57,6 @@ import {
   createMultiSelect, disableFields, enableFields,
   removeGreekAccents
 } from '@/helpers/formFieldUtils';
-import Panel from '../Panel.vue';
 import draggable from 'vuedraggable'
 import {calcChanges} from "@/helpers/modelChangeUtil";
 

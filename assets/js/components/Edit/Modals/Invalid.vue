@@ -1,21 +1,27 @@
 <template>
     <modal
-        :value="show || null"
+        :model-value="show"
         title="Invalid fields"
         auto-focus
         @input="$emit('cancel')">
         <p>There are invalid input fields. Please correct them.</p>
-        <div slot="footer">
+      <template #footer>
             <btn
-                @click="$emit('confirm')"
+                @click.native="$emit('confirm')"
                 data-action="auto-focus">
                 OK
             </btn>
-        </div>
+      </template>
     </modal>
 </template>
 <script>
+import {Btn,Modal} from "uiv";
+
 export default {
+  components: {
+    btn: Btn,
+    modal: Modal
+  },
     props: {
         show: {
             type: Boolean,

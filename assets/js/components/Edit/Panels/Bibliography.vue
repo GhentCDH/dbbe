@@ -62,7 +62,7 @@
         </tr>
         </tbody>
       </table>
-      <btn @click="newBib('book')">
+      <btn @click.native="newBib('book')">
         <i class="fa fa-plus" />&nbsp;Add a book reference
       </btn>
     </div>
@@ -124,7 +124,7 @@
         </tr>
         </tbody>
       </table>
-      <btn @click="newBib('article')">
+      <btn @click.native="newBib('article')">
         <i class="fa fa-plus" />&nbsp;Add an article reference
       </btn>
     </div>
@@ -186,7 +186,7 @@
         </tr>
         </tbody>
       </table>
-      <btn @click="newBib('bookChapter')">
+      <btn @click.native="newBib('bookChapter')">
         <i class="fa fa-plus" />&nbsp;Add a book chapter reference
       </btn>
     </div>
@@ -246,7 +246,7 @@
         </tr>
         </tbody>
       </table>
-      <btn @click="newBib('onlineSource')">
+      <btn @click.native="newBib('onlineSource')">
         <i class="fa fa-plus" />&nbsp;Add an online source
       </btn>
     </div>
@@ -302,7 +302,7 @@
         </tr>
         </tbody>
       </table>
-      <btn @click="newBib('blogPost')">
+      <btn @click.native="newBib('blogPost')">
         <i class="fa fa-plus" />&nbsp;Add a blog post reference
       </btn>
     </div>
@@ -364,7 +364,7 @@
         </tr>
         </tbody>
       </table>
-      <btn @click="newBib('phd')">
+      <btn @click.native="newBib('phd')">
         <i class="fa fa-plus" />&nbsp;Add a PhD thesis reference
       </btn>
     </div>
@@ -426,7 +426,7 @@
         </tr>
         </tbody>
       </table>
-      <btn @click="newBib('bibVaria')">
+      <btn @click.native="newBib('bibVaria')">
         <i class="fa fa-plus" />&nbsp;Add a bib varia reference
       </btn>
     </div>
@@ -506,11 +506,11 @@
       />
 
       <template #footer>
-        <btn @click="editBibModal = false">Cancel</btn>
+        <btn @click.native="editBibModal = false">Cancel</btn>
         <btn
             type="success"
             :disabled="!isValid"
-            @click="submitBib"
+            @click.native="submitBib"
         >
           {{ bibIndex > -1 ? 'Update' : 'Add' }}
         </btn>
@@ -526,10 +526,10 @@
     >
       <p>Are you sure you want to delete this bibliography?</p>
       <template #footer>
-        <btn @click="delBibModal = false">Cancel</btn>
+        <btn @click.native="delBibModal = false">Cancel</btn>
         <btn
             type="danger"
-            @click="submitDeleteBib"
+            @click.native="submitDeleteBib"
         >
           Delete
         </btn>
@@ -542,7 +542,7 @@
 import { ref, computed, watch, reactive } from 'vue';
 import Panel from '../Panel.vue';
 import Alerts from "@/components/Alerts.vue";
-import { Btn, Modal } from 'uiv';
+import { Btn as btn, Modal as modal } from 'uiv';
 import validatorUtil from '@/helpers/validatorUtil';
 import {
   createMultiSelect,

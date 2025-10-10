@@ -4,7 +4,7 @@
             <div
                 class="panel-heading"
                 role="button"
-                @click="toggleAccordion(0)">
+                @click.native="toggleAccordion(0)">
                 <h4 class="panel-title">
                     <a :aria-expanded="showAccordion[0]">
                         Give feedback
@@ -27,7 +27,7 @@
                         @verify="onVerify" />
                     <btn
                         :disabled="invalid"
-                        @click="submit()">
+                        @click.native="submit()">
                         Submit
                     </btn>
                 </div>
@@ -103,7 +103,7 @@ export default {
                     },
                 },
             },
-            showAccordion: [false],
+            showAccordion: [null],
             status: null,
         }
     },

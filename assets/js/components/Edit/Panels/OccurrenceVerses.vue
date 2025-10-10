@@ -22,19 +22,18 @@
             :data-line-number="index + 1"
         />
         <td class="verse">
-
           <a v-if="individualVerse.groupId"
-          :href="urls['verse_variant_get'].replace('verse_variant_id', individualVerse.groupId)"
+             :href="urls['verse_variant_get'].replace('verse_variant_id', individualVerse.groupId)"
           >
-          {{ individualVerse.verse }}
-          <i class="fa fa-link pull-right" />
+            {{ individualVerse.verse }}
+            <i class="fa fa-link pull-right" />
           </a>
 
           <a v-else-if="individualVerse.linkVerses"
-          href="#"
+             href="#"
           >
-          {{ individualVerse.verse }}
-          <i class="fa fa-link pull-right" />
+            {{ individualVerse.verse }}
+            <i class="fa fa-link pull-right" />
           </a>
           <template v-else>
             {{ individualVerse.verse }}
@@ -43,19 +42,22 @@
       </tr>
       </tbody>
     </table>
-    <btn @click="addText">
+    <btn @click.native="addText">
       <i class="fa fa-plus" />&nbsp;Add verses as full text
     </btn>
     <h6>Edit verses individually</h6>
-    <div ref="versesContainer">
+    <div
+        v-if="model.verses && model.verses.length"
+        ref="versesContainer">
       <div
           v-for="(individualVerse, index) in model.verses"
           :key="individualVerse.order"
+          :data-index="index"
           class="panel panel-default draggable-item greek"
       >
         <div class="panel-body row">
           <div class="col-xs-1">
-            <i class="fa fa-arrows draggable-icon" style="cursor: move;" />
+            <i class="fa fa-arrows draggable-icon" />
           </div>
           <div class="col-xs-9">
             {{ individualVerse.verse }}
@@ -89,17 +91,17 @@
         </div>
       </div>
     </div>
-    <btn @click="addVerse">
+    <btn @click.native="addVerse">
       <i class="fa fa-plus" />&nbsp;Add a single verse
     </btn>
 
-    <!-- Rest of modals unchanged -->
     <!-- Links Modal -->
     <modal
         v-if="verse"
-        v-model="linksModal"
+        :model-value="linksModal"
+        @update:model-value="linksModal = $event"
         size="lg"
-        :footer=null
+        :footer="null"
         auto-focus
     >
       <template #header>
@@ -120,7 +122,8 @@
 
     <!-- Add Text Modal -->
     <modal
-        v-model="addTextModal"
+        :model-value="addTextModal"
+        @update:model-value="addTextModal = $event"
         size="lg"
         auto-focus
     >
@@ -131,6 +134,7 @@
       </template>
 
       <vue-form-generator
+          v-if="addTextModal"
           ref="addTextFormRef"
           :schema="addTextSchema"
           :model="textModel"
@@ -139,11 +143,11 @@
       />
 
       <template #footer>
-        <btn @click="addTextModal = false">Cancel</btn>
+        <btn @click.native="addTextModal = false">Cancel</btn>
         <btn
             type="success"
             :disabled="!addTextIsValid"
-            @click="submitAddText"
+            @click.native="submitAddText"
         >
           Add
         </btn>
@@ -153,7 +157,8 @@
     <!-- Edit Verse Modal -->
     <modal
         v-if="verse != null && verse.linkVerses != null"
-        v-model="editVerseModal"
+        :model-value="editVerseModal"
+        @update:model-value="editVerseModal = $event"
         size="lg"
         auto-focus
         :backdrop="null"
@@ -170,6 +175,7 @@
       />
       <div class="pbottom-default">
         <vue-form-generator
+            v-if="editVerseModal"
             ref="editVerseFormRef"
             :schema="editVerseSchema"
             :model="verse"
@@ -177,19 +183,19 @@
         />
         <btn
             v-if="verse.groupId"
-            @click="updateText"
+            @click.native="updateText"
         >
           Update text
         </btn>
         <btn
             v-if="verse.groupId"
-            @click="updateTextRemoveLink"
+            @click.native="updateTextRemoveLink"
         >
           Update text and remove link(s)
         </btn>
         <btn
             v-if="!(verse.groupId)"
-            @click="updateText"
+            @click.native="updateText"
         >
           Update text without linking
         </btn>
@@ -207,20 +213,21 @@
       <btn
           v-if="verse.linkVerses.length !== 0"
           type="success"
-          @click="updateTextSetLinks"
+          @click.native="updateTextSetLinks"
       >
         Update text and update linked verses
       </btn>
       <btn
           v-else
           type="success"
-          @click="updateTextSetLinks"
+          @click.native="updateTextSetLinks"
       >
         Update text and create a new link group for this single verse
       </btn>
       <div class="row">
         <div class="col-xs-11">
           <vue-form-generator
+              v-if="editVerseModal"
               ref="searchVerseFormRef"
               :schema="searchVerseSchema"
               :model="search"
@@ -231,7 +238,7 @@
           <btn
               :disabled="search == null || search.search == null || search.search === ''"
               style="margin-top: 1.3em;"
-              @click="searchVerseLinks"
+              @click.native="searchVerseLinks"
           >
             <i class="fa fa-search" />
           </btn>
@@ -249,14 +256,15 @@
       />
 
       <template #footer>
-        <btn @click="editVerseModal = false">Cancel</btn>
+        <btn @click.native="editVerseModal = false">Cancel</btn>
       </template>
     </modal>
 
     <!-- Delete Verse Modal -->
     <modal
         v-if="verse"
-        v-model="delVerseModal"
+        :model-value="delVerseModal"
+        @update:model-value="delVerseModal = $event"
         auto-focus
     >
       <template #header>
@@ -268,10 +276,10 @@
       Are you sure you want to delete verse "<span class="greek">{{ verse.verse }}</span>"?
 
       <template #footer>
-        <btn @click="delVerseModal = false">Cancel</btn>
+        <btn @click.native="delVerseModal = false">Cancel</btn>
         <btn
             type="danger"
-            @click="submitDelVerse"
+            @click.native="submitDelVerse"
         >
           Delete
         </btn>
@@ -281,13 +289,15 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, nextTick, inject } from 'vue';
+import { ref, computed, watch, nextTick, inject, onMounted } from 'vue';
 import axios from 'axios';
+import Sortable from 'sortablejs';
 import Alerts from '@/components/Alerts.vue';
 import Panel from '../Panel.vue';
 import VerseTable from './Components/VerseTable.vue';
 import { disableFields as disableFieldsHelper, enableFields as enableFieldsHelper } from '@/helpers/formFieldUtils';
 import validatorUtil from '@/helpers/validatorUtil';
+
 const props = defineProps({
   urls: {
     type: Object,
@@ -330,11 +340,13 @@ const generalFormRef = ref(null);
 const addTextFormRef = ref(null);
 const editVerseFormRef = ref(null);
 const searchVerseFormRef = ref(null);
+const versesContainer = ref(null);
+let sortableInstance = null;
 
-const linksModal = ref(null);
-const addTextModal = ref(null);
-const editVerseModal = ref(null);
-const delVerseModal = ref(null);
+const linksModal = ref(false);
+const addTextModal = ref(false);
+const editVerseModal = ref(false);
+const delVerseModal = ref(false);
 const addTextIsValid = ref(false);
 const textModel = ref({});
 const verse = ref(null);
@@ -430,6 +442,31 @@ const searchVerseSchema = {
   },
 };
 
+// Sortable initialization
+const initSortable = () => {
+  if (versesContainer.value && !sortableInstance && props.model.verses && props.model.verses.length) {
+    sortableInstance = new Sortable(versesContainer.value, {
+      animation: 150,
+      handle: '.draggable-icon',
+      onEnd: (evt) => {
+        const { oldIndex, newIndex } = evt;
+        if (oldIndex !== newIndex && props.model.verses) {
+          const movedItem = props.model.verses.splice(oldIndex, 1)[0];
+          props.model.verses.splice(newIndex, 0, movedItem);
+          onVerseOrderChange();
+        }
+      }
+    });
+  }
+};
+
+const destroySortable = () => {
+  if (sortableInstance) {
+    sortableInstance.destroy();
+    sortableInstance = null;
+  }
+};
+
 // Computed
 const tableVerses = computed(() => {
   if (verse.value == null || verse.value.linkVerses == null) {
@@ -510,6 +547,9 @@ const getVerseIndex = (verse) => {
 
 const init = () => {
   originalModel.value = JSON.parse(JSON.stringify(props.model));
+  nextTick(() => {
+    initSortable();
+  });
 };
 
 const validate = () => {
@@ -682,6 +722,12 @@ const submitAddText = () => {
     calcChanges();
     emit('validated', 0, null, { changes: changes.value });
     addTextModal.value = false;
+
+    // Reinitialize sortable after adding verses
+    nextTick(() => {
+      destroySortable();
+      initSortable();
+    });
   }
 };
 
@@ -843,6 +889,12 @@ const updateText = () => {
     calcChanges();
     emit('validated', 0, null, { changes: changes.value });
     editVerseModal.value = false;
+
+    // Reinitialize sortable after adding/updating verse
+    nextTick(() => {
+      destroySortable();
+      initSortable();
+    });
   }
 };
 
@@ -887,6 +939,12 @@ const updateTextSetLinks = () => {
     calcChanges();
     emit('validated', 0, null, { changes: changes.value });
     editVerseModal.value = false;
+
+    // Reinitialize sortable after adding/updating verse
+    nextTick(() => {
+      destroySortable();
+      initSortable();
+    });
   }
 };
 
@@ -902,6 +960,12 @@ const submitDelVerse = () => {
   calcChanges();
   emit('validated', 0, null, { changes: changes.value });
   delVerseModal.value = false;
+
+  // Reinitialize sortable after deleting verse
+  nextTick(() => {
+    destroySortable();
+    initSortable();
+  });
 };
 
 const onVerseOrderChange = () => {
@@ -945,6 +1009,21 @@ watch(
     }
 );
 
+// Watch for changes in model.verses to reinitialize sortable
+watch(() => props.model.verses, () => {
+  nextTick(() => {
+    destroySortable();
+    initSortable();
+  });
+}, { deep: true });
+
+// Lifecycle
+onMounted(() => {
+  nextTick(() => {
+    initSortable();
+  });
+});
+
 // Expose methods
 defineExpose({
   validate,
@@ -959,17 +1038,21 @@ defineExpose({
 
 <style scoped>
 .draggable-item {
-  cursor: move;
   margin-bottom: 10px;
 }
 
 .draggable-icon {
+  cursor: grab;
   margin-right: 10px;
   color: #999;
-  cursor: move;
+}
+
+.draggable-icon:active {
+  cursor: grabbing;
 }
 
 .pbottom-default {
   padding-bottom: 1rem;
 }
 </style>
+    }

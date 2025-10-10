@@ -45,10 +45,10 @@
                     </tr>
                 </tbody>
             </table>
-            <btn @click="newRelatedType()"><i class="fa fa-plus" />&nbsp;Add a new related type</btn>
+            <btn @click.native="newRelatedType()"><i class="fa fa-plus" />&nbsp;Add a new related type</btn>
         </div>
         <modal
-            v-model="updateRelatedTypeModal"
+            :model-value="updateRelatedTypeModal"
             title="Edit related type"
             size="lg"
             auto-focus
@@ -60,32 +60,32 @@
                 :options="formOptions"
                 @validated="validated"
             />
-            <div slot="footer">
-                <btn @click="updateRelatedTypeModal=false">Cancel</btn>
+          <template #footer>
+                <btn @click.native="updateRelatedTypeModal=false">Cancel</btn>
                 <btn
                     type="alert"
                     :disabled="!(isValid && editRelatedType != null && editRelatedType.type != null && editRelatedType.relationTypes != null && editRelatedType.relationTypes.length > 0)"
-                    @click="submitUpdateRelatedType()"
+                    @click.native="submitUpdateRelatedType()"
                 >
                     {{ relatedTypeIndex > -1 ? 'Update' : 'Add' }}
                 </btn>
-            </div>
+          </template>
         </modal>
         <modal
-            v-model="delRelatedTypeModal"
+            :model-value="delRelatedTypeModal"
             title="Delete related type"
             auto-focus
         >
             <p>Are you sure you want to delete this related type?</p>
-            <div slot="footer">
-                <btn @click="delRelatedTypeModal=false">Cancel</btn>
+          <template #footer>
+                <btn @click.native="delRelatedTypeModal=false">Cancel</btn>
                 <btn
                     type="danger"
-                    @click="submitDeleteRelatedType()"
+                    @click.native="submitDeleteRelatedType()"
                 >
                     Delete
                 </btn>
-            </div>
+          </template>
         </modal>
     </panel>
 </template>
@@ -98,11 +98,16 @@ import {
 import Panel from '../Panel'
 import {calcChanges} from "@/helpers/modelChangeUtil";
 import validatorUtil from "@/helpers/validatorUtil";
+import Alerts from "@/components/Alerts.vue";
+import {Btn, Modal} from "uiv";
 
-Vue.component('panel', Panel)
 
 export default {
-
+    components: {
+      alert:Alerts,
+      btn: Btn,
+      modal: Modal
+    },
     props: {
         header: {
           type: String,

@@ -1,6 +1,6 @@
 <template>
   <modal
-      :value="show || null"
+      :model-value="show"
       :title="'Save ' + title"
       size="lg"
       auto-focus
@@ -52,12 +52,12 @@
     </table>
 
     <template #footer>
-      <btn :disabled="cancelDisabled" @click="cancelClick">Cancel</btn>
+      <btn :disabled="cancelDisabled" @click.native="cancelClick">Cancel</btn>
       <btn
           :disabled="confirmDisabled"
           type="success"
           data-action="auto-focus"
-          @click="confirmClick"
+          @click.native="confirmClick"
       >
         Save
       </btn>
@@ -68,6 +68,8 @@
 <script setup>
 import { ref, computed } from 'vue'
 import Alerts from '@/components/Alerts.vue'
+import {Modal as modal} from "uiv";
+import {Btn as btn} from "uiv";
 
 const props = defineProps({
   show: { type: Boolean, default: false },

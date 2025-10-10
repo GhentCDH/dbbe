@@ -125,7 +125,7 @@
         </tr>
         </tbody>
       </table>
-      <Btn @click="newLink">
+      <Btn @click.native="newLink">
         <i class="fa fa-plus" />&nbsp;Add a new image link
       </Btn>
     </div>
@@ -140,13 +140,13 @@
         <p>This will modify the public state of this image in all occurrences. Do you wish to continue?</p>
       </Alerts>
       <template #footer>
-        <Btn @click="publicImageModal = false">
+        <Btn @click.native="publicImageModal = false">
           Cancel
         </Btn>
         <Btn
             :disabled="submitToggleImagePublicDisabled"
             type="alert"
-            @click="submitToggleImagePublic"
+            @click.native="submitToggleImagePublic"
         >
           Update
         </Btn>
@@ -172,13 +172,13 @@
           @validated="validated"
       />
       <template #footer>
-        <Btn @click="cancelUpdateLink">
+        <Btn @click.native="cancelUpdateLink">
           Cancel
         </Btn>
         <Btn
             :disabled="submitUpdateLinkDisabled"
             type="alert"
-            @click="submitUpdateLink"
+            @click.native="submitUpdateLink"
         >
           {{ linkIndex > -1 ? 'Update' : 'Add' }}
         </Btn>
@@ -193,13 +193,13 @@
     >
       <p>Are you sure you want to delete this image?</p>
       <template #footer>
-        <Btn @click="delImageModal = false">
+        <Btn @click.native="delImageModal = false">
           Cancel
         </Btn>
         <Btn
             :disabled="submitDeleteImageDisabled"
             type="danger"
-            @click="submitDeleteImage"
+            @click.native="submitDeleteImage"
         >
           Delete
         </Btn>
@@ -214,13 +214,13 @@
     >
       <p>Are you sure you want to delete this image link?</p>
       <template #footer>
-        <Btn @click="delLinkModal = false">
+        <Btn @click.native="delLinkModal = false">
           Cancel
         </Btn>
         <Btn
             :disabled="submitDeleteLinkDisabled"
             type="danger"
-            @click="submitDeleteLink"
+            @click.native="submitDeleteLink"
         >
           Delete
         </Btn>
