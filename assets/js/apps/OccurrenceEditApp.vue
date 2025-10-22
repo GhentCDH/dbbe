@@ -929,12 +929,10 @@ onMounted(() => {
   setData()
   originalModel.value = JSON.parse(JSON.stringify(model))
   nextTick(() => {
-    if (!data.clone) {
       for (let panel of panels) {
         const panelRef = panelRefs.value[panel]
         if (panelRef) {
           panelRef.init()
-        }
       }
     }
   })
