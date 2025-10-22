@@ -239,15 +239,32 @@ const setData = () => {
   books.value = []
   managements.value = data.managements
   modernPersons.value = []
-  identifiers.value = data.identifiers
 
   if (bookChapter.value != null) {
-    model.basic = { ...bookChapter.value.basic }
-    model.urls = { ...bookChapter.value.urls }
-    model.general = { ...bookChapter.value.general }
-    model.personRoles = { ...bookChapter.value.personRoles }
-    model.identification = { ...bookChapter.value.identification }
-    model.managements = { ...bookChapter.value.managements }
+    roles.forEach(role => {
+      model.personRoles[role.systemName] = bookChapter.value.personRoles?.[role.systemName] ?? []
+    })
+
+    Object.assign(model.basic, {
+      title: bookChapter.value.title,
+      book: bookChapter.value.book,
+      startPage: bookChapter.value.startPage,
+      endPage: bookChapter.value.endPage,
+      rawPages: bookChapter.value.rawPages,
+    })
+
+    model.urls.urls = bookChapter.value.urls?.map((url, i) => ({ ...url, tgIndex: i + 1 })) ?? []
+
+    identifiers.forEach(identifier => {
+      model.identification[identifier.systemName] = bookChapter.value.identifications?.[identifier.systemName] ?? []
+    })
+
+    model.general = {
+      publicComment: bookChapter.value.publicComment,
+      privateComment: bookChapter.value.privateComment,
+    }
+
+    model.managements.managements = bookChapter.value.managements
   }
   else {
     model.basic = {
@@ -257,14 +274,12 @@ const setData = () => {
       endPage: null,
       rawPages: null,
     }
-    model.urls = {}
+    model.urls = { urls: [] }
     model.general = {}
     model.personRoles = { ...personRoles }
     model.identification = {}
-    model.managements = {}
+    model.managements = { managements: [] }
   }
-
-
 }
 
 const toSave = () => {
