@@ -1,5 +1,5 @@
 <template>
-  <table class="b-table">
+  <table class="b-table table">
     <thead>
     <tr>
       <slot name="actionsPreRowHeader">
@@ -17,7 +17,7 @@
     </tr>
     </thead>
     <tbody>
-    <tr v-for="(item, index) in items" :key="item.id">
+    <tr v-for="(item, index) in items" :key="item.id" :class="getRowClass(item, index)">
       <slot name="actionsPreRow" :item="item" :index="index" :row="item">
       </slot>
       <td v-for="field in fields" :key="field.key" :class="field.tdClass">
@@ -62,6 +62,10 @@ export default {
         down: 'glyphicon-chevron-down',
         is: 'glyphicon-sort'
       })
+    },
+    rowClass: {
+      type: [String, Function],
+      default: null
     }
   },
   computed: {
@@ -105,6 +109,15 @@ export default {
     },
     fieldValue(item, key) {
       return item?.[key] ?? '';
+    },
+    getRowClass(item, index) {
+      if (!this.rowClass) return '';
+
+      if (typeof this.rowClass === 'function') {
+        return this.rowClass(item, index);
+      }
+
+      return this.rowClass;
     }
   },
 };
