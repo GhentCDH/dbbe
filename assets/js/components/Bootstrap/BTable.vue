@@ -1,5 +1,5 @@
 <template>
-  <table class="b-table">
+  <table class="b-table table">
     <thead>
     <tr>
       <slot name="actionsPreRowHeader">
@@ -122,10 +122,3 @@ export default {
   },
 };
 </script>
-<style scoped>
-.b-table tbody tr.warning {
-  background-color: #fcf8e3 !important;
-}
-
-
-</style>
