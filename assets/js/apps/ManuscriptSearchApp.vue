@@ -54,6 +54,7 @@
           :fields="tableFields"
           :sort-by="sortBy"
           :sort-ascending="sortAscending"
+          :row-class="getRowClass"
           @sort="handleSort"
       >
         <template #actionsPreRowHeader v-if="isViewInternal">
@@ -469,6 +470,10 @@ schema.value.groups.push({
   legend: 'External identifiers',
   fields: idList,
 });
+
+const getRowClass = (row) => {
+  return (row.public == null || row.public) ? '' : 'warning';
+};
 
 // Computed for table fields
 const tableFields = computed(() => {
