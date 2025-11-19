@@ -1019,6 +1019,8 @@ class OccurrenceManager extends PoemManager
 
             // remove from elasticsearch
             $this->deleteElasticByIdIfExists($id);
+            $manuscriptId=$old->getManuscript()->getId();
+            $this->container->get(ManuscriptManager::class)->updateElasticByIds([$manuscriptId]);
 
             // commit transaction
             $this->dbs->commit();
