@@ -45,6 +45,7 @@ export function useFormValidation({ model, fields, resultTableRef, defaultOrderi
         const hasFilters = Object.keys(params.filters || {}).length > 0;
         if ('filters' in params) {
             for (const key of Object.keys(params.filters)) {
+                console.log(key)
                 if (key === 'date') {
                     if ('from' in params.filters.date) {
                         model.value.year_from = Number(params.filters.date.from);
@@ -52,7 +53,25 @@ export function useFormValidation({ model, fields, resultTableRef, defaultOrderi
                     if ('to' in params.filters.date) {
                         model.value.year_to = Number(params.filters.date.to);
                     }
-                } else if (key in fields.value) {
+                }
+                else if (key === 'dbbe') {
+                    console.log('here')
+                    const dbbeValue = params.filters[key];
+                    const aggValues = aggregation[key];
+
+                    const matchingOption = aggValues.find(v =>
+                        String(v._id) === String(dbbeValue) ||
+                        (dbbeValue === '1' && v.name === 'true') ||
+                        (dbbeValue === '0' && v.name === 'false')
+                    );
+
+                    if (matchingOption) {
+                        model.value = {
+                            ...model.value,
+                            [key]: matchingOption
+                        };                    }
+                }
+                else if (key in fields.value) {
                     const field = fields.value[key];
                     if (field.type === 'multiselectClear' && aggregation?.[key]) {
                         const values = params.filters[key];
@@ -61,13 +80,15 @@ export function useFormValidation({ model, fields, resultTableRef, defaultOrderi
                         model.value[key] = Array.isArray(values)
                             ? aggValues.filter(v => values.includes(String(v.id)))
                             : [aggValues.find(v => String(v.id) === values)].filter(Boolean);
-                    } else if (key.endsWith('_mode')) {
+                    }
+                    else if (key.endsWith('_mode')) {
                         model.value[key] = [params.filters[key]];
                     } else {
                         model.value[key] = params.filters[key];
                     }
                 }
             }
+
         }
 
         oldFilterValues.value = constructFilterValues(model, fields.value);
