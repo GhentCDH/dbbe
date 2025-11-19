@@ -54,13 +54,11 @@ export function useFormValidation({ model, fields, resultTableRef, defaultOrderi
                         model.value.year_to = Number(params.filters.date.to);
                     }
                 }
-                // Special handling for dbbe field - BEFORE the general field check
                 else if (key === 'dbbe') {
                     console.log('here')
                     const dbbeValue = params.filters[key];
                     const aggValues = aggregation[key];
 
-                    // Find the matching option where name matches 'true' or 'false'
                     const matchingOption = aggValues.find(v =>
                         String(v._id) === String(dbbeValue) ||
                         (dbbeValue === '1' && v.name === 'true') ||
