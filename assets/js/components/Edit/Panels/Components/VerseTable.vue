@@ -75,14 +75,14 @@
                             <btn
                                 v-if="(linkedGroups.includes(linkGroup['group_id']))"
                                 class="danger"
-                                @click="$emit('groupToggle', 'remove', linkGroup['group_id'])"
+                                @click.native="$emit('groupToggle', 'remove', linkGroup['group_id'])"
                             >
                                 <i class="fa fa-minus" />
                             </btn>
                             <btn
                                 v-else
                                 class="success"
-                                @click="$emit('groupToggle', 'add', linkGroup['group_id'])"
+                                @click.native="$emit('groupToggle', 'add', linkGroup['group_id'])"
                             >
                                 <i class="fa fa-plus" />
                             </btn>
@@ -92,14 +92,14 @@
                             <btn
                                 v-if="(linkedVerses.includes(linkVerse.id))"
                                 class="danger"
-                                @click="$emit('verseToggle', 'remove', linkVerse.id)"
+                                @click.native="$emit('verseToggle', 'remove', linkVerse.id)"
                             >
                                 <i class="fa fa-minus" />
                             </btn>
                             <btn
                                 v-else
                                 class="success"
-                                @click="$emit('verseToggle', 'add', linkVerse.id)"
+                                @click.native="$emit('verseToggle', 'add', linkVerse.id)"
                             >
                                 <i class="fa fa-plus" />
                             </btn>

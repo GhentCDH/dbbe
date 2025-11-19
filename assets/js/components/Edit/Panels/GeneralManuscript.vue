@@ -1,206 +1,189 @@
 <template>
-    <panel
-        :header="header"
-        :links="links"
-        :reloads="reloads"
-        @reload="reload"
-    >
-        <vue-form-generator
-            ref="form"
-            :schema="schema"
-            :model="model"
-            :options="formOptions"
-            @validated="validated"
-        />
-    </panel>
+  <panel
+      :header="header"
+      :links="links"
+      :reloads="reloads"
+      @reload="reload"
+  >
+    <vue-form-generator
+        ref="form"
+        :schema="schema"
+        :model="model"
+        :options="formOptions"
+        @validated="validated"
+    />
+  </panel>
 </template>
-<script>
-import Vue from 'vue';
 
-import {createMultiSelect, disableFields, enableFields,} from '@/helpers/formFieldUtils';
-import Panel from '../Panel'
-import validatorUtil from "@/helpers/validatorUtil";
-import {calcChanges} from "@/helpers/modelChangeUtil";
+<script setup>
+import { ref, reactive, computed, watch, nextTick } from 'vue'
+import Panel from '../Panel.vue'
+import { createMultiSelect, disableFields as disableFieldsHelper, enableFields as enableFieldsHelper } from '@/helpers/formFieldUtils'
+import validatorUtil from "@/helpers/validatorUtil"
+import { calcChanges } from "@/helpers/modelChangeUtil"
 
-Vue.component('panel', Panel)
-
-export default {
-    
-    props: {
-        values: {
-            type: Object,
-            default: () => {return {}}
-        },
-        keys: {
-            type: Object,
-            default: () => {
-                return {
-                    acknowledgements: {field: 'acknowledgements', init: true},
-                    statuses: {field: 'status', init: true},
-                };
-            },
-        },
-        header: {
-          type: String,
-          default: '',
-        },
-        links: {
-          type: Array,
-          default: () => {return []},
-        },
-        model: {
-          type: Object,
-          default: () => {return {}},
-        },
-        reloads: {
-          type: Array,
-          default: () => {return []},
-        },
-    },
-    computed: {
-    fields() {
-      return this.schema.fields
-    }
+const props = defineProps({
+  values: {
+    type: Object,
+    default: () => ({})
   },
-    data() {
-        let data =  {
-            schema: {
-                fields: {
-                  acknowledgements: createMultiSelect(
-                      'Acknowledgements',
-                      {
-                        model: 'acknowledgements',
-                      },
-                      {
-                        multiple: true,
-                        closeOnSelect: false,
-                      }
-                  ),
-                    publicComment: {
-                        type: 'textArea',
-                        label: 'Public comment',
-                        labelClasses: 'control-label',
-                        model: 'publicComment',
-                        rows: 4, props: {
-                        header: {
-                          type: String,
-                          default: '',
-                        },
-                        links: {
-                          type: Array,
-                          default: () => {return []},
-                        },
-                        model: {
-                          type: Object,
-                          default: () => {return {}},
-                        },
-                        keys: {
-                          type: Object,
-                          default: () => {return {}},
-                        },
-                        reloads: {
-                          type: Array,
-                          default: () => {return []},
-                        },
-                        values: {
-                          type: Array,
-                          default: () => {return []},
-                        },
-                      },
-
-                      validator: validatorUtil.string,
-                    },
-                    privateComment: {
-                        type: 'textArea',
-                        styleClasses: 'has-warning',
-                        label: 'Private comment',
-                        labelClasses: 'control-label',
-                        model: 'privateComment',
-                        rows: 4,
-                        validator: validatorUtil.string,
-                    },
-                    illustrated: {
-                        type: 'checkbox',
-                        styleClasses: 'has-warning',
-                        label: 'Illustrated',
-                        labelClasses: 'control-label',
-                        model: 'illustrated',
-                    },
-                    public: {
-                        type: 'checkbox',
-                        styleClasses: 'has-error',
-                        label: 'Public',
-                        labelClasses: 'control-label',
-                        model: 'public',
-                    },
-                }
-            },
-
-        }
-        if(this.values){
-          data.schema.fields.acknowledgements = createMultiSelect(
-              'Acknowledgements',
-              {
-                model: 'acknowledgements',
-                values: this.values.acknowledgements,
-              },
-              {
-                multiple: true,
-                closeOnSelect: false,
-              }
-          )
-          data.schema.fields.statuses = createMultiSelect(createMultiSelect('Status', {values: this.values.statuses}, {}),)
-        }
-        return {
-          changes: [],
-          formOptions: {
-            validateAfterChanged: true,
-            validationErrorClass: 'has-error',
-            validationSuccessClass: 'success',
-          },
-          isValid: true,
-          originalModel: {},
-          ...data
-        }
-
-    },
-  watch: {
-    'values.acknowledgements'(newVal) {
-      if (newVal && newVal.length > 0 && this.schema.fields.acknowledgements) {
-        this.schema.fields.acknowledgements.values = newVal;
-      }
-    },
-    'values.statuses'(newVal) {
-      if (newVal && newVal.length > 0 && this.schema.fields.statuses) {
-        this.schema.fields.statuses.values = newVal;
-      }
-    }
+  keys: {
+    type: Object,
+    default: () => ({
+      acknowledgements: { field: 'acknowledgements', init: true },
+      statuses: { field: 'status', init: true },
+    }),
   },
-    methods: {
-      init() {
-        this.originalModel = JSON.parse(JSON.stringify(this.model));
-        this.enableFields();
-      },
-      reload(type) {
-        if (!this.reloads.includes(type)) {
-          this.$emit('reload', type);
-        }
-      },
-      disableFields(disableKeys) {
-        disableFields(this.keys, this.fields, disableKeys);
-      },
-      enableFields(enableKeys) {
-        enableFields(this.keys, this.fields, this.values, enableKeys);
-      },
-      validated(isValid, errors) {
-        this.isValid = isValid
-        this.changes = calcChanges(this.model, this.originalModel, this.fields);
-        this.$emit('validated', isValid, this.errors, this)
-      },
-      validate() {
-        this.$refs.form.validate()
-      },
+  header: {
+    type: String,
+    default: '',
   },
+  links: {
+    type: Array,
+    default: () => [],
+  },
+  model: {
+    type: Object,
+    default: () => ({}),
+  },
+  reloads: {
+    type: Array,
+    default: () => [],
+  },
+})
 
+const emit = defineEmits(['validated', 'reload'])
+
+// Refs
+const form = ref(null)
+const changes = ref([])
+const isValid = ref(true)
+const originalModel = ref({})
+
+const formOptions = {
+  validateAfterChanged: true,
+  validationErrorClass: 'has-error',
+  validationSuccessClass: 'success',
 }
+
+// Schema
+const schema = reactive({
+  fields: {
+    acknowledgements: createMultiSelect(
+        'Acknowledgements',
+        {
+          model: 'acknowledgements',
+          values: props.values?.acknowledgements || [],
+        },
+        {
+          multiple: true,
+          closeOnSelect: false,
+        }
+    ),
+    statuses: createMultiSelect(
+        'Status',
+        {
+          values: props.values?.statuses || [],
+        },
+        {}
+    ),
+    publicComment: {
+      type: 'textArea',
+      label: 'Public comment',
+      labelClasses: 'control-label',
+      model: 'publicComment',
+      rows: 4,
+      validator: validatorUtil.string,
+    },
+    privateComment: {
+      type: 'textArea',
+      styleClasses: 'has-warning',
+      label: 'Private comment',
+      labelClasses: 'control-label',
+      model: 'privateComment',
+      rows: 4,
+      validator: validatorUtil.string,
+    },
+    illustrated: {
+      type: 'checkbox',
+      styleClasses: 'has-warning',
+      label: 'Illustrated',
+      labelClasses: 'control-label',
+      model: 'illustrated',
+    },
+    public: {
+      type: 'checkbox',
+      styleClasses: 'has-error',
+      label: 'Public',
+      labelClasses: 'control-label',
+      model: 'public',
+    },
+  }
+})
+
+// Computed
+const fields = computed(() => schema.fields)
+
+// Methods
+const init = () => {
+  originalModel.value = JSON.parse(JSON.stringify(props.model))
+  enableFields()
+}
+
+const reload = (type) => {
+  if (!props.reloads.includes(type)) {
+    emit('reload', type)
+  }
+}
+
+const disableFields = (disableKeys) => {
+  disableFieldsHelper(props.keys, fields.value, disableKeys)
+}
+
+const enableFields = (enableKeys) => {
+  enableFieldsHelper(props.keys, fields.value, props.values, enableKeys)
+}
+
+const validated = (isValidValue, errors) => {
+  isValid.value = isValidValue
+  changes.value = calcChanges(props.model, originalModel.value, fields.value)
+  emit('validated', isValidValue, errors)
+}
+
+const validate = () => {
+  form.value?.validate()
+}
+
+// Watchers with deep: true for arrays
+watch(
+    () => props.values?.acknowledgements,
+    (newVal) => {
+      if (newVal && newVal.length > 0 && schema.fields.acknowledgements) {
+        schema.fields.acknowledgements.values = newVal
+      }
+    },
+    { deep: true } // Add deep option for array watching
+)
+
+watch(
+    () => props.values?.statuses,
+    (newVal) => {
+      if (newVal && newVal.length > 0 && schema.fields.statuses) {
+        schema.fields.statuses.values = newVal
+      }
+    },
+    { deep: true } // Add deep option for array watching
+)
+
+// Expose methods for parent component
+defineExpose({
+  init,
+  reload,
+  disableFields,
+  enableFields,
+  validated,
+  validate,
+  isValid,
+  changes,
+})
 </script>

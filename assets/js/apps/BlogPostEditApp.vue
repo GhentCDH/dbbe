@@ -69,7 +69,7 @@
           id="actions"
           type="warning"
           :disabled="diff.length === 0"
-          @click="resetModal = true"
+          @click.native="resetModal = true"
       >
         Reset
       </btn>
@@ -77,7 +77,7 @@
           v-if="blogPost"
           type="success"
           :disabled="(diff.length === 0)"
-          @click="saveButton()"
+          @click.native="saveButton()"
       >
         Save changes
       </btn>
@@ -85,7 +85,7 @@
           v-else
           type="success"
           :disabled="(diff.length === 0)"
-          @click="saveButton()"
+          @click.native="saveButton()"
       >
         Save
       </btn>

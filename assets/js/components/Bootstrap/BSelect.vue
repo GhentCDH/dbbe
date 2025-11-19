@@ -33,7 +33,7 @@ export default {
 <template>
   <select class="form-select" @change="updateSelected($event)">
     <option v-for="option in options" :key="option.value" :value="option.value"
-            :selected="option.value === selected">
+            :selected="option.value === selected ? true : null">
       {{ option.text }}
     </option>
   </select>

@@ -1,42 +1,33 @@
-import Vue from 'vue';
-import OccurrenceSearchApp from '../apps/OccurrenceSearchApp.vue'; // Root component
-import Delete from "../components/Edit/Modals/Delete.vue"; // Custom component
-import CollectionManager from "../components/Search/CollectionManager.vue"; // Custom component
-import VueCookies from "vue-cookies"; // Cookies library
-import VueFormGenerator from "vue-form-generator"; // Form generator library
-import fieldRadio from '../components/FormFields/fieldRadio.vue';
-import VueTables from 'vue-tables-2';
+import { createApp } from 'vue'
+import OccurrenceSearchApp from '../apps/OccurrenceSearchApp.vue'
+
+// Components
+import DeleteModal from '../components/Edit/Modals/Delete.vue'
+import CollectionManager from '../components/Search/CollectionManager.vue'
+import fieldRadio from '../components/FormFields/fieldRadio.vue'
 import fieldMultiselectClear from '../components/FormFields/fieldMultiselectClear.vue'
+import fieldCheckboxes from '@/components/FormFields/fieldCheckboxes.vue'
 import Alerts from '../components/Alerts.vue'
-import axios from 'axios';
+
+import axios from 'axios'
+import VueCookies from 'vue-cookies'
+import VueFormGenerator from 'vue3-form-generator-legacy'
 import VueMultiselect from 'vue-multiselect'
 import * as uiv from 'uiv'
-import fieldCheckboxes from "@/components/FormFields/fieldCheckboxes.vue";
+window.axios = axios
 
-window.axios = axios;
+const app = createApp({})
 
+app.component('DeleteModal', DeleteModal)
+app.component('CollectionManager', CollectionManager)
+app.component('FieldRadio', fieldRadio)
+app.component('FieldCheckboxes', fieldCheckboxes)
+app.component('Alerts', Alerts)
+app.component('FieldMultiselectClear', fieldMultiselectClear)
+app.component('multiselect', VueMultiselect)
+app.use(uiv)
+app.use(VueCookies)
+app.use(VueFormGenerator)
 
-Vue.use(uiv);
-Vue.use(VueTables.ServerTable);
-Vue.component('multiselect', VueMultiselect)
-Vue.component('FieldRadio', fieldRadio);
-Vue.component('FieldMultiselectClear', fieldMultiselectClear);
-Vue.component('Alerts', Alerts);
-Vue.component('DeleteModal', Delete);
-Vue.component('CollectionManager', CollectionManager);
-Vue.component('FieldCheckboxes', fieldCheckboxes);
-
-
-// Use plugins
-Vue.use(VueFormGenerator);
-Vue.use(uiv);
-Vue.use(VueCookies);
-
-window.axios = axios;
-
-new Vue({
-    el: '#occurrence-search-app',
-    components: {
-        OccurrenceSearchApp
-    }
-})
+app.component('occurrence-search-app', OccurrenceSearchApp)
+app.mount('#occurrence-search-app')

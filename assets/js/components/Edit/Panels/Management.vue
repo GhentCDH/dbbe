@@ -6,7 +6,7 @@
       @reload="reload"
   >
     <vue-form-generator
-        ref="form"
+        ref="formRef"
         :schema="schema"
         :model="model"
         :options="formOptions"
@@ -14,129 +14,139 @@
     />
   </panel>
 </template>
-<script>
-import Vue from 'vue';
+
+<script setup>
+import { ref, computed, watch, onMounted, reactive } from 'vue';
+import Panel from '../Panel.vue';
+import { calcChanges } from '@/helpers/modelChangeUtil';
 import {
-  createMultiSelect, disableFields, enableFields,
-
+  createMultiSelect,
+  disableFields as disableFieldsHelper,
+  enableFields as enableFieldsHelper,
 } from '@/helpers/formFieldUtils';
-import Panel from '../Panel'
-import {calcChanges} from "@/helpers/modelChangeUtil";
 
-Vue.component('panel', Panel)
-
-export default {
-
-  props: {
-    header: {
-      type: String,
-      default: '',
-    },
-    links: {
-      type: Array,
-      default: () => {return []},
-    },
-    model: {
-      type: Object,
-      default: () => {return {}},
-    },
-    reloads: {
-      type: Array,
-      default: () => {return []},
-    },
-    keys: {
-      type: Object,
-      default: () => {
-        return {managements: {field: 'managements', init: true}};
-      },
-    },
-    values: {
-      type: Array,
-      default: () => {return []},
-    },
+const props = defineProps({
+  header: {
+    type: String,
+    default: '',
   },
-  computed: {
-    fields() {
-      return this.schema.fields
-    }
+  links: {
+    type: Array,
+    default: () => [],
   },
-  data() {
-    return {
-      changes: [],
-      formOptions: {
-        validateAfterChanged: true,
-        validationErrorClass: 'has-error',
-        validationSuccessClass: 'success',
-      },
-      isValid: true,
-      originalModel: {},
-      schema: {
-        fields: {
-          managements: createMultiSelect(
-              'Management collection',
-              {
-                model: 'managements',
-                values: [],
-              },
-              {
-                multiple: true,
-                closeOnSelect: false,
-              }
-          ),
+  model: {
+    type: Object,
+    default: () => ({}),
+  },
+  reloads: {
+    type: Array,
+    default: () => [],
+  },
+  keys: {
+    type: Object,
+    default: () => ({
+      managements: { field: 'managements', init: true },
+    }),
+  },
+  values: {
+    type: Array,
+    default: () => [],
+  },
+});
+
+const emit = defineEmits(['validated', 'reload']);
+
+// Refs
+const formRef = ref(null);
+const changes = ref([]);
+const isValid = ref(true);
+const originalModel = ref({});
+
+// Form options
+const formOptions = {
+  validateAfterChanged: true,
+  validationErrorClass: 'has-error',
+  validationSuccessClass: 'success',
+};
+
+// Schema - using reactive to maintain deep reactivity
+const schema = reactive({
+  fields: {
+    managements: createMultiSelect(
+        'Management collection',
+        {
+          model: 'managements',
+          values: [],
+        },
+        {
+          multiple: true,
+          closeOnSelect: false,
         }
-      }
-    }
+    ),
   },
-  watch: {
-    values: {
-      handler(newValues) {
-        if (newValues && newValues.length > 0) {
-          // Update the existing field instead of recreating the schema
-          this.$set(this.schema.fields.managements, 'values', newValues);
-          this.enableFields();
-        }
-      },
-      immediate: true,
-      deep: true
-    }
-  },
-  created() {
-    this.init();
-  },
-  methods: {
-    init() {
-      this.originalModel = JSON.parse(JSON.stringify(this.model));
-    },
-    reload(type) {
-      if (!this.reloads.includes(type)) {
-        this.$emit('reload', type);
-      }
-    },
-    disableFields(disableKeys) {
-      disableFields(this.keys, this.fields, disableKeys);
-      this.$forceUpdate();
-    },
-    enableFields(enableKeys) {
-      enableFields(this.keys, this.fields, this.values, enableKeys);
+});
 
-      for (const key of Object.keys(this.keys)) {
-        const { field } = this.keys[key];
-        if (this.fields[field]) {
-          this.$set(this.fields[field], 'disabled', this.fields[field].disabled);
-          this.$set(this.fields[field], 'selectOptions', { ...this.fields[field].selectOptions });
-          this.$set(this.fields[field], 'placeholder', this.fields[field].placeholder);
-        }
+// Computed
+const fields = computed(() => schema.fields);
+
+// Methods
+const init = () => {
+  originalModel.value = JSON.parse(JSON.stringify(props.model));
+};
+
+const reload = (type) => {
+  if (!props.reloads.includes(type)) {
+    emit('reload', type);
+  }
+};
+
+const disableFields = (disableKeys) => {
+  disableFieldsHelper(props.keys, fields.value, disableKeys);
+};
+
+const enableFields = (enableKeys) => {
+  enableFieldsHelper(props.keys, fields.value, props.values, enableKeys);
+};
+
+const validate = () => {
+  formRef.value?.validate();
+};
+
+const validated = (valid, errors) => {
+  isValid.value = valid;
+  changes.value = calcChanges(props.model, originalModel.value, fields.value);
+  emit('validated', valid, errors, {
+    changes: changes.value,
+    isValid: isValid.value,
+  });
+};
+
+// Watch for values changes
+watch(
+    () => props.values,
+    (newValues) => {
+      if (newValues && newValues.length > 0) {
+        // Update the values in the schema
+        schema.fields.managements.values = newValues;
+        enableFields();
       }
     },
-    validated(isValid, errors) {
-      this.isValid = isValid
-      this.changes = calcChanges(this.model, this.originalModel, this.fields);
-      this.$emit('validated', isValid, this.errors, this)
-    },
-    validate() {
-      this.$refs.form.validate()
-    },
-  },
+    { immediate: true, deep: true }
+);
 
-}
+// Initialize on mount
+onMounted(() => {
+  init();
+});
+
+// Expose methods for parent component
+defineExpose({
+  validate,
+  init,
+  reload,
+  enableFields,
+  disableFields,
+  changes,
+  isValid,
+});
 </script>

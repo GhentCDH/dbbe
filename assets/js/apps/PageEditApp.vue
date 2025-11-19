@@ -18,7 +18,7 @@
         />
         <btn
             :disabled="invalid || (data.title === originalData.title && data.content === originalData.content && data.display_navigation === originalData.display_navigation)"
-            @click="submit()"
+            @click.native="submit()"
         >
             Save
         </btn>
@@ -36,7 +36,7 @@ import axios from 'axios'
 
 import Vue from 'vue';
 import * as uiv from 'uiv'
-import VueFormGenerator from 'vue-form-generator'
+import VueFormGenerator from 'vue3-form-generator-legacy'
 import VueCkeditor from 'vue-ckeditor2'
 
 import Alerts from '../components/Alerts'

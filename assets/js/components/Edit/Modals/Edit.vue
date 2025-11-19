@@ -1,9 +1,10 @@
 <template>
     <modal
-        :value="show"
+        :model-value="show"
         size="lg"
         auto-focus
-        :backdrop="false"
+        :backdrop="null"
+        @update:model-value="$emit('update:show', $event)"
         @input="$emit('cancel')">
         <alerts
             :alerts="alerts"
@@ -17,47 +18,51 @@
         <slot
             name="extra"
         />
-        <div slot="header">
-            <h4
-                v-if="submitModel[submitModel.submitType] && submitModel[submitModel.submitType].id"
-                class="modal-title">
-                Edit {{ formatType(submitModel.submitType) }}
-            </h4>
-            <h4
-                v-else
-                class="modal-title">
-                Add a new {{ formatType(submitModel.submitType) }}
-            </h4>
-        </div>
-        <div slot="footer">
-            <btn @click="$emit('cancel')">Cancel</btn>
+      <template #header>
+        <h4
+            v-if="submitModel[submitModel.submitType] && submitModel[submitModel.submitType].id"
+            class="modal-title">
+            Edit {{ formatType(submitModel.submitType) }}
+        </h4>
+        <h4
+            v-else
+            class="modal-title">
+            Add a new {{ formatType(submitModel.submitType) }}
+        </h4>
+      </template>
+      <template #footer>
+
+        <btn  @click.native="onCancel">Cancel</btn>
             <btn
                 :disabled="JSON.stringify(submitModel) === JSON.stringify(originalSubmitModel)"
                 type="warning"
-                @click="$emit('reset')">
+                @click.native="$emit('reset')">
                 Reset
             </btn>
             <btn
                 type="success"
                 :disabled="invalidEditForm || JSON.stringify(submitModel) === JSON.stringify(originalSubmitModel)"
-                @click="confirm()">
+                @click.native="confirm()">
                 {{ submitModel[submitModel.submitType] && submitModel[submitModel.submitType].id ? 'Update' : 'Add' }}
             </btn>
-        </div>
+      </template>
     </modal>
 </template>
 <script>
 import Alert from "@/components/Alerts.vue";
+import { Modal, Btn } from 'uiv';
 
 export default {
   components: {
-    alerts: Alert
+    alerts: Alert,
+    modal: Modal,
+    btn: Btn,
   },
     props: {
-        show: {
-            type: Boolean,
-            default: false,
-        },
+      show: {
+        type: [Boolean, null],
+        default: null
+      },
         schema: {
             type: Object,
             default: () => {return {}},
@@ -90,24 +95,11 @@ export default {
             invalidEditForm: true,
         }
     },
-    // mounted() {
-    //     for (const [field, fieldDef] of Object.entries(this.schema.fields)) {
-    //         if (fieldDef.inputType === 'number') {
-    //             this.$watch(
-    //                 function () {
-    //                     return this.submitModel[this.submitModel.submitType][field];
-    //                 },
-    //                 function () {
-    //                     if (Number.isNaN(this.submitModel[this.submitModel.submitType][field])) {
-    //                         this.$emit('fix-nan', field);
-    //                         this.validate();
-    //                     }
-    //                 },
-    //             );
-    //         }
-    //     }
-    // },
     methods: {
+      onCancel() {
+        this.$emit('update:show', false)
+        this.$emit('cancel')
+      },
         editFormValidated(isValid, errors) {
             this.invalidEditForm = !isValid
         },

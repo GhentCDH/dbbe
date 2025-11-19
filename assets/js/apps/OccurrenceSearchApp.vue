@@ -250,7 +250,7 @@
         </div>
 
 <!--        <div style="position: absolute; right: 0; top: 50%; transform: translateY(-50%);">-->
-<!--          <button @click="downloadCSVHandler"-->
+<!--          <button @click.native="downloadCSVHandler"-->
 <!--                  class="btn btn-primary"-->
 <!--                  :title="!isViewInternal ? 'For anonymous users, download is limited to 1000 results' : 'Download results as csv'"-->
 <!--                  style="position: absolute; top: 50%; right: 1rem; transform: translateY(-50%);">-->
@@ -296,7 +296,6 @@
 <script setup>
 import { computed, onMounted, reactive, ref, watch } from 'vue';
 import qs from 'qs';
-
 import Delete from '../components/Edit/Modals/Delete.vue';
 import Alerts from "@/components/Alerts.vue";
 import ActiveFilters from '../components/Search/ActiveFilters.vue';

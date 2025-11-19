@@ -29,12 +29,12 @@
   </article>
 
     <Edit
-        :show="editModalValue"
+        v-model:show="editModalValue"
         :schema="editSchema"
         :submit-model="submitModel"
         :original-submit-model="originalSubmitModel"
         :alerts="editAlerts"
-        @cancel="cancelEdit"
+        @cancel="editModalValue = false"
         @reset="resetEdit(submitModel)"
         @confirm="submitEdit"
         @dismiss-alert="editAlerts.splice($event, 1)"
@@ -105,8 +105,7 @@
 <script setup>
 import { reactive, watch, onMounted, computed } from 'vue'
 import axios from 'axios'
-import VueFormGenerator from 'vue-form-generator'
-
+import VueFormGenerator from 'vue3-form-generator-legacy'
 import Edit from '@/components/Edit/Modals/Edit.vue'
 import Merge from '@/components/Edit/Modals/Merge.vue'
 import Delete from '@/components/Edit/Modals/Delete.vue'
@@ -273,7 +272,7 @@ async function update() {
 }
 
 async function submitEdit() {
-  editModalValue.value = false
+  editModalValue.value = null
   openRequests.value++
 
   try {
