@@ -384,6 +384,8 @@ class ManuscriptManager extends DocumentManager
 
             // commit transaction
             $this->dbs->commit();
+            $this->updateElasticByIds([$id]);
+
         } catch (Exception $e) {
             $this->dbs->rollBack();
 
