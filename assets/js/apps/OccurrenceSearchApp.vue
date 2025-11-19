@@ -433,6 +433,10 @@ const fetchData = async () => {
       filters: constructFilterValues(model.value, fields.value)
     });
 
+    if (params.filters?.dbbe && Array.isArray(params.filters.dbbe) && params.filters.dbbe.length === 1) {
+      params.filters.dbbe = params.filters.dbbe[0];
+    }
+
     const response = await axiosGet(
         url,
         {
