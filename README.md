@@ -120,3 +120,7 @@ Please see our [contributing guidelines](CONTRIBUTING.md).
 The development of the DBBE database has been funded by the The Special Research Fund of Ghent University. More details can be found on the [about the project](https://www.projectdbbe.ugent.be/about-the-project/) page.
 
 Development in the most part done by [GhentCDH - Ghent University](https://www.ghentcdh.ugent.be/).
+
+Development by [Ghent Centre for Digital Humanities - Ghent University](https://www.ghentcdh.ugent.be/). Funded by the [GhentCDH research projects](https://www.ghentcdh.ugent.be/projects).
+
+<img src="https://www.ghentcdh.ugent.be/ghentcdh_logo_blue_text_transparent_bg_landscape.svg" alt="Landscape" width="500">
