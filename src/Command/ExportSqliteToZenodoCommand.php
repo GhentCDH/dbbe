@@ -96,7 +96,7 @@ class ExportSqliteToZenodoCommand extends Command
         $io->section('Step 2: Creating database schema');
         try {
             $this->createNormalizedSchema($db);
-            $io->success('Created normalized schema');
+            $io->success('Created normalized schema with subjects lookup table');
         } catch (\Exception $e) {
             $io->error("Failed to create schema: " . $e->getMessage());
             $db->close();
@@ -110,9 +110,6 @@ class ExportSqliteToZenodoCommand extends Command
         $io->section('Step 3: Exporting data from endpoints');
 
         // Import in specific order due to foreign key constraints
-        // 1. Manuscripts first (referenced by occurrences)
-        // 2. Occurrences second (referenced by types)
-        // 3. Types and Persons (no dependencies)
         $importOrder = ['manuscripts', 'occurrences', 'persons', 'types'];
 
         foreach ($importOrder as $tableName) {
@@ -273,13 +270,18 @@ class ExportSqliteToZenodoCommand extends Command
 
     private function createNormalizedSchema(\SQLite3 $db): void
     {
-        // Lookup tables for genres and metres only
+        // Lookup tables for genres, metres, and subjects
         $db->exec('CREATE TABLE genres (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT UNIQUE NOT NULL
         )');
 
         $db->exec('CREATE TABLE metres (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT UNIQUE NOT NULL
+        )');
+
+        $db->exec('CREATE TABLE subjects (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT UNIQUE NOT NULL
         )');
@@ -300,14 +302,12 @@ class ExportSqliteToZenodoCommand extends Command
             id TEXT PRIMARY KEY,
             incipit TEXT,
             verses TEXT,
-            subjects TEXT,
             date_floor_year TEXT,
             date_ceiling_year TEXT,
             manuscript_id TEXT,
             manuscript_name TEXT
         )');
 
-        // Create index for faster lookups even without foreign key
         $db->exec('CREATE INDEX idx_occurrences_manuscript_id ON occurrences(manuscript_id)');
 
         $db->exec('CREATE TABLE persons (
@@ -321,11 +321,10 @@ class ExportSqliteToZenodoCommand extends Command
 
         $db->exec('CREATE TABLE types (
             id TEXT PRIMARY KEY,
-            subjects TEXT,
             text_original TEXT
         )');
 
-        // Junction tables for many-to-many relationships (genres and metres only)
+        // Junction tables for many-to-many relationships
         $db->exec('CREATE TABLE occurrence_genres (
             occurrence_id TEXT NOT NULL,
             genre_id INTEGER NOT NULL,
@@ -340,6 +339,14 @@ class ExportSqliteToZenodoCommand extends Command
             PRIMARY KEY (occurrence_id, metre_id),
             FOREIGN KEY (occurrence_id) REFERENCES occurrences(id),
             FOREIGN KEY (metre_id) REFERENCES metres(id)
+        )');
+
+        $db->exec('CREATE TABLE occurrence_subjects (
+            occurrence_id TEXT NOT NULL,
+            subject_id INTEGER NOT NULL,
+            PRIMARY KEY (occurrence_id, subject_id),
+            FOREIGN KEY (occurrence_id) REFERENCES occurrences(id),
+            FOREIGN KEY (subject_id) REFERENCES subjects(id)
         )');
 
         $db->exec('CREATE TABLE type_genres (
@@ -358,13 +365,20 @@ class ExportSqliteToZenodoCommand extends Command
             FOREIGN KEY (metre_id) REFERENCES metres(id)
         )');
 
+        $db->exec('CREATE TABLE type_subjects (
+            type_id TEXT NOT NULL,
+            subject_id INTEGER NOT NULL,
+            PRIMARY KEY (type_id, subject_id),
+            FOREIGN KEY (type_id) REFERENCES types(id),
+            FOREIGN KEY (subject_id) REFERENCES subjects(id)
+        )');
+
         $db->exec('CREATE TABLE type_occurrences (
             type_id TEXT NOT NULL,
             occurrence_id TEXT NOT NULL,
             PRIMARY KEY (type_id, occurrence_id)
         )');
 
-        // Create indexes for faster lookups
         $db->exec('CREATE INDEX idx_type_occurrences_type ON type_occurrences(type_id)');
         $db->exec('CREATE INDEX idx_type_occurrences_occurrence ON type_occurrences(occurrence_id)');
     }
@@ -389,7 +403,6 @@ class ExportSqliteToZenodoCommand extends Command
 
         $headers = $rows[0];
 
-        // Import based on table type
         switch ($tableName) {
             case 'manuscripts':
                 $this->importManuscripts($db, $rows, $headers);
@@ -428,7 +441,7 @@ class ExportSqliteToZenodoCommand extends Command
 
     private function importOccurrences(\SQLite3 $db, array $rows, array $headers): void
     {
-        $stmt = $db->prepare('INSERT OR IGNORE INTO occurrences VALUES (?, ?, ?, ?, ?, ?, ?, ?)');
+        $stmt = $db->prepare('INSERT OR IGNORE INTO occurrences VALUES (?, ?, ?, ?, ?, ?, ?)');
 
         for ($i = 1; $i < count($rows); $i++) {
             $row = $rows[$i];
@@ -447,15 +460,14 @@ class ExportSqliteToZenodoCommand extends Command
             $manuscriptId = $row[8] ?? '';
             $manuscriptName = $row[9] ?? '';
 
-            // Insert main occurrence record
+            // Insert main occurrence record (without subjects)
             $stmt->bindValue(1, $id, SQLITE3_TEXT);
             $stmt->bindValue(2, $incipit, SQLITE3_TEXT);
             $stmt->bindValue(3, $verses, SQLITE3_TEXT);
-            $stmt->bindValue(4, $subjects, SQLITE3_TEXT); // Keep as text
-            $stmt->bindValue(5, $dateFloor, SQLITE3_TEXT);
-            $stmt->bindValue(6, $dateCeiling, SQLITE3_TEXT);
-            $stmt->bindValue(7, $manuscriptId, SQLITE3_TEXT);
-            $stmt->bindValue(8, $manuscriptName, SQLITE3_TEXT);
+            $stmt->bindValue(4, $dateFloor, SQLITE3_TEXT);
+            $stmt->bindValue(5, $dateCeiling, SQLITE3_TEXT);
+            $stmt->bindValue(6, $manuscriptId, SQLITE3_TEXT);
+            $stmt->bindValue(7, $manuscriptName, SQLITE3_TEXT);
             $stmt->execute();
             $stmt->reset();
 
@@ -467,6 +479,11 @@ class ExportSqliteToZenodoCommand extends Command
             // Handle metres
             if (!empty($metres)) {
                 $this->linkMultipleValues($db, 'metres', 'occurrence_metres', $id, 'occurrence_id', $metres);
+            }
+
+            // Handle subjects
+            if (!empty($subjects)) {
+                $this->linkMultipleValues($db, 'subjects', 'occurrence_subjects', $id, 'occurrence_id', $subjects);
             }
         }
         $stmt->close();
@@ -494,7 +511,7 @@ class ExportSqliteToZenodoCommand extends Command
 
     private function importTypes(\SQLite3 $db, array $rows, array $headers): void
     {
-        $stmt = $db->prepare('INSERT OR IGNORE INTO types VALUES (?, ?, ?)');
+        $stmt = $db->prepare('INSERT OR IGNORE INTO types VALUES (?, ?)');
 
         for ($i = 1; $i < count($rows); $i++) {
             $row = $rows[$i];
@@ -509,10 +526,9 @@ class ExportSqliteToZenodoCommand extends Command
             $textOriginal = $row[4] ?? '';
             $occurrenceIds = $row[5] ?? '';
 
-            // Insert main type record
+            // Insert main type record (without subjects)
             $stmt->bindValue(1, $id, SQLITE3_TEXT);
-            $stmt->bindValue(2, $subjects, SQLITE3_TEXT); // Keep as text
-            $stmt->bindValue(3, $textOriginal, SQLITE3_TEXT);
+            $stmt->bindValue(2, $textOriginal, SQLITE3_TEXT);
             $stmt->execute();
             $stmt->reset();
 
@@ -524,6 +540,11 @@ class ExportSqliteToZenodoCommand extends Command
             // Handle metres
             if (!empty($metres)) {
                 $this->linkMultipleValues($db, 'metres', 'type_metres', $id, 'type_id', $metres);
+            }
+
+            // Handle subjects
+            if (!empty($subjects)) {
+                $this->linkMultipleValues($db, 'subjects', 'type_subjects', $id, 'type_id', $subjects);
             }
 
             // Handle occurrence relationships
@@ -588,7 +609,6 @@ class ExportSqliteToZenodoCommand extends Command
         return $content;
     }
 
-    // Zenodo methods remain the same...
     private function createDeposition(string $token, string $title, string $description): array
     {
         $response = $this->di['HttpClient']->request('POST', self::ZENODO_SANDBOX_API . '/deposit/depositions', [
@@ -688,7 +708,7 @@ class ExportSqliteToZenodoCommand extends Command
         if (isset($deposition['files']) && is_array($deposition['files'])) {
             foreach ($deposition['files'] as $file) {
                 $fileId = $file['id'];
-                $this->di['HttpClient']->request('DELETE', self::ZENODO_SANDBOX_API . "/deposit/depositions/{$depositionId}/files/{$fileId}", [
+                $this->di['HttpClient']->request('DELETE', self::ZENODO_SANDBOX_API . "/deposit/depositions/{$depositionId}/files/{fileId}", [
                     'headers' => ['Authorization' => 'Bearer ' . $token],
                 ]);
             }
