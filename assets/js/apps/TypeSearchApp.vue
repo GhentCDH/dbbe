@@ -63,6 +63,7 @@
           :fields="tableFields"
           :sort-by="sortBy"
           :sort-ascending="sortAscending"
+          :row-class="getRowClass"
           @sort="handleSort"
       >
         <template #actionsPreRowHeader v-if="isViewInternal">
@@ -439,6 +440,10 @@ const tableFields = computed(() => {
 
   return fields;
 });
+
+const getRowClass = (row) => {
+  return (row.public == null || row.public) ? '' : 'warning';
+};
 
 const fetchData = async () => {
   startRequest();

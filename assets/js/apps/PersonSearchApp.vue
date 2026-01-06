@@ -64,6 +64,7 @@
           :fields="tableFields"
           :sort-by="sortBy"
           :sort-ascending="sortAscending"
+          :row-class="getRowClass"
           @sort="handleSort"
       >
         <template #h__self_designation>
@@ -576,6 +577,10 @@ const mergePersonSchema = ref({
     ),
   },
 });
+
+const getRowClass = (row) => {
+  return (row.public == null || row.public) ? '' : 'warning';
+};
 
 // Computed for table fields
 const tableFields = computed(() => {

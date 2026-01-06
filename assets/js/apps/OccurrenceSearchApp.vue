@@ -59,6 +59,7 @@
             :fields="tableFields"
             :sort-by="sortBy"
             :sort-ascending="sortAscending"
+            :row-class="getRowClass"
             @sort="handleSort"
         >
           <template #actionsPreRowHeader v-if="isViewInternal">
@@ -185,7 +186,16 @@
             </template>
           </template>
 
-          <template #actions="{ row }" v-if="isViewInternal">
+        <template #created="{ row }">
+          {{ formatDate(row.created) }}
+        </template>
+
+        <template #modified="{ row }">
+          {{ formatDate(row.modified) }}
+        </template>
+
+
+        <template #actions="{ row }" v-if="isViewInternal">
 
             <a :href="urls['occurrence_edit'].replace('occurrence_id', row.id)"
             class="action"
@@ -391,6 +401,10 @@ const tableFields = computed(() => {
   return fields;
 });
 
+const getRowClass = (row) => {
+  return (row.public == null || row.public) ? '' : 'warning';
+};
+
 const fetchData = async () => {
   startRequest();
 
@@ -418,6 +432,10 @@ const fetchData = async () => {
       filters: constructFilterValues(model.value, fields.value)
     });
 
+    if (params.filters?.dbbe && Array.isArray(params.filters.dbbe) && params.filters.dbbe.length === 1) {
+      params.filters.dbbe = params.filters.dbbe[0];
+    }
+    
     const response = await axiosGet(
         url,
         {

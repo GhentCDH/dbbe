@@ -865,6 +865,22 @@ const validated = (isValid, errors) => {
 
 const toSave = () => {
   let result = {}
+
+  if (data.clone) {
+    for (const [panelKey, panelValue] of Object.entries(model)) {
+      if (typeof panelValue === 'object' && panelValue !== null && !Array.isArray(panelValue)) {
+        for (const [key, value] of Object.entries(panelValue)) {
+          if (key !== 'id') {
+            result[key] = value
+          }
+        }
+      } else {
+        result[panelKey] = panelValue
+      }
+    }
+    return result
+  }
+
   for (let diffItem of diff.value) {
     if ('keyGroup' in diffItem) {
       if (!(diffItem.keyGroup in result)) {
@@ -929,12 +945,10 @@ onMounted(() => {
   setData()
   originalModel.value = JSON.parse(JSON.stringify(model))
   nextTick(() => {
-    if (!data.clone) {
       for (let panel of panels) {
         const panelRef = panelRefs.value[panel]
         if (panelRef) {
           panelRef.init()
-        }
       }
     }
   })
