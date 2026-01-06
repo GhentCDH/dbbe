@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Database of Byzantine Book Epigrams - Export Viewer</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+    <style>
+        :root { --ugent-blue: #1E64C8; --ugent-blue-dark: #155a9f; --sidebar-bg: #E8F2FF; }
+        body { font-family: "Open Sans", Arial, sans-serif; font-size: 14px; color: #333; background: #fff; }
+        .logo-section { background: white; }
+        .page-logo { padding: 15px; }
+        .page-logo img { height: 60px; }
+        .blue-bar { background-color: var(--ugent-blue); padding: 8px 15px; }
+        .blue-bar h1 { color: white; font-size: 18px; font-weight: 300; margin: 0; float: left; line-height: 60px; }
+        .blue-bar ul { margin: 0; padding: 0; list-style: none; float: right; }
+        .blue-bar li { display: inline-block; }
+        .blue-bar a { color: white; font-size: 11px; padding: 6px 12px; display: block; }
+        .blue-bar a:hover { background: var(--ugent-blue-dark); text-decoration: none; }
+        .nav-bar { background: white; padding: 0 15px; }
+        .nav-bar ul { margin: 0; padding: 0; }
+        .nav-bar li { display: inline-block; }
+        .nav-bar a { display: block; padding: 12px 15px; color: #555; font-size: 13px; font-weight: 500; }
+        .nav-bar li.active a, .nav-bar a:hover { color: var(--ugent-blue); background: transparent; text-decoration: none; }
+        .sidebar-box { background: var(--sidebar-bg); padding: 20px; margin-bottom: 20px; }
+        .sidebar-box h3 { font-size: 22px; font-weight: 300; margin-top: 0; margin-bottom: 18px; }
+        .sidebar-box label { font-weight: 600; font-size: 12px; margin-bottom: 5px; }
+        .sidebar-box .form-control { border: 1px solid #ccc; box-shadow: inset 0 1px 1px rgba(0,0,0,0.05); }
+        .sidebar-box .btn { margin-top: 10px; margin-right: 5px; text-transform: uppercase; font-size: 12px; padding: 7px 16px; }
+        .btn-primary { background: var(--ugent-blue); border-color: var(--ugent-blue); }
+        .btn-primary:hover { background: var(--ugent-blue-dark); border-color: var(--ugent-blue-dark); }
+        .main-content { padding: 30px 0; background: white; }
+        .search-page { padding: 20px; background: white; }
+        .table > thead > tr > th { background: #f8f9fa; font-weight: 600; font-size: 12px; text-transform: uppercase; color: #555; cursor: pointer; }
+        .greek { font-family: 'Times New Roman', serif; font-size: 15px; }
+        .clickable-link { color: var(--ugent-blue); }
+        .clickable-link:hover { color: var(--ugent-blue-dark); }
+        .loading-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(255,255,255,0.95); display: flex; align-items: center; justify-content: center; z-index: 9999; }
+        .spinner { border: 4px solid #f3f3f3; border-top: 4px solid var(--ugent-blue); border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .view { display: none; }
+        .view.active { display: block; }
+        .detail-page h2 { font-weight: 300; font-size: 30px; }
+        .detail-page h2 small { display: block; font-size: 16px; color: #999; margin-bottom: 5px; }
+        .detail-page .table td:first-child { font-weight: 600; width: 180px; vertical-align: top; }
+        .verses-display { background: #f8f9fa; padding: 20px; border-left: 4px solid var(--ugent-blue); margin: 20px 0; }
+        .back-link { color: var(--ugent-blue); margin-bottom: 15px; display: inline-block; }
+        .pbottom-default { padding-bottom: 12px; }
+        .page-footer { background: var(--ugent-blue); color: white; padding: 25px 0; margin-top: 50px; }
+        .page-footer a { color: white; }
+        .license-footer { margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; }
+        .record-count { text-align: center; font-weight: 600; margin-bottom: 15px; color: #666; }
+        .per-page-selector { float: right; margin-bottom: 15px; }
+        .pagination > .active > a { background: var(--ugent-blue); border-color: var(--ugent-blue); }
+        .pagination > li > a { color: var(--ugent-blue); }
+    </style>
+</head>
+<body>
+<div class="logo-section">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-xs-12 col-sm-2">
+                <div class="page-logo">
+                    <a href="https://www.ugent.be/">
+                        <img src="assets/websites/static/images/logo_ugent_en.svg" alt="Ghent University">
+                    </a>
+                </div>
+            </div>
+            <div class="col-sm-10">
+                <div class="blue-bar">
+                    <h1>Database of Byzantine Book Epigrams</h1>
+                    <ul>
+                        <li><a href="https://www.ugent.be/lw/en">Home Faculty of Arts and Philosophy</a></li>
+                        <li><a href="https://www.ugent.be/en">Home Ghent University</a></li>
+                    </ul>
+                    <div class="clearfix"></div>
+                </div>
+                <div class="nav-bar">
+                    <ul>
+                        <li id="nav-home"><a href="#home">Home</a></li>
+                        <li id="nav-occurrences"><a href="#occurrences">Occurrences</a></li>
+                        <li id="nav-types"><a href="#types">Types</a></li>
+                        <li id="nav-manuscripts"><a href="#manuscripts">Manuscripts</a></li>
+                        <li id="nav-persons"><a href="#persons">Persons</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="loading" class="loading-overlay"><div class="spinner"></div></div>
+
+<div class="main-content">
+    <div id="error" class="alert alert-danger" style="display:none; margin:20px"></div>
+    <div class="container-fluid">
+        <div class="row">
+            <div id="view-home" class="view active">
+                <div class="col-sm-10 col-sm-offset-2">
+                    <h2 style="font-weight:300">Welcome</h2>
+                    <p>This viewer provides access to exported DBBE data.</p>
+                    <ul>
+                        <li><strong>Occurrences</strong> - Epigram instances in manuscripts</li>
+                        <li><strong>Types</strong> - Distinct poem types</li>
+                        <li><strong>Manuscripts</strong> - Medieval Greek manuscripts</li>
+                        <li><strong>Persons</strong> - Authors and mentioned persons</li>
+                    </ul>
+                    <div class="license-footer">
+                        <a rel="license" href="http://creativecommons.org/licenses/by/4.0/">
+                            <img alt="CC BY 4.0" src="https://i.creativecommons.org/l/by/4.0/88x31.png" />
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div id="view-manuscripts" class="view">
+                <div class="col-sm-2">
+                    <div class="sidebar-box">
+                        <h3>Search manuscripts</h3>
+                        <div class="form-group"><label>Name</label><input type="text" class="form-control" id="ms-name"></div>
+                        <div class="form-group"><label>City</label><input type="text" class="form-control" id="ms-city"></div>
+                        <div class="form-group"><label>Library</label><input type="text" class="form-control" id="ms-library"></div>
+                        <button class="btn btn-primary" onclick="app.search('manuscripts')">Search</button>
+                        <button class="btn btn-default" onclick="app.reset('manuscripts')">Reset</button>
+                    </div>
+                </div>
+                <div class="col-sm-10 search-page">
+                    <div class="per-page-selector">
+                        <label>Per page:</label>
+                        <select class="form-control" id="ms-perpage" onchange="app.changePerPage('manuscripts')" style="width:auto;display:inline-block">
+                            <option>25</option><option>50</option><option>100</option>
+                        </select>
+                    </div>
+                    <div class="record-count" id="ms-count"></div>
+                    <div class="clearfix"></div>
+                    <table class="table table-hover table-bordered">
+                        <thead><tr>
+                            <th onclick="app.sortTable('manuscripts','name')">Name</th>
+                            <th onclick="app.sortTable('manuscripts','city')">City</th>
+                            <th onclick="app.sortTable('manuscripts','library')">Library</th>
+                            <th>Content</th>
+                            <th>Origin</th>
+                        </tr></thead>
+                        <tbody id="ms-tbody"></tbody>
+                    </table>
+                    <nav><ul class="pagination" id="ms-pagination"></ul></nav>
+                </div>
+            </div>
+
+            <div id="view-occurrences" class="view">
+                <div class="col-sm-2">
+                    <div class="sidebar-box">
+                        <h3>Search occurrences</h3>
+                        <div class="form-group"><label>Text</label><input type="text" class="form-control greek" id="occ-text" placeholder="Search in verses or incipit..."></div>
+                        <div class="form-group"><label>Person</label><select class="form-control" id="occ-person"><option value="">All persons</option></select></div>
+                        <div class="form-group"><label>Subjects</label><input type="text" class="form-control" id="occ-subjects"></div>
+                        <div class="form-group"><label>Year from</label><input type="number" class="form-control" id="occ-year-from"></div>
+                        <div class="form-group"><label>Year to</label><input type="number" class="form-control" id="occ-year-to"></div>
+                        <button class="btn btn-primary" onclick="app.search('occurrences')">Search</button>
+                        <button class="btn btn-default" onclick="app.reset('occurrences')">Reset</button>
+                    </div>
+                </div>
+                <div class="col-sm-10 search-page">
+                    <div class="per-page-selector">
+                        <label>Per page:</label>
+                        <select class="form-control" id="occ-perpage" onchange="app.changePerPage('occurrences')" style="width:auto;display:inline-block">
+                            <option>25</option><option>50</option><option>100</option>
+                        </select>
+                    </div>
+                    <div class="record-count" id="occ-count"></div>
+                    <div class="clearfix"></div>
+                    <table class="table table-hover table-bordered">
+                        <thead><tr>
+                            <th onclick="app.sortTable('occurrences','id')">ID</th>
+                            <th onclick="app.sortTable('occurrences','incipit')">Incipit</th>
+                            <th>Manuscript</th>
+                            <th>Date</th>
+                            <th>Subjects</th>
+                        </tr></thead>
+                        <tbody id="occ-tbody"></tbody>
+                    </table>
+                    <nav><ul class="pagination" id="occ-pagination"></ul></nav>
+                </div>
+            </div>
+
+            <div id="view-types" class="view">
+                <div class="col-sm-2">
+                    <div class="sidebar-box">
+                        <h3>Search types</h3>
+                        <div class="form-group"><label>ID</label><input type="text" class="form-control" id="type-id"></div>
+                        <div class="form-group"><label>Text</label><input type="text" class="form-control greek" id="type-text" placeholder="Search in text..."></div>
+                        <div class="form-group"><label>Person</label><select class="form-control" id="type-person"><option value="">All persons</option></select></div>
+                        <div class="form-group"><label>Subjects</label><input type="text" class="form-control" id="type-subjects"></div>
+                        <button class="btn btn-primary" onclick="app.search('types')">Search</button>
+                        <button class="btn btn-default" onclick="app.reset('types')">Reset</button>
+                    </div>
+                </div>
+                <div class="col-sm-10 search-page">
+                    <div class="per-page-selector">
+                        <label>Per page:</label>
+                        <select class="form-control" id="type-perpage" onchange="app.changePerPage('types')" style="width:auto;display:inline-block">
+                            <option>25</option><option>50</option><option>100</option>
+                        </select>
+                    </div>
+                    <div class="record-count" id="type-count"></div>
+                    <div class="clearfix"></div>
+                    <table class="table table-hover table-bordered">
+                        <thead><tr>
+                            <th onclick="app.sortTable('types','id')">ID</th>
+                            <th>Subjects</th>
+                            <th>Text</th>
+                        </tr></thead>
+                        <tbody id="type-tbody"></tbody>
+                    </table>
+                    <nav><ul class="pagination" id="type-pagination"></ul></nav>
+                </div>
+            </div>
+
+            <div id="view-persons" class="view">
+                <div class="col-sm-2">
+                    <div class="sidebar-box">
+                        <h3>Search persons</h3>
+                        <div class="form-group"><label>Name</label><input type="text" class="form-control" id="person-name"></div>
+                        <div class="form-group"><label>First Name</label><input type="text" class="form-control" id="person-first"></div>
+                        <div class="form-group"><label>Last Name</label><input type="text" class="form-control" id="person-last"></div>
+                        <button class="btn btn-primary" onclick="app.search('persons')">Search</button>
+                        <button class="btn btn-default" onclick="app.reset('persons')">Reset</button>
+                    </div>
+                </div>
+                <div class="col-sm-10 search-page">
+                    <div class="per-page-selector">
+                        <label>Per page:</label>
+                        <select class="form-control" id="person-perpage" onchange="app.changePerPage('persons')" style="width:auto;display:inline-block">
+                            <option>25</option><option>50</option><option>100</option>
+                        </select>
+                    </div>
+                    <div class="record-count" id="person-count"></div>
+                    <div class="clearfix"></div>
+                    <table class="table table-hover table-bordered">
+                        <thead><tr>
+                            <th onclick="app.sortTable('persons','id')">ID</th>
+                            <th onclick="app.sortTable('persons','name')">Name</th>
+                            <th>First Name</th>
+                            <th>Last Name</th>
+                        </tr></thead>
+                        <tbody id="person-tbody"></tbody>
+                    </table>
+                    <nav><ul class="pagination" id="person-pagination"></ul></nav>
+                </div>
+            </div>
+
+            <div id="view-manuscript-detail" class="view">
+                <div class="col-sm-10 col-sm-offset-2 detail-page" id="manuscript-detail-content"></div>
+            </div>
+            <div id="view-occurrence-detail" class="view">
+                <div class="col-sm-10 col-sm-offset-2 detail-page" id="occurrence-detail-content"></div>
+            </div>
+            <div id="view-type-detail" class="view">
+                <div class="col-sm-10 col-sm-offset-2 detail-page" id="type-detail-content"></div>
+            </div>
+            <div id="view-person-detail" class="view">
+                <div class="col-sm-10 col-sm-offset-2 detail-page" id="person-detail-content"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<footer class="page-footer">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-sm-6">
+                <ul class="list-inline">
+                    <li><a href="https://www.projectdbbe.ugent.be/contact/">Contact</a></li>
+                    <li>&copy; 2026 Ghent University</li>
+                </ul>
+            </div>
+            <div class="col-sm-6 text-right">
+                <a href="https://www.facebook.com/byzantinebookepigrams/"><i class="fa fa-facebook" style="font-size:20px;margin:0 8px"></i></a>
+                <a href="https://www.instagram.com/dbbe.ugent/"><i class="fa fa-instagram" style="font-size:20px;margin:0 8px"></i></a>
+                <a href="https://www.youtube.com/channel/UCm085S1xRlDi5LQ5t5NMRFw"><i class="fa fa-youtube" style="font-size:20px;margin:0 8px"></i></a>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.8.0/sql-wasm.js"></script>
+<script>
+    const app = {
+        db: null,
+        data: {
+            manuscripts: {data:[], filtered:[], page:1, perPage:25, sortBy:'name', sortAsc:true},
+            occurrences: {data:[], filtered:[], page:1, perPage:25, sortBy:'id', sortAsc:true},
+            types: {data:[], filtered:[], page:1, perPage:25, sortBy:'id', sortAsc:true},
+            persons: {data:[], filtered:[], page:1, perPage:25, sortBy:'name', sortAsc:true}
+        },
+        config: {
+            manuscripts: {fields:['id','name','diktyon','city','library','content','person_content','origin']},
+            occurrences: {fields:['id','incipit','verses','subjects','date_floor_year','date_ceiling_year','manuscript_id','manuscript_name']},
+            types: {fields:['id','subjects','text_original']},
+            persons: {fields:['id','name','unprocessed_name','first_name','nickname','last_name']}
+        },
+
+        async init() {
+            try {
+                const SQL = await initSqlJs({locateFile: f => `https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.8.0/${f}`});
+                const res = await fetch('export_data.db');
+                this.db = new SQL.Database(new Uint8Array(await res.arrayBuffer()));
+                this.loadAllData();
+                this.populatePersonDropdowns();
+                window.addEventListener('hashchange', () => this.route());
+                this.route();
+                document.getElementById('loading').style.display = 'none';
+            } catch(e) {
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('error').style.display = 'block';
+                document.getElementById('error').textContent = 'Error: ' + e.message;
+            }
+        },
+
+        loadAllData() {
+            ['manuscripts','occurrences','types','persons'].forEach(t => {
+                const r = this.db.exec(`SELECT * FROM ${t}`);
+                if(r.length) {
+                    this.data[t].data = r[0].values.map(row => {
+                        const obj = {};
+                        this.config[t].fields.forEach((f,i) => obj[f] = row[i]);
+                        return obj;
+                    });
+                    this.data[t].filtered = [...this.data[t].data];
+                }
+            });
+        },
+
+        populatePersonDropdowns() {
+            const persons = this.data.persons.data.sort((a,b) => (a.name||'').localeCompare(b.name||''));
+            ['occ-person','type-person'].forEach(id => {
+                const sel = document.getElementById(id);
+                persons.forEach(p => sel.insertAdjacentHTML('beforeend', `<option value="${p.id}">${this.esc(p.name||p.id)}</option>`));
+            });
+        },
+
+        route() {
+            const [view, id] = window.location.hash.slice(1).split('/');
+            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+            document.querySelectorAll('.nav-bar li').forEach(li => li.classList.remove('active'));
+
+            if(!view || view==='home') {
+                document.getElementById('view-home').classList.add('active');
+                document.getElementById('nav-home').classList.add('active');
+            } else {
+                document.getElementById(`nav-${view}`).classList.add('active');
+                if(id) {
+                    document.getElementById(`view-${view.slice(0,-1)}-detail`).classList.add('active');
+                    this[`show${view.slice(0,-1).charAt(0).toUpperCase()+view.slice(1,-1)}Detail`](id);
+                } else {
+                    document.getElementById(`view-${view}`).classList.add('active');
+                    this.render(view);
+                }
+            }
+        },
+
+        search(table) {
+            const filters = {
+                manuscripts: () => {
+                    const name = document.getElementById('ms-name').value.toLowerCase();
+                    const city = document.getElementById('ms-city').value.toLowerCase();
+                    const library = document.getElementById('ms-library').value.toLowerCase();
+                    return ms => (!name || ms.name?.toLowerCase().includes(name)) &&
+                        (!city || ms.city?.toLowerCase().includes(city)) &&
+                        (!library || ms.library?.toLowerCase().includes(library));
+                },
+                occurrences: () => {
+                    const text = document.getElementById('occ-text').value.toLowerCase();
+                    const person = document.getElementById('occ-person').value;
+                    const subjects = document.getElementById('occ-subjects').value.toLowerCase();
+                    const yearFrom = parseInt(document.getElementById('occ-year-from').value) || null;
+                    const yearTo = parseInt(document.getElementById('occ-year-to').value) || null;
+
+                    let personOccIds = [];
+                    if(person) {
+                        const r = this.db.exec(`SELECT DISTINCT o.id FROM occurrences o
+                                                                              JOIN type_occurrences to_ ON o.id = to_.occurrence_id
+                                                                              JOIN types t ON to_.type_id = t.id
+                                                WHERE t.id IN (SELECT type_id FROM type_persons WHERE person_id = ?)`, [person]);
+                        personOccIds = r.length ? r[0].values.map(v => v[0]) : [];
+                    }
+
+                    return occ => {
+                        const floor = parseInt(occ.date_floor_year) || 0;
+                        const ceil = parseInt(occ.date_ceiling_year) || 9999;
+                        return (!text || occ.incipit?.toLowerCase().includes(text) || occ.verses?.toLowerCase().includes(text)) &&
+                            (!person || personOccIds.includes(occ.id)) &&
+                            (!subjects || occ.subjects?.toLowerCase().includes(subjects)) &&
+                            (!yearFrom || ceil >= yearFrom) && (!yearTo || floor <= yearTo);
+                    };
+                },
+                types: () => {
+                    const id = document.getElementById('type-id').value.toLowerCase();
+                    const text = document.getElementById('type-text').value.toLowerCase();
+                    const person = document.getElementById('type-person').value;
+                    const subjects = document.getElementById('type-subjects').value.toLowerCase();
+
+                    let personTypeIds = [];
+                    if(person) {
+                        const r = this.db.exec(`SELECT type_id FROM type_persons WHERE person_id = ?`, [person]);
+                        personTypeIds = r.length ? r[0].values.map(v => v[0]) : [];
+                    }
+
+                    return t => (!id || t.id?.toLowerCase().includes(id)) &&
+                        (!text || t.text_original?.toLowerCase().includes(text)) &&
+                        (!person || personTypeIds.includes(t.id)) &&
+                        (!subjects || t.subjects?.toLowerCase().includes(subjects));
+                },
+                persons: () => {
+                    const name = document.getElementById('person-name').value.toLowerCase();
+                    const first = document.getElementById('person-first').value.toLowerCase();
+                    const last = document.getElementById('person-last').value.toLowerCase();
+                    return p => (!name || p.name?.toLowerCase().includes(name)) &&
+                        (!first || p.first_name?.toLowerCase().includes(first)) &&
+                        (!last || p.last_name?.toLowerCase().includes(last));
+                }
+            };
+            this.data[table].filtered = this.data[table].data.filter(filters[table]());
+            this.data[table].page = 1;
+            this.render(table);
+        },
+
+        reset(table) {
+            const ids = {
+                manuscripts:['ms-name','ms-city','ms-library'],
+                occurrences:['occ-text','occ-person','occ-subjects','occ-year-from','occ-year-to'],
+                types:['type-id','type-text','type-person','type-subjects'],
+                persons:['person-name','person-first','person-last']
+            };
+            ids[table].forEach(id => document.getElementById(id).value = '');
+            this.data[table].filtered = [...this.data[table].data];
+            this.data[table].page = 1;
+            this.render(table);
+        },
+
+        render(table) {
+            const s = this.data[table];
+            s.filtered.sort((a,b) => {
+                let [vA,vB] = [a[s.sortBy]||'', b[s.sortBy]||''];
+                const [nA,nB] = [parseFloat(vA), parseFloat(vB)];
+                if(!isNaN(nA) && !isNaN(nB)) return s.sortAsc ? nA-nB : nB-nA;
+                [vA,vB] = [String(vA).toLowerCase(), String(vB).toLowerCase()];
+                return s.sortAsc ? (vA<vB?-1:vA>vB?1:0) : (vA>vB?-1:vA<vB?1:0);
+            });
+
+            const start = (s.page-1)*s.perPage, end = start+s.perPage;
+            const pre = table==='manuscripts'?'ms':table==='occurrences'?'occ':table==='types'?'type':'person';
+            const tbody = document.getElementById(`${pre}-tbody`);
+            tbody.innerHTML = '';
+
+            s.filtered.slice(start,end).forEach(item => {
+                tbody.insertAdjacentHTML('beforeend', this[`render${table.charAt(0).toUpperCase()+table.slice(1,-1)}Row`](item));
+            });
+
+            this.updatePagination(table);
+            const cnt = document.getElementById(`${pre}-count`);
+            cnt.textContent = s.filtered.length ? `Showing ${start+1}-${Math.min(end,s.filtered.length)} of ${s.filtered.length} records` : 'No records found';
+        },
+
+        renderManuscriptRow: m => `<tr>
+        <td><a href="#manuscripts/${m.id}" class="clickable-link">${app.esc(m.name||'')}</a></td>
+        <td>${app.esc(m.city||'')}</td>
+        <td>${app.esc(m.library||'')}</td>
+        <td>${app.esc(app.trunc(m.content||'',100))}</td>
+        <td>${app.esc(app.trunc(m.origin||'',50))}</td>
+    </tr>`,
+
+        renderOccurrenceRow: o => `<tr>
+        <td><a href="#occurrences/${o.id}" class="clickable-link">${app.esc(o.id||'')}</a></td>
+        <td class="greek"><a href="#occurrences/${o.id}" class="clickable-link">${app.esc(app.trunc(o.incipit||'',100))}</a></td>
+        <td><a href="#manuscripts/${o.manuscript_id}" class="clickable-link">${app.esc(app.trunc(o.manuscript_name||'',80))}</a></td>
+        <td>${app.dateRange(o.date_floor_year,o.date_ceiling_year)}</td>
+        <td>${app.esc(app.trunc(o.subjects||'',100))}</td>
+    </tr>`,
+
+        renderTypeRow: t => `<tr>
+        <td><a href="#types/${t.id}" class="clickable-link">${app.esc(t.id||'')}</a></td>
+        <td>${app.esc(app.trunc(t.subjects||'',100))}</td>
+        <td class="greek"><a href="#types/${t.id}" class="clickable-link">${app.esc(app.trunc(t.text_original||'',200))}</a></td>
+    </tr>`,
+
+        renderPersonRow: p => `<tr>
+        <td><a href="#persons/${p.id}" class="clickable-link">${app.esc(p.id||'')}</a></td>
+        <td><a href="#persons/${p.id}" class="clickable-link">${app.esc(p.name||'')}</a></td>
+        <td>${app.esc(p.first_name||'')}</td>
+        <td>${app.esc(p.last_name||'')}</td>
+    </tr>`,
+
+        showManuscriptDetail(id) {
+            const m = this.data.manuscripts.data.find(x => x.id === id);
+            if(!m) return;
+            const occs = this.data.occurrences.data.filter(o => o.manuscript_id === id);
+            document.getElementById('manuscript-detail-content').innerHTML = `
+            <a href="#manuscripts" class="back-link"><i class="fa fa-arrow-left"></i> Back</a>
+            <h2><small>Manuscript</small><br/>${this.esc(m.name||'')}</h2>
+            <table class="table table-bordered"><tbody>
+                ${m.content?`<tr><td>Content</td><td>${this.esc(m.content)}</td></tr>`:''}
+                ${m.city||m.library?`<tr><td>Location</td><td>${this.esc(m.city||'')} - ${this.esc(m.library||'')}</td></tr>`:''}
+                ${m.origin?`<tr><td>Origin</td><td>${this.esc(m.origin)}</td></tr>`:''}
+                ${m.diktyon?`<tr><td>Diktyon</td><td>${this.esc(m.diktyon)}</td></tr>`:''}
+                ${occs.length?`<tr><td>Occurrences</td><td>${occs.map(o=>`
+                    <div class="pbottom-default">
+                        <a href="#occurrences/${o.id}" class="clickable-link greek">[${this.esc(o.id)}] ${this.esc(this.trunc(o.incipit||'',100))}</a>
+                        ${this.dateRange(o.date_floor_year,o.date_ceiling_year)?'['+this.dateRange(o.date_floor_year,o.date_ceiling_year)+']':''}
+                    </div>`).join('')}</td></tr>`:''}
+            </tbody></table>${this.license()}`;
+        },
+
+        showOccurrenceDetail(id) {
+            const o = this.data.occurrences.data.find(x => x.id === id);
+            if(!o) return;
+            const genres = this.db.exec(`SELECT g.name FROM occurrence_genres og JOIN genres g ON og.genre_id=g.id WHERE og.occurrence_id=?`,[id]);
+            const metres = this.db.exec(`SELECT m.name FROM occurrence_metres om JOIN metres m ON om.metre_id=m.id WHERE om.occurrence_id=?`,[id]);
+            const subjects = this.db.exec(`SELECT s.name FROM occurrence_subjects os JOIN subjects s ON os.subject_id=s.id WHERE os.occurrence_id=?`,[id]);
+
+            const types = this.db.exec(`SELECT t.id,t.text_original FROM type_occurrences to_ JOIN types t ON to_.type_id=t.id WHERE to_.occurrence_id=?`,[id]);
+            const g = genres.length ? genres[0].values.map(r=>r[0]) : [];
+            const m = metres.length ? metres[0].values.map(r=>r[0]) : [];
+            const s = subjects.length ? subjects[0].values.map(r=>r[0]) : [];
+            const t = types.length ? types[0].values.map(r=>({id:r[0],subjects:r[1],text_original:r[2]})) : [];
+
+            const verses = o.verses ? o.verses.split('\n').filter(v=>v.trim()) : [];
+            const versesHtml = verses.length>1 ? `<ol>${verses.map(v=>`<li>${this.esc(v)}</li>`).join('')}</ol>` :
+                verses.length===1 ? `<p>${this.esc(verses[0])}</p>` : '';
+
+            document.getElementById('occurrence-detail-content').innerHTML = `
+            <a href="#occurrences" class="back-link"><i class="fa fa-arrow-left"></i> Back</a>
+            <h2>Occurrence ${this.esc(o.id)}</h2>
+            ${versesHtml?`<div class="verses-display greek">${versesHtml}</div>`:''}
+            <table class="table table-bordered"><tbody>
+                ${t.length?`<tr><td>Type(s)</td><td>${t.map(x=>`<div class="pbottom-default"><a href="#types/${x.id}" class="clickable-link">[${this.esc(x.id)}] <span class="greek">${this.esc(this.trunc(x.text_original||'',100))}</span></a></div>`).join('')}</td></tr>`:''}
+                ${o.incipit?`<tr><td>Incipit</td><td class="greek">${this.esc(o.incipit)}</td></tr>`:''}
+                ${o.date_floor_year||o.date_ceiling_year?`<tr><td>Date</td><td>${this.dateRange(o.date_floor_year,o.date_ceiling_year)}</td></tr>`:''}
+                ${o.manuscript_id&&o.manuscript_name?`<tr><td>Manuscript</td><td><a href="#manuscripts/${o.manuscript_id}" class="clickable-link">${this.esc(o.manuscript_name)}</a></td></tr>`:''}
+                ${m.length?`<tr><td>Metre(s)</td><td>${m.map(x=>this.esc(x)).join(', ')}</td></tr>`:''}
+                ${g.length?`<tr><td>Genre(s)</td><td>${g.map(x=>this.esc(x)).join(', ')}</td></tr>`:''}
+                ${s.length?`<tr><td>Subject(s)</td><td>${s.map(x=>this.esc(x)).join(', ')}</td></tr>`:''}
+            </tbody></table>${this.license()}`;
+        },
+
+        showTypeDetail(id) {
+            const t = this.data.types.data.find(x => x.id === id);
+            if(!t) return;
+            const occs = this.db.exec(`SELECT o.id,o.incipit,o.manuscript_name,o.date_floor_year,o.date_ceiling_year,o.manuscript_id FROM type_occurrences to_ JOIN occurrences o ON to_.occurrence_id=o.id WHERE to_.type_id=?`,[id]);
+            const genres = this.db.exec(`SELECT g.name FROM type_genres tg JOIN genres g ON tg.genre_id=g.id WHERE tg.type_id=?`,[id]);
+            const metres = this.db.exec(`SELECT m.name FROM type_metres tm JOIN metres m ON tm.metre_id=m.id WHERE tm.type_id=?`,[id]);
+            const subjects = this.db.exec(`SELECT s.name FROM type_subjects ts JOIN subjects s ON ts.subject_id=s.id WHERE ts.type_id=?`,[id]);
+
+            const o = occs.length ? occs[0].values.map(r=>({id:r[0],incipit:r[1],manuscript_name:r[2],date_floor_year:r[3],date_ceiling_year:r[4],manuscript_id:r[5]})) : [];
+            const g = genres.length ? genres[0].values.map(r=>r[0]) : [];
+            const m = metres.length ? metres[0].values.map(r=>r[0]) : [];
+            const s = subjects.length ? subjects[0].values.map(r=>r[0]) : [];
+
+            const verses = t.text_original ? t.text_original.split('\n').filter(v=>v.trim()) : [];
+            const versesHtml = verses.length>1 ? `<ol>${verses.map(v=>`<li>${this.esc(v)}</li>`).join('')}</ol>` :
+                verses.length===1 ? `<p>${this.esc(verses[0])}</p>` : '';
+
+            document.getElementById('type-detail-content').innerHTML = `
+            <a href="#types" class="back-link"><i class="fa fa-arrow-left"></i> Back</a>
+            <h2><small>Type</small><br/>${this.esc(id)}</h2>
+            ${versesHtml?`<div class="verses-display greek">${versesHtml}</div>`:''}
+            <table class="table table-bordered"><tbody>
+                ${s.length?`<tr><td>Subject(s)</td><td>${s.map(x=>this.esc(x)).join(', ')}</td></tr>`:''}
+                ${m.length?`<tr><td>Metre(s)</td><td>${m.map(x=>this.esc(x)).join(', ')}</td></tr>`:''}
+                ${g.length?`<tr><td>Genre(s)</td><td>${g.map(x=>this.esc(x)).join(', ')}</td></tr>`:''}
+                ${o.length?`<tr><td>Occurrences</td><td>${o.map(x=>`<div class="pbottom-default"><a href="#occurrences/${x.id}" class="clickable-link greek">[${this.esc(x.id)}] ${this.esc(this.trunc(x.incipit||'',100))}</a><br/>${x.manuscript_name?`<a href="#manuscripts/${this.esc(x.manuscript_id)}" class="clickable-link">${this.esc(x.manuscript_name)}</a>`:''} ${this.dateRange(x.date_floor_year,x.date_ceiling_year)?'['+this.dateRange(x.date_floor_year,x.date_ceiling_year)+']':''}</div>`).join('')}</td></tr>`:''}
+            </tbody></table>${this.license()}`;
+        },
+
+        showPersonDetail(id) {
+            const p = this.data.persons.data.find(x => x.id === id);
+            if(!p) return;
+            document.getElementById('person-detail-content').innerHTML = `
+            <a href="#persons" class="back-link"><i class="fa fa-arrow-left"></i> Back</a>
+            <h2><small>Person</small><br/>${this.esc(p.name||p.id)}</h2>
+            <table class="table table-bordered"><tbody>
+                ${p.name?`<tr><td>Name</td><td>${this.esc(p.name)}</td></tr>`:''}
+                ${p.first_name?`<tr><td>First Name</td><td>${this.esc(p.first_name)}</td></tr>`:''}
+                ${p.last_name?`<tr><td>Last Name</td><td>${this.esc(p.last_name)}</td></tr>`:''}
+                ${p.nickname?`<tr><td>Nickname</td><td>${this.esc(p.nickname)}</td></tr>`:''}
+                ${p.unprocessed_name?`<tr><td>Unprocessed Name</td><td>${this.esc(p.unprocessed_name)}</td></tr>`:''}
+            </tbody></table>${this.license()}`;
+        },
+
+        sortTable(table, col) {
+            const s = this.data[table];
+            s.sortAsc = s.sortBy === col ? !s.sortAsc : true;
+            s.sortBy = col;
+            this.render(table);
+        },
+
+        updatePagination(table) {
+            const s = this.data[table];
+            const total = Math.ceil(s.filtered.length / s.perPage);
+            const pre = table==='manuscripts'?'ms':table==='occurrences'?'occ':table==='types'?'type':'person';
+            const c = document.getElementById(`${pre}-pagination`);
+            c.innerHTML = '';
+            c.insertAdjacentHTML('beforeend', `<li${s.page===1?' class="disabled"':''}><a href="#" onclick="app.goTo('${table}',${s.page-1});return false">&laquo;</a></li>`);
+            for(let i=Math.max(1,s.page-2); i<=Math.min(total,s.page+2); i++)
+                c.insertAdjacentHTML('beforeend', `<li${i===s.page?' class="active"':''}><a href="#" onclick="app.goTo('${table}',${i});return false">${i}</a></li>`);
+            c.insertAdjacentHTML('beforeend', `<li${s.page>=total?' class="disabled"':''}><a href="#" onclick="app.goTo('${table}',${s.page+1});return false">&raquo;</a></li>`);
+        },
+
+        goTo(table, page) {
+            const total = Math.ceil(this.data[table].filtered.length / this.data[table].perPage);
+            if(page<1 || page>total) return;
+            this.data[table].page = page;
+            this.render(table);
+        },
+
+        changePerPage(table) {
+            const pre = table==='manuscripts'?'ms':table==='occurrences'?'occ':table==='types'?'type':'person';
+            this.data[table].perPage = parseInt(document.getElementById(`${pre}-perpage`).value);
+            this.data[table].page = 1;
+            this.render(table);
+        },
+
+        esc: t => {const d=document.createElement('div'); d.textContent=t; return d.innerHTML;},
+        trunc: (t,l) => t&&t.length>l ? t.substring(0,l)+'...' : t||'',
+        dateRange: (f,t) => !f&&!t?'':!f?t:!t?f:f===t?f:`${f} - ${t}`,
+        license: () => '<div class="license-footer"><a rel="license" href="http://creativecommons.org/licenses/by/4.0/"><img alt="CC BY 4.0" src="https://i.creativecommons.org/l/by/4.0/88x31.png"/></a></div>'
+    };
+
+    app.init();
+</script>
+</body>
+</html>

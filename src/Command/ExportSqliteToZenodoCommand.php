@@ -313,10 +313,11 @@ class ExportSqliteToZenodoCommand extends Command
         $db->exec('CREATE TABLE persons (
             id TEXT PRIMARY KEY,
             name TEXT,
-            unprocessed_name TEXT,
-            first_name TEXT,
-            nickname TEXT,
-            last_name TEXT
+            born_floor TEXT,
+            born_ceiling TEXT,
+            death_floor TEXT,
+            death_ceiling TEXT,
+            roles TEXT
         )');
 
         $db->exec('CREATE TABLE types (
@@ -491,18 +492,21 @@ class ExportSqliteToZenodoCommand extends Command
 
     private function importPersons(\SQLite3 $db, array $rows, array $headers): void
     {
-        $stmt = $db->prepare('INSERT OR IGNORE INTO persons VALUES (?, ?, ?, ?, ?, ?)');
+        $stmt = $db->prepare('INSERT OR IGNORE INTO persons VALUES (?, ?, ?, ?, ?, ?, ?)');
 
         for ($i = 1; $i < count($rows); $i++) {
             $row = $rows[$i];
             if (empty($row) || (count($row) === 1 && trim($row[0]) === '')) continue;
 
-            $row = array_pad($row, 6, '');
-            $row = array_slice($row, 0, 6);
+            $row = array_pad($row, 7, ''); // pad to 7 columns
 
-            for ($j = 0; $j < 6; $j++) {
-                $stmt->bindValue($j + 1, $row[$j] ?? '', SQLITE3_TEXT);
-            }
+            $stmt->bindValue(1, $row[0] ?? '', SQLITE3_TEXT); // id
+            $stmt->bindValue(2, $row[1] ?? '', SQLITE3_TEXT); // name
+            $stmt->bindValue(3, $row[2] ?? '', SQLITE3_TEXT); // born_floor
+            $stmt->bindValue(4, $row[3] ?? '', SQLITE3_TEXT); // born_ceiling
+            $stmt->bindValue(5, $row[4] ?? '', SQLITE3_TEXT); // death_floor
+            $stmt->bindValue(6, $row[5] ?? '', SQLITE3_TEXT); // death_ceiling
+            $stmt->bindValue(7, $row[6] ?? '', SQLITE3_TEXT); // roles (pipe-separated)
             $stmt->execute();
             $stmt->reset();
         }
@@ -715,4 +719,5 @@ class ExportSqliteToZenodoCommand extends Command
         }
     }
 }
+
 
