@@ -1,5 +1,5 @@
 <template>
-    <tem>
+    <div>
         <div class="col-xs-12">
             <alerts
                 :alerts="alerts"
