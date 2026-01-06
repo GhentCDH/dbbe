@@ -1063,17 +1063,12 @@ class OccurrenceManager extends PoemManager
     ) {
         $stream = fopen('php://temp', 'r+');
 
-        fwrite($stream, "\xFF\xFE");
+        fwrite($stream, "\xEF\xBB\xBF");
 
-        $header = mb_convert_encoding(
-            implode(';', [
-                'id', 'incipit', 'verses', 'genres', 'subjects', 'metres',
-                'date_floor_year', 'date_ceiling_year', 'manuscript_id', 'manuscript_name'
-            ]) . "\n",
-            'UTF-16LE',
-            'UTF-8'
-        );
-        fwrite($stream, $header);
+        fputcsv($stream, [
+            'id', 'incipit', 'verses', 'genres', 'subjects', 'metres',
+            'date_floor_year', 'date_ceiling_year', 'manuscript_id', 'manuscript_name'
+        ], ';');
 
         $params['limit'] = 1000;
         $params['orderBy'] = ['id'];
@@ -1082,6 +1077,7 @@ class OccurrenceManager extends PoemManager
 
         $totalFetched = 0;
         $searchAfter = null;
+        $maxResults = $isAuthorized ? 10000 : 1000;
 
         while (true) {
             if ($searchAfter !== null) {
@@ -1097,24 +1093,13 @@ class OccurrenceManager extends PoemManager
             }
 
             foreach ($data as $item) {
-                if (!$isAuthorized && $totalFetched >= 1000) {
+                if ($totalFetched >= $maxResults) {
                     break 2;
                 }
                 $verses = $verseService->findVersesByOccurrenceId($item['id']);
                 $row = $this->formatRow($item, implode("\n", array_column($verses, 'verse')));
 
-                $line = mb_convert_encoding(
-                    implode(';', array_map(function($field) {
-                        $field = str_replace('"', '""', $field);
-                        if (strpos($field, ';') !== false || strpos($field, "\n") !== false) {
-                            $field = '"' . $field . '"';
-                        }
-                        return $field;
-                    }, $row)) . "\n",
-                    'UTF-16LE',
-                    'UTF-8'
-                );
-                fwrite($stream, $line);
+                fputcsv($stream, $row, ';');
                 $totalFetched++;
             }
 
@@ -1129,8 +1114,5 @@ class OccurrenceManager extends PoemManager
         rewind($stream);
         return $stream;
     }
-
-
-
 
 }

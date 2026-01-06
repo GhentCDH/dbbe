@@ -20,8 +20,6 @@ class ExportSqliteToZenodoCommand extends Command
 
     private const ZENODO_SANDBOX_API = 'https://sandbox.zenodo.org/api';
 
-    // Set to 'public' to make depositions publicly accessible
-    // Set to 'restricted' to make depositions restricted (default)
     private const ACCESS_RIGHT = 'restricted';
 
     protected $di = [];
