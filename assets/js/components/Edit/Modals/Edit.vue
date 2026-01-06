@@ -4,8 +4,7 @@
         size="lg"
         auto-focus
         :backdrop="null"
-        @update:model-value="$emit('update:show', $event)"
-        @input="$emit('cancel')">
+        @update:model-value="$emit('update:show', $event)">
         <alerts
             :alerts="alerts"
             @dismiss="$emit('dismiss-alert', $event)" />
