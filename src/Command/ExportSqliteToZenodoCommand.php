@@ -19,16 +19,10 @@ class ExportSqliteToZenodoCommand extends Command
     ];
 
     private const ZENODO_SANDBOX_API = 'https://sandbox.zenodo.org/api';
-
     private const ACCESS_RIGHT = 'restricted';
 
     protected $di = [];
 
-    /**
-     * ExportSqliteToZenodoCommand constructor.
-     * @param HttpClientInterface $httpClient
-     * @param string $zenodoAccessToken
-     */
     public function __construct(
         HttpClientInterface $httpClient,
         string $zenodoAccessToken = ''
@@ -56,11 +50,6 @@ class ExportSqliteToZenodoCommand extends Command
             ->addOption('output-path', 'o', InputOption::VALUE_OPTIONAL, 'Output path for local database file', sys_get_temp_dir());
     }
 
-    /**
-     * @param InputInterface $input
-     * @param OutputInterface $output
-     * @return int
-     */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $io = new SymfonyStyle($input, $output);
@@ -95,23 +84,44 @@ class ExportSqliteToZenodoCommand extends Command
 
         try {
             $db = new \SQLite3($dbPath);
-            // Set UTF-8 encoding
             $db->exec('PRAGMA encoding = "UTF-8"');
+            $db->exec('PRAGMA foreign_keys = ON');
             $io->success("Created SQLite database: {$dbFilename}");
         } catch (\Exception $e) {
             $io->error("Failed to create SQLite database: " . $e->getMessage());
             return Command::FAILURE;
         }
 
-        // Step 2: Export data from endpoints and populate tables
-        $io->section('Step 2: Exporting data from endpoints');
+        // Step 2: Create normalized schema
+        $io->section('Step 2: Creating database schema');
+        try {
+            $this->createNormalizedSchema($db);
+            $io->success('Created normalized schema');
+        } catch (\Exception $e) {
+            $io->error("Failed to create schema: " . $e->getMessage());
+            $db->close();
+            if (file_exists($dbPath)) {
+                unlink($dbPath);
+            }
+            return Command::FAILURE;
+        }
 
-        foreach (self::ENDPOINTS as $tableName => $path) {
+        // Step 3: Export data from endpoints and populate tables
+        $io->section('Step 3: Exporting data from endpoints');
+
+        // Import in specific order due to foreign key constraints
+        // 1. Manuscripts first (referenced by occurrences)
+        // 2. Occurrences second (referenced by types)
+        // 3. Types and Persons (no dependencies)
+        $importOrder = ['manuscripts', 'occurrences', 'persons', 'types'];
+
+        foreach ($importOrder as $tableName) {
             $io->text("Exporting {$tableName}...");
 
             try {
+                $path = self::ENDPOINTS[$tableName];
                 $csvContent = $this->exportCsv($path);
-                $this->createTableFromCsv($db, $tableName, $csvContent);
+                $this->importCsvData($db, $tableName, $csvContent, $io);
                 $io->success("Exported {$tableName}");
             } catch (\Exception $e) {
                 $io->error("Failed to export {$tableName}: " . $e->getMessage());
@@ -133,59 +143,73 @@ class ExportSqliteToZenodoCommand extends Command
             return Command::SUCCESS;
         }
 
-        // Step 3: Create or get Zenodo deposition
-        $io->section('Step 3: Preparing Zenodo deposition');
+        // Steps 4-8: Zenodo upload (same as before)
+        $io->section('Step 4: Preparing Zenodo deposition');
 
         $depositionId = $input->getOption('deposition-id');
         $isNewVersion = false;
 
-        try {
-            if ($depositionId) {
-                $io->text("Checking existing deposition ID: {$depositionId}");
-                $deposition = $this->getDeposition($token, $depositionId);
+        $maxRetries = 3;
+        $retryDelay = 2;
 
-                // Check if deposition is published - if so, create new version
-                if (isset($deposition['submitted']) && $deposition['submitted'] === true) {
-                    $io->text("Deposition is published. Creating new version...");
-                    $newVersion = $this->createNewVersion($token, $depositionId);
-                    $depositionId = $newVersion['id'];
-                    $isNewVersion = true;
-                    $io->success("Created new version with ID: {$depositionId}");
+        for ($attempt = 1; $attempt <= $maxRetries; $attempt++) {
+            try {
+                if ($depositionId) {
+                    $io->text("Checking existing deposition ID: {$depositionId}");
+                    $deposition = $this->getDeposition($token, $depositionId);
+
+                    if (isset($deposition['submitted']) && $deposition['submitted'] === true) {
+                        $io->text("Deposition is published. Creating new version...");
+                        $newVersion = $this->createNewVersion($token, $depositionId);
+                        $depositionId = $newVersion['id'];
+                        $isNewVersion = true;
+                        $io->success("Created new version with ID: {$depositionId}");
+                    } else {
+                        $io->text("Using draft deposition ID: {$depositionId}");
+                    }
                 } else {
-                    $io->text("Using draft deposition ID: {$depositionId}");
+                    $deposition = $this->createDeposition(
+                        $token,
+                        $input->getOption('title'),
+                        $input->getOption('description')
+                    );
+                    $depositionId = $deposition['id'];
+                    $io->success("Created new deposition with ID: {$depositionId}");
                 }
-            } else {
-                $deposition = $this->createDeposition(
-                    $token,
-                    $input->getOption('title'),
-                    $input->getOption('description')
-                );
-                $depositionId = $deposition['id'];
-                $io->success("Created new deposition with ID: {$depositionId}");
-            }
-        } catch (\Exception $e) {
-            $io->error("Failed to create/get deposition: " . $e->getMessage());
 
-            // Check if this is a network/DNS issue
-            if (strpos($e->getMessage(), 'Could not resolve host') !== false) {
-                $io->note('Network connectivity issue detected. Possible causes:');
-                $io->listing([
-                    'Network access may be restricted in your environment',
-                    'DNS resolution may not be available',
-                    'Firewall may be blocking outbound connections',
-                ]);
-                $io->text('Try running this command from a server with internet access, or check your network settings.');
-            }
+                break;
 
-            if (file_exists($dbPath)) {
-                unlink($dbPath);
+            } catch (\Exception $e) {
+                $isNetworkError = strpos($e->getMessage(), 'Could not resolve host') !== false;
+
+                if ($isNetworkError && $attempt < $maxRetries) {
+                    $io->warning("Network error (attempt {$attempt}/{$maxRetries}): " . $e->getMessage());
+                    $io->text("Retrying in {$retryDelay} seconds...");
+                    sleep($retryDelay);
+                    continue;
+                }
+
+                $io->error("Failed to create/get deposition: " . $e->getMessage());
+
+                if ($isNetworkError) {
+                    $io->note('Network connectivity issue detected. Possible solutions:');
+                    $io->listing([
+                        'Wait a few moments and try again',
+                        'Clear DNS cache: sudo dscacheutil -flushcache (macOS) or sudo systemd-resolve --flush-caches (Linux)',
+                        'Try: ping sandbox.zenodo.org to verify DNS resolution',
+                        'Check if you recently switched networks',
+                    ]);
+                }
+
+                if (file_exists($dbPath)) {
+                    unlink($dbPath);
+                }
+                return Command::FAILURE;
             }
-            return Command::FAILURE;
         }
 
-        // Step 4: Delete existing files if this is a new version
         if ($isNewVersion) {
-            $io->section('Step 4: Removing old files from new version');
+            $io->section('Step 5: Removing old files from new version');
             try {
                 $this->deleteExistingFiles($token, $depositionId);
                 $io->success("Removed old files");
@@ -194,8 +218,7 @@ class ExportSqliteToZenodoCommand extends Command
             }
         }
 
-        // Step 5: Upload SQLite database
-        $io->section($isNewVersion ? 'Step 5: Uploading SQLite database to Zenodo' : 'Step 4: Uploading SQLite database to Zenodo');
+        $io->section($isNewVersion ? 'Step 6: Uploading SQLite database to Zenodo' : 'Step 5: Uploading SQLite database to Zenodo');
 
         try {
             $this->uploadFile($token, $depositionId, $dbFilename, $dbPath);
@@ -208,7 +231,6 @@ class ExportSqliteToZenodoCommand extends Command
             return Command::FAILURE;
         }
 
-        // Step 6: Update metadata if needed (especially for new versions)
         if ($isNewVersion) {
             $io->text('Updating metadata for new version...');
             try {
@@ -219,8 +241,7 @@ class ExportSqliteToZenodoCommand extends Command
             }
         }
 
-        // Step 7: Publish automatically
-        $io->section($isNewVersion ? 'Step 7: Publishing new version' : 'Step 5: Publishing deposition');
+        $io->section($isNewVersion ? 'Step 7: Publishing new version' : 'Step 6: Publishing deposition');
 
         try {
             $published = $this->publishDeposition($token, $depositionId);
@@ -242,7 +263,6 @@ class ExportSqliteToZenodoCommand extends Command
             return Command::FAILURE;
         }
 
-        // Cleanup
         if (file_exists($dbPath)) {
             unlink($dbPath);
         }
@@ -251,32 +271,108 @@ class ExportSqliteToZenodoCommand extends Command
         return Command::SUCCESS;
     }
 
-    private function exportCsv(string $path): string
+    private function createNormalizedSchema(\SQLite3 $db): void
     {
-        $baseUrl = $_ENV['APP_URL'] ?? 'http://localhost:8000';
+        // Lookup tables for genres and metres only
+        $db->exec('CREATE TABLE genres (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT UNIQUE NOT NULL
+        )');
 
-        $response = $this->di['HttpClient']->request('GET', $baseUrl . $path);
+        $db->exec('CREATE TABLE metres (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT UNIQUE NOT NULL
+        )');
 
-        if ($response->getStatusCode() !== 200) {
-            throw new \RuntimeException("Failed to export CSV from {$path}");
-        }
+        // Main tables
+        $db->exec('CREATE TABLE manuscripts (
+            id TEXT PRIMARY KEY,
+            name TEXT,
+            diktyon TEXT,
+            city TEXT,
+            library TEXT,
+            content TEXT,
+            person_content TEXT,
+            origin TEXT
+        )');
 
-        $content = $response->getContent();
+        $db->exec('CREATE TABLE occurrences (
+            id TEXT PRIMARY KEY,
+            incipit TEXT,
+            verses TEXT,
+            subjects TEXT,
+            date_floor_year TEXT,
+            date_ceiling_year TEXT,
+            manuscript_id TEXT,
+            manuscript_name TEXT
+        )');
 
-        // Ensure content is UTF-8
-        if (!mb_check_encoding($content, 'UTF-8')) {
-            $content = mb_convert_encoding($content, 'UTF-8', mb_detect_encoding($content));
-        }
+        // Create index for faster lookups even without foreign key
+        $db->exec('CREATE INDEX idx_occurrences_manuscript_id ON occurrences(manuscript_id)');
 
-        return $content;
+        $db->exec('CREATE TABLE persons (
+            id TEXT PRIMARY KEY,
+            name TEXT,
+            unprocessed_name TEXT,
+            first_name TEXT,
+            nickname TEXT,
+            last_name TEXT
+        )');
+
+        $db->exec('CREATE TABLE types (
+            id TEXT PRIMARY KEY,
+            subjects TEXT,
+            text_original TEXT
+        )');
+
+        // Junction tables for many-to-many relationships (genres and metres only)
+        $db->exec('CREATE TABLE occurrence_genres (
+            occurrence_id TEXT NOT NULL,
+            genre_id INTEGER NOT NULL,
+            PRIMARY KEY (occurrence_id, genre_id),
+            FOREIGN KEY (occurrence_id) REFERENCES occurrences(id),
+            FOREIGN KEY (genre_id) REFERENCES genres(id)
+        )');
+
+        $db->exec('CREATE TABLE occurrence_metres (
+            occurrence_id TEXT NOT NULL,
+            metre_id INTEGER NOT NULL,
+            PRIMARY KEY (occurrence_id, metre_id),
+            FOREIGN KEY (occurrence_id) REFERENCES occurrences(id),
+            FOREIGN KEY (metre_id) REFERENCES metres(id)
+        )');
+
+        $db->exec('CREATE TABLE type_genres (
+            type_id TEXT NOT NULL,
+            genre_id INTEGER NOT NULL,
+            PRIMARY KEY (type_id, genre_id),
+            FOREIGN KEY (type_id) REFERENCES types(id),
+            FOREIGN KEY (genre_id) REFERENCES genres(id)
+        )');
+
+        $db->exec('CREATE TABLE type_metres (
+            type_id TEXT NOT NULL,
+            metre_id INTEGER NOT NULL,
+            PRIMARY KEY (type_id, metre_id),
+            FOREIGN KEY (type_id) REFERENCES types(id),
+            FOREIGN KEY (metre_id) REFERENCES metres(id)
+        )');
+
+        $db->exec('CREATE TABLE type_occurrences (
+            type_id TEXT NOT NULL,
+            occurrence_id TEXT NOT NULL,
+            PRIMARY KEY (type_id, occurrence_id)
+        )');
+
+        // Create indexes for faster lookups
+        $db->exec('CREATE INDEX idx_type_occurrences_type ON type_occurrences(type_id)');
+        $db->exec('CREATE INDEX idx_type_occurrences_occurrence ON type_occurrences(occurrence_id)');
     }
 
-    private function createTableFromCsv(\SQLite3 $db, string $tableName, string $csvContent): void
+    private function importCsvData(\SQLite3 $db, string $tableName, string $csvContent, SymfonyStyle $io): void
     {
-        // Remove BOM if present
         $csvContent = str_replace("\xEF\xBB\xBF", '', $csvContent);
 
-        // Parse CSV using a more robust method
         $rows = [];
         $handle = fopen('php://temp', 'r+');
         fwrite($handle, $csvContent);
@@ -291,109 +387,230 @@ class ExportSqliteToZenodoCommand extends Command
             throw new \RuntimeException("CSV content is empty for {$tableName}");
         }
 
-        // Get headers from first row
         $headers = $rows[0];
-        if (empty($headers)) {
-            throw new \RuntimeException("No headers found in CSV for {$tableName}");
+
+        // Import based on table type
+        switch ($tableName) {
+            case 'manuscripts':
+                $this->importManuscripts($db, $rows, $headers);
+                break;
+            case 'occurrences':
+                $this->importOccurrences($db, $rows, $headers);
+                break;
+            case 'persons':
+                $this->importPersons($db, $rows, $headers);
+                break;
+            case 'types':
+                $this->importTypes($db, $rows, $headers);
+                break;
         }
+    }
 
-        // Sanitize column names - replace only spaces and quotes, keep underscores
-        $sanitizedHeaders = array_map(function($header) {
-            $header = trim($header);
-            // Replace spaces with underscores, remove quotes
-            $header = str_replace([' ', '"', "'"], ['_', '', ''], $header);
-            // Remove any other problematic characters but keep letters, numbers, and underscores
-            $header = preg_replace('/[^\w]/', '_', $header);
-            // Remove multiple consecutive underscores
-            $header = preg_replace('/_+/', '_', $header);
-            // Remove leading/trailing underscores
-            $header = trim($header, '_');
-            return $header;
-        }, $headers);
+    private function importManuscripts(\SQLite3 $db, array $rows, array $headers): void
+    {
+        $stmt = $db->prepare('INSERT OR IGNORE INTO manuscripts VALUES (?, ?, ?, ?, ?, ?, ?, ?)');
 
-        // Create table
-        $columns = array_map(function($col) {
-            return "\"{$col}\" TEXT";
-        }, $sanitizedHeaders);
-
-        $createTableSql = "CREATE TABLE IF NOT EXISTS \"{$tableName}\" (" . implode(', ', $columns) . ")";
-        $db->exec($createTableSql);
-
-        // Prepare insert statement
-        $placeholders = implode(',', array_fill(0, count($headers), '?'));
-        $insertSql = "INSERT INTO \"{$tableName}\" VALUES ({$placeholders})";
-        $stmt = $db->prepare($insertSql);
-
-        $rowCount = 0;
-        // Skip header row and process data rows
         for ($i = 1; $i < count($rows); $i++) {
             $row = $rows[$i];
+            if (empty($row) || (count($row) === 1 && trim($row[0]) === '')) continue;
 
-            // Skip empty rows
-            if (empty($row) || (count($row) === 1 && trim($row[0]) === '')) {
-                continue;
-            }
-
-            // Pad or trim row to match header count
             $row = array_pad($row, count($headers), '');
             $row = array_slice($row, 0, count($headers));
 
-            // Ensure UTF-8 encoding for all values
-            $row = array_map(function($value) {
-                if (!is_string($value)) {
-                    return (string)$value;
-                }
-                // Ensure proper UTF-8 encoding
-                if (!mb_check_encoding($value, 'UTF-8')) {
-                    $value = mb_convert_encoding($value, 'UTF-8', mb_detect_encoding($value));
-                }
-                return $value;
-            }, $row);
-
-            // Bind parameters
-            foreach ($row as $index => $value) {
-                $stmt->bindValue($index + 1, $value, SQLITE3_TEXT);
+            for ($j = 0; $j < 8; $j++) {
+                $stmt->bindValue($j + 1, $row[$j] ?? '', SQLITE3_TEXT);
             }
-
             $stmt->execute();
             $stmt->reset();
-            $rowCount++;
         }
-
         $stmt->close();
     }
 
+    private function importOccurrences(\SQLite3 $db, array $rows, array $headers): void
+    {
+        $stmt = $db->prepare('INSERT OR IGNORE INTO occurrences VALUES (?, ?, ?, ?, ?, ?, ?, ?)');
+
+        for ($i = 1; $i < count($rows); $i++) {
+            $row = $rows[$i];
+            if (empty($row) || (count($row) === 1 && trim($row[0]) === '')) continue;
+
+            $row = array_pad($row, count($headers), '');
+
+            $id = $row[0] ?? '';
+            $incipit = $row[1] ?? '';
+            $verses = $row[2] ?? '';
+            $genres = $row[3] ?? '';
+            $subjects = $row[4] ?? '';
+            $metres = $row[5] ?? '';
+            $dateFloor = $row[6] ?? '';
+            $dateCeiling = $row[7] ?? '';
+            $manuscriptId = $row[8] ?? '';
+            $manuscriptName = $row[9] ?? '';
+
+            // Insert main occurrence record
+            $stmt->bindValue(1, $id, SQLITE3_TEXT);
+            $stmt->bindValue(2, $incipit, SQLITE3_TEXT);
+            $stmt->bindValue(3, $verses, SQLITE3_TEXT);
+            $stmt->bindValue(4, $subjects, SQLITE3_TEXT); // Keep as text
+            $stmt->bindValue(5, $dateFloor, SQLITE3_TEXT);
+            $stmt->bindValue(6, $dateCeiling, SQLITE3_TEXT);
+            $stmt->bindValue(7, $manuscriptId, SQLITE3_TEXT);
+            $stmt->bindValue(8, $manuscriptName, SQLITE3_TEXT);
+            $stmt->execute();
+            $stmt->reset();
+
+            // Handle genres
+            if (!empty($genres)) {
+                $this->linkMultipleValues($db, 'genres', 'occurrence_genres', $id, 'occurrence_id', $genres);
+            }
+
+            // Handle metres
+            if (!empty($metres)) {
+                $this->linkMultipleValues($db, 'metres', 'occurrence_metres', $id, 'occurrence_id', $metres);
+            }
+        }
+        $stmt->close();
+    }
+
+    private function importPersons(\SQLite3 $db, array $rows, array $headers): void
+    {
+        $stmt = $db->prepare('INSERT OR IGNORE INTO persons VALUES (?, ?, ?, ?, ?, ?)');
+
+        for ($i = 1; $i < count($rows); $i++) {
+            $row = $rows[$i];
+            if (empty($row) || (count($row) === 1 && trim($row[0]) === '')) continue;
+
+            $row = array_pad($row, 6, '');
+            $row = array_slice($row, 0, 6);
+
+            for ($j = 0; $j < 6; $j++) {
+                $stmt->bindValue($j + 1, $row[$j] ?? '', SQLITE3_TEXT);
+            }
+            $stmt->execute();
+            $stmt->reset();
+        }
+        $stmt->close();
+    }
+
+    private function importTypes(\SQLite3 $db, array $rows, array $headers): void
+    {
+        $stmt = $db->prepare('INSERT OR IGNORE INTO types VALUES (?, ?, ?)');
+
+        for ($i = 1; $i < count($rows); $i++) {
+            $row = $rows[$i];
+            if (empty($row) || (count($row) === 1 && trim($row[0]) === '')) continue;
+
+            $row = array_pad($row, count($headers), '');
+
+            $id = $row[0] ?? '';
+            $genres = $row[1] ?? '';
+            $subjects = $row[2] ?? '';
+            $metres = $row[3] ?? '';
+            $textOriginal = $row[4] ?? '';
+            $occurrenceIds = $row[5] ?? '';
+
+            // Insert main type record
+            $stmt->bindValue(1, $id, SQLITE3_TEXT);
+            $stmt->bindValue(2, $subjects, SQLITE3_TEXT); // Keep as text
+            $stmt->bindValue(3, $textOriginal, SQLITE3_TEXT);
+            $stmt->execute();
+            $stmt->reset();
+
+            // Handle genres
+            if (!empty($genres)) {
+                $this->linkMultipleValues($db, 'genres', 'type_genres', $id, 'type_id', $genres);
+            }
+
+            // Handle metres
+            if (!empty($metres)) {
+                $this->linkMultipleValues($db, 'metres', 'type_metres', $id, 'type_id', $metres);
+            }
+
+            // Handle occurrence relationships
+            if (!empty($occurrenceIds)) {
+                $occIds = array_filter(array_map('trim', explode('|', $occurrenceIds)));
+                foreach ($occIds as $occId) {
+                    $linkStmt = $db->prepare('INSERT OR IGNORE INTO type_occurrences VALUES (?, ?)');
+                    $linkStmt->bindValue(1, $id, SQLITE3_TEXT);
+                    $linkStmt->bindValue(2, $occId, SQLITE3_TEXT);
+                    $linkStmt->execute();
+                    $linkStmt->close();
+                }
+            }
+        }
+        $stmt->close();
+    }
+
+    private function linkMultipleValues(\SQLite3 $db, string $lookupTable, string $junctionTable, string $entityId, string $entityColumn, string $pipeSeparatedValues): void
+    {
+        $values = array_filter(array_map('trim', explode('|', $pipeSeparatedValues)));
+
+        foreach ($values as $value) {
+            if (empty($value)) continue;
+
+            // Insert into lookup table if not exists
+            $insertStmt = $db->prepare("INSERT OR IGNORE INTO {$lookupTable} (name) VALUES (?)");
+            $insertStmt->bindValue(1, $value, SQLITE3_TEXT);
+            $insertStmt->execute();
+            $insertStmt->close();
+
+            // Get the ID
+            $selectStmt = $db->prepare("SELECT id FROM {$lookupTable} WHERE name = ?");
+            $selectStmt->bindValue(1, $value, SQLITE3_TEXT);
+            $result = $selectStmt->execute();
+            $lookupId = $result->fetchArray(SQLITE3_ASSOC)['id'];
+            $selectStmt->close();
+
+            // Insert into junction table
+            $junctionStmt = $db->prepare("INSERT OR IGNORE INTO {$junctionTable} VALUES (?, ?)");
+            $junctionStmt->bindValue(1, $entityId, SQLITE3_TEXT);
+            $junctionStmt->bindValue(2, $lookupId, SQLITE3_NUM);
+            $junctionStmt->execute();
+            $junctionStmt->close();
+        }
+    }
+
+    private function exportCsv(string $path): string
+    {
+        $baseUrl = $_ENV['APP_URL'] ?? 'http://localhost:8000';
+        $response = $this->di['HttpClient']->request('GET', $baseUrl . $path);
+
+        if ($response->getStatusCode() !== 200) {
+            throw new \RuntimeException("Failed to export CSV from {$path}");
+        }
+
+        $content = $response->getContent();
+
+        if (!mb_check_encoding($content, 'UTF-8')) {
+            $content = mb_convert_encoding($content, 'UTF-8', mb_detect_encoding($content));
+        }
+
+        return $content;
+    }
+
+    // Zenodo methods remain the same...
     private function createDeposition(string $token, string $title, string $description): array
     {
         $response = $this->di['HttpClient']->request('POST', self::ZENODO_SANDBOX_API . '/deposit/depositions', [
-            'headers' => [
-                'Authorization' => 'Bearer ' . $token,
-                'Content-Type' => 'application/json',
-            ],
+            'headers' => ['Authorization' => 'Bearer ' . $token, 'Content-Type' => 'application/json'],
             'json' => [
                 'metadata' => [
                     'title' => $title,
                     'upload_type' => 'dataset',
                     'description' => $description,
                     'access_right' => self::ACCESS_RIGHT,
-                    'creators' => [
-                        ['name' => 'Your Name'], // Configure as needed
-                    ],
+                    'creators' => [['name' => 'Your Name']],
                 ],
             ],
         ]);
-
         return $response->toArray();
     }
 
     private function getDeposition(string $token, string $depositionId): array
     {
         $response = $this->di['HttpClient']->request('GET', self::ZENODO_SANDBOX_API . "/deposit/depositions/{$depositionId}", [
-            'headers' => [
-                'Authorization' => 'Bearer ' . $token,
-            ],
+            'headers' => ['Authorization' => 'Bearer ' . $token],
         ]);
-
         return $response->toArray();
     }
 
@@ -401,8 +618,6 @@ class ExportSqliteToZenodoCommand extends Command
     {
         $deposition = $this->getDeposition($token, $depositionId);
         $bucketUrl = $deposition['links']['bucket'];
-
-        // Read file contents as string
         $fileContents = file_get_contents($filepath);
 
         if ($fileContents === false) {
@@ -410,10 +625,7 @@ class ExportSqliteToZenodoCommand extends Command
         }
 
         $response = $this->di['HttpClient']->request('PUT', "{$bucketUrl}/{$filename}", [
-            'headers' => [
-                'Authorization' => 'Bearer ' . $token,
-                'Content-Type' => 'application/octet-stream',
-            ],
+            'headers' => ['Authorization' => 'Bearer ' . $token, 'Content-Type' => 'application/octet-stream'],
             'body' => $fileContents,
         ]);
 
@@ -425,91 +637,62 @@ class ExportSqliteToZenodoCommand extends Command
     private function publishDeposition(string $token, string $depositionId): array
     {
         $response = $this->di['HttpClient']->request('POST', self::ZENODO_SANDBOX_API . "/deposit/depositions/{$depositionId}/actions/publish", [
-            'headers' => [
-                'Authorization' => 'Bearer ' . $token,
-            ],
+            'headers' => ['Authorization' => 'Bearer ' . $token],
         ]);
-
         return $response->toArray();
     }
 
     private function createNewVersion(string $token, string $depositionId): array
     {
         $response = $this->di['HttpClient']->request('POST', self::ZENODO_SANDBOX_API . "/deposit/depositions/{$depositionId}/actions/newversion", [
-            'headers' => [
-                'Authorization' => 'Bearer ' . $token,
-            ],
+            'headers' => ['Authorization' => 'Bearer ' . $token],
         ]);
-
         $result = $response->toArray();
-
-        // Get the draft URL from the response and extract the new deposition ID
         $latestDraftUrl = $result['links']['latest_draft'];
-
-        // Fetch the new draft deposition
         $draftResponse = $this->di['HttpClient']->request('GET', $latestDraftUrl, [
-            'headers' => [
-                'Authorization' => 'Bearer ' . $token,
-            ],
+            'headers' => ['Authorization' => 'Bearer ' . $token],
         ]);
-
         return $draftResponse->toArray();
     }
 
     private function updateMetadata(string $token, string $depositionId, string $title, string $description): array
     {
-        // Get current metadata
         $deposition = $this->getDeposition($token, $depositionId);
         $metadata = $deposition['metadata'] ?? [];
-
-        // Ensure all required fields are present
         $metadata['title'] = $title;
         $metadata['description'] = $description;
         $metadata['upload_type'] = $metadata['upload_type'] ?? 'dataset';
         $metadata['access_right'] = self::ACCESS_RIGHT;
 
-        // Ensure creators are present
         if (!isset($metadata['creators']) || empty($metadata['creators'])) {
-            $metadata['creators'] = [
-                ['name' => 'Your Name'], // Configure as needed
-            ];
+            $metadata['creators'] = [['name' => 'Your Name']];
         }
 
-        // Ensure publication_date is present (required for new versions)
         if (!isset($metadata['publication_date'])) {
             $metadata['publication_date'] = date('Y-m-d');
         }
 
-        // Remove any fields that might cause issues
         unset($metadata['doi']);
         unset($metadata['prereserve_doi']);
 
         $response = $this->di['HttpClient']->request('PUT', self::ZENODO_SANDBOX_API . "/deposit/depositions/{$depositionId}", [
-            'headers' => [
-                'Authorization' => 'Bearer ' . $token,
-                'Content-Type' => 'application/json',
-            ],
-            'json' => [
-                'metadata' => $metadata,
-            ],
+            'headers' => ['Authorization' => 'Bearer ' . $token, 'Content-Type' => 'application/json'],
+            'json' => ['metadata' => $metadata],
         ]);
-
         return $response->toArray();
     }
 
     private function deleteExistingFiles(string $token, string $depositionId): void
     {
         $deposition = $this->getDeposition($token, $depositionId);
-
         if (isset($deposition['files']) && is_array($deposition['files'])) {
             foreach ($deposition['files'] as $file) {
                 $fileId = $file['id'];
                 $this->di['HttpClient']->request('DELETE', self::ZENODO_SANDBOX_API . "/deposit/depositions/{$depositionId}/files/{$fileId}", [
-                    'headers' => [
-                        'Authorization' => 'Bearer ' . $token,
-                    ],
+                    'headers' => ['Authorization' => 'Bearer ' . $token],
                 ]);
             }
         }
     }
 }
+
