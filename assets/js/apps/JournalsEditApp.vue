@@ -42,7 +42,6 @@
       <UrlPanel
           v-if="submitModel.journal"
           id="urls"
-          ref="urls"
           header="Urls"
           v-slot:extra
           :model="submitModel.journal"
