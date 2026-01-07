@@ -328,9 +328,14 @@ async function submitMerge() {
   try {
     const { primary, secondary } = mergeModel
     if (!primary || !secondary) return
+    const primaryId = parseInt(primary.id, 10)
+    const secondaryId = parseInt(secondary.id, 10)
 
+    if (isNaN(primaryId) || isNaN(secondaryId)) {
+      throw new Error('Invalid ID values')
+    }
     await axios.put(
-        urls.book_cluster_merge.replace('primary_book_cluster_id', primary.id).replace('secondary_book_cluster_id', secondary.id)
+        urls.book_cluster_merge.replace('primary_book_cluster_id', primaryId).replace('secondary_book_cluster_id', secondaryId)
     )
     alerts.value.push({ type: 'success', message: 'Merge successful.' })
     await update()
