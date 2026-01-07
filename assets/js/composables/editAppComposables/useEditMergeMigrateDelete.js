@@ -69,7 +69,10 @@ export function useEditMergeMigrateDelete(initUrls = '{}', initData = '{}', depU
                 console.error(error);
             });
     }
-    function cancelEdit() {
+    function cancelEdit(submitModel) {
+        if (submitModel) {
+            Object.assign(submitModel, JSON.parse(JSON.stringify(originalSubmitModel)));
+        }
         editModalValue.value = null;
         editAlerts.value = [];
     }
