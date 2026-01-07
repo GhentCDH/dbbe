@@ -771,7 +771,7 @@ const setData = () => {
 const loadAsync = () => {
   reload('manuscripts', manuscripts.value)
   reload('types', types.value)
-  reload('historicalPersons', historicalPersons.value)
+  reload('historicalPersons',historicalPersons.validateAfterLoad)
   reload('books',bibliographies.value)
   reload('articles',bibliographies.value)
   reload('bookChapters',bibliographies.value)
@@ -780,7 +780,6 @@ const loadAsync = () => {
   reload('phds',bibliographies.value)
   reload('bibVarias',bibliographies.value)
 }
-
 const save = () => {
   openRequests.value++
   saveModal.value = false
@@ -790,34 +789,54 @@ const save = () => {
     putUpdatedModel('occurrence', toSave())
   }
 }
-
-const reload = (type, items=[]) => {
-  const simpleRefMappings = {
-    manuscripts: [manuscripts.value],
-    types: [types.value],
-    metres: [metres.value],
-    genres: [genres.value],
-    managements: [managements.value],
-    dbbePersons: [dbbePersons.value]
-  }
-
-  if (simpleRefMappings[type]) {
-    reloadItems(
-        type,
-        [type],
-        simpleRefMappings[type],
-        urls[type.split(/(?=[A-Z])/).join('_').toLowerCase() + '_get']
-    )
-    return
-  }
-
-  switch (type) {
+const reload = (reloadType, items = []) => {
+  switch (reloadType) {
+    case 'manuscripts':
+      reloadItems(
+          'manuscripts',
+          ['manuscripts'],
+          [manuscripts.value],
+          urls['manuscripts_get']
+      )
+      break
+    case 'types':
+      reloadItems(
+          'types',
+          ['types'],
+          [types.value],
+          urls['types_get']
+      )
+      break
     case 'historicalPersons':
       reloadItems(
           'historicalPersons',
           ['historicalPersons'],
           [historicalPersons.value, subjects.value.historicalPersons],
           urls['historical_persons_get']
+      )
+      break
+    case 'dbbePersons':
+      reloadItems(
+          'dbbePersons',
+          ['dbbePersons'],
+          [dbbePersons.value],
+          urls['dbbe_persons_get']
+      )
+      break
+    case 'metres':
+      reloadItems(
+          'metres',
+          ['metres'],
+          [metres.value],
+          urls['metres_get']
+      )
+      break
+    case 'genres':
+      reloadItems(
+          'genres',
+          ['genres'],
+          [genres.value],
+          urls['genres_get']
       )
       break
     case 'keywordSubjects':
@@ -828,6 +847,14 @@ const reload = (type, items=[]) => {
           urls['keywords_subject_get']
       )
       break
+    case 'managements':
+      reloadItems(
+          'managements',
+          ['managements'],
+          [managements.value],
+          urls['managements_get']
+      )
+      break
     case 'articles':
     case 'blogPosts':
     case 'books':
@@ -835,10 +862,10 @@ const reload = (type, items=[]) => {
     case 'onlineSources':
     case 'phds':
     case 'bibVarias':
-      reloadNestedItems(type, bibliographies.value)
+      reloadNestedItems(reloadType, bibliographies.value)
       break
     case 'acknowledgements':
-      reloadNestedItems(type, generals.value)
+      reloadNestedItems(reloadType, generals.value)
       break
     case 'statuses':
       reloadItems(
@@ -850,12 +877,7 @@ const reload = (type, items=[]) => {
       )
       break
     default:
-      reloadItems(
-          type,
-          [type],
-          [items],
-          urls[type.split(/(?=[A-Z])/).join('_').toLowerCase() + '_get']
-      )
+      console.warn(`Unknown reload type: ${reloadType}`)
   }
 }
 const validated = (isValid, errors) => {
