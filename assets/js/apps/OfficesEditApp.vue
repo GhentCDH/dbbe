@@ -51,9 +51,9 @@
         @confirm="submitMerge"
         @dismiss-alert="mergeAlerts.splice($event, 1)"
     >
+      <template #preview>
       <table
           v-if="mergeModel.primary && mergeModel.secondary"
-          slot="preview"
           class="table table-striped table-hover"
       >
         <thead>
@@ -69,6 +69,7 @@
         </tr>
         </tbody>
       </table>
+      </template>
     </Merge>
 
     <Delete
