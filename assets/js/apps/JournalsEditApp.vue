@@ -57,7 +57,7 @@
         :original-merge-model="originalMergeModel"
         :alerts="mergeAlerts"
         @cancel="cancelMerge"
-        @reset="resetMerge"
+        @reset="resetMerge(mergeModel)"
         @confirm="submitMerge"
         @dismiss-alert="mergeAlerts.splice($event, 1)"
     >
