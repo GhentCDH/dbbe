@@ -36,6 +36,7 @@
       </div>
     </div>
     <btn @click.native ="add()"><i class="fa fa-plus" />&nbsp;Add a url</btn>
+    <Teleport to="body">
     <modal
         :model-value="editModal"
         size="lg"
@@ -71,6 +72,8 @@
         </btn>
       </template>
     </modal>
+    </Teleport>
+    <Teleport to="body">
     <modal
         :model-value="delModal"
         title="Delete url"
@@ -85,6 +88,7 @@
         </btn>
       </template>
     </modal>
+    </Teleport>
   </panel>
 </template>
 
