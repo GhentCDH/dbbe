@@ -1,7 +1,7 @@
 <template>
   <panel :header="header">
     <table
-        v-if="model.translations.length > 0"
+        v-if="model.translations && model.translations.length > 0"
         class="table table-striped table-bordered table-hover"
     >
       <thead>
@@ -68,7 +68,7 @@
       </tr>
       </tbody>
     </table>
-    <btn @click.native="add()"><i class="fa fa-plus" />&nbsp;Add a translation</btn>
+    <btn @click="add()"><i class="fa fa-plus" />&nbsp;Add a translation</btn>
     <modal
         :model-value="editModal"
         size="lg"
@@ -83,7 +83,7 @@
 
       <vue-form-generator
           v-if="editModal"
-          ref="editForm"
+          ref="editFormRef"
           :schema="schema"
           :model="editModel"
           :options="formOptions"
@@ -92,7 +92,7 @@
       <Bibliography
           v-if="editModal"
           id="translationBibliography"
-          ref="translationBibliography"
+          ref="translationBibliographyRef"
           header="Bibliography"
           :links="[
             {title: 'Books', reload: 'books', edit: urls['bibliographies_search']},
@@ -113,7 +113,7 @@
       <Person
           v-if="editModal"
           id="translators"
-          ref="translators"
+          ref="translatorsRef"
           header="Translators"
           :links="[{title: 'Persons', reload: 'modernPersons', edit: urls['persons_search']}]"
           :roles="values?.personRoles"
@@ -126,11 +126,11 @@
       />
 
       <template #footer>
-        <btn @click.native="editModal = false">Cancel</btn>
+        <btn @click="editModal = false">Cancel</btn>
         <btn
             type="success"
             :disabled="!isValid"
-            @click.native="submitEdit()"
+            @click="submitEdit()"
         >
           {{ editModel.index == null ? 'Add' : 'Update' }}
         </btn>
@@ -143,10 +143,10 @@
     >
       <p>Are you sure you want to delete this translation?</p>
       <template #footer>
-        <btn @click.native="delModal = false">Cancel</btn>
+        <btn @click="delModal = false">Cancel</btn>
         <btn
             type="danger"
-            @click.native="submitDelete()"
+            @click="submitDelete()"
         >
           Delete
         </btn>
@@ -163,7 +163,7 @@ import { calcChanges as calcChangesHelper } from "@/helpers/modelChangeUtil"
 import validatorUtil from "@/helpers/validatorUtil"
 import Bibliography from "@/components/Edit/Panels/Bibliography.vue"
 import Person from "@/components/Edit/Panels/Person.vue"
-import { Btn as btn, Modal as modal } from 'uiv'
+import { Btn, Modal } from 'uiv'
 
 const props = defineProps({
   header: {
@@ -176,7 +176,9 @@ const props = defineProps({
   },
   model: {
     type: Object,
-    default: () => ({}),
+    default: () => ({
+      translations: []
+    }),
   },
   reloads: {
     type: Array,
@@ -194,19 +196,20 @@ const props = defineProps({
 
 const emit = defineEmits(['validated', 'reload'])
 
-// Refs
-const editForm = ref(null)
-const translationBibliography = ref(null)
-const translators = ref(null)
+const editFormRef = ref(null)
+const translationBibliographyRef = ref(null)
+const translatorsRef = ref(null)
 
-// State
 const editModal = ref(false)
 const delModal = ref(false)
 const isValid = ref(true)
 const originalModel = ref({})
 const changes = ref([])
 
-// Create initial personRoles
+if (!props.model.translations) {
+  props.model.translations = []
+}
+
 const createPersonRoles = () => {
   const roles = {}
   if (props.values?.personRoles) {
@@ -216,6 +219,16 @@ const createPersonRoles = () => {
   }
   return roles
 }
+
+const createBibliography = () => ({
+  articles: [],
+  blogPosts: [],
+  books: [],
+  bookChapters: [],
+  onlineSources: [],
+  phds: [],
+  bibVarias: [],
+})
 
 const editModel = reactive({
   bibliography: {
@@ -228,9 +241,12 @@ const editModel = reactive({
     bibVarias: [],
   },
   personRoles: createPersonRoles(),
+  index: undefined,
+  language: undefined,
+  text: undefined,
+  publicComment: undefined,
 })
 
-// Schema - computed to handle reactive updates
 const schema = computed(() => ({
   fields: {
     language: createMultiSelect(
@@ -269,10 +285,12 @@ const formOptions = ref({
 
 const fields = computed(() => schema.value.fields)
 
-// Methods
 const init = () => {
+  if (!props.model.translations) {
+    props.model.translations = []
+  }
   originalModel.value = JSON.parse(JSON.stringify(props.model))
-  enableFields()
+  enableFields(null)
 }
 
 const reload = (type) => {
@@ -285,7 +303,20 @@ const enableFields = (enableKeys) => {
   if (enableKeys == null) {
     enableField(schema.value.fields.language)
     nextTick(() => {
-      translators.value?.enableFields(['modernPersons'])
+      if (translatorsRef.value) {
+        translatorsRef.value.enableFields(['modernPersons'])
+      }
+      if (translationBibliographyRef.value) {
+        translationBibliographyRef.value.enableFields([
+          'articles',
+          'blogPosts',
+          'books',
+          'bookChapters',
+          'onlineSources',
+          'phds',
+          'bibVarias'
+        ])
+      }
     })
   } else {
     if (
@@ -298,18 +329,20 @@ const enableFields = (enableKeys) => {
         enableKeys.includes('bibVarias')
     ) {
       nextTick(() => {
-        translationBibliography.value?.enableFields(enableKeys)
+        translationBibliographyRef.value?.enableFields(enableKeys)
       })
     }
     if (enableKeys.includes('modernPersons')) {
       nextTick(() => {
-        translators.value?.enableFields(enableKeys)
+        translatorsRef.value?.enableFields(enableKeys)
       })
     }
   }
 }
 
 const disableFields = (disableKeys) => {
+  if (!disableKeys) return
+
   if (
       disableKeys.includes('articles') ||
       disableKeys.includes('blogPosts') ||
@@ -320,12 +353,12 @@ const disableFields = (disableKeys) => {
       disableKeys.includes('bibVarias')
   ) {
     nextTick(() => {
-      translationBibliography.value?.disableFields(disableKeys)
+      translationBibliographyRef.value?.disableFields(disableKeys)
     })
   }
   if (disableKeys.includes('modernPersons')) {
     nextTick(() => {
-      translators.value?.disableFields(disableKeys)
+      translatorsRef.value?.disableFields(disableKeys)
     })
   }
 }
@@ -336,35 +369,24 @@ const validate = () => {
 
 const calcChanges = () => {
   changes.value = []
-  for (const key of Object.keys(props.model)) {
-    if (
-        JSON.stringify(props.model[key]) !== JSON.stringify(originalModel.value[key]) &&
-        !(props.model[key] == null && originalModel.value[key] == null)
-    ) {
-      // translations is regarded as a single item
-      changes.value.push({
-        key: 'translations',
-        label: 'Translations',
-        old: displayTranslations(originalModel.value.translations),
-        new: displayTranslations(props.model.translations),
-        value: props.model.translations,
-      })
-      break
-    }
+
+  const currentTranslations = props.model.translations || []
+  const originalTranslations = originalModel.value.translations || []
+
+  if (JSON.stringify(currentTranslations) !== JSON.stringify(originalTranslations)) {
+    changes.value.push({
+      key: 'translations',
+      label: 'Translations',
+      old: displayTranslations(originalTranslations),
+      new: displayTranslations(currentTranslations),
+      value: currentTranslations,
+    })
   }
 }
 
 const add = () => {
   Object.assign(editModel, {
-    bibliography: {
-      articles: [],
-      blogPosts: [],
-      books: [],
-      bookChapters: [],
-      onlineSources: [],
-      phds: [],
-      bibVarias: [],
-    },
+    bibliography: createBibliography(),
     personRoles: createPersonRoles(),
     index: undefined,
     language: undefined,
@@ -372,12 +394,42 @@ const add = () => {
     publicComment: undefined,
   })
   editModal.value = true
+
+  nextTick(() => {
+    enableFields(null)
+  })
 }
 
 const update = (item, index) => {
-  Object.assign(editModel, JSON.parse(JSON.stringify(item)))
+  const clonedItem = JSON.parse(JSON.stringify(item))
+
+  if (!clonedItem.bibliography) {
+    clonedItem.bibliography = createBibliography()
+  } else {
+    const bibStructure = createBibliography()
+    for (const key in bibStructure) {
+      if (!clonedItem.bibliography[key]) {
+        clonedItem.bibliography[key] = []
+      }
+    }
+  }
+
+  if (!clonedItem.personRoles) {
+    clonedItem.personRoles = createPersonRoles()
+  }
+
+  editModel.bibliography = clonedItem.bibliography
+  editModel.personRoles = clonedItem.personRoles
+  editModel.language = clonedItem.language
+  editModel.text = clonedItem.text
+  editModel.publicComment = clonedItem.publicComment
   editModel.index = index
+
   editModal.value = true
+
+  nextTick(() => {
+    enableFields(null)
+  })
 }
 
 const del = (item, index) => {
@@ -387,47 +439,56 @@ const del = (item, index) => {
 }
 
 const submitEdit = () => {
-  editForm.value?.validate()
-  if (editForm.value?.errors.length === 0) {
-    // Edit existing translation
-    if (editModel.index != null) {
-      const index = editModel.index
-      const modelCopy = JSON.parse(JSON.stringify(editModel))
-      delete modelCopy.index
-
-      // Remove null properties
-      for (const key of Object.keys(modelCopy)) {
-        if (modelCopy[key] == null) {
-          delete modelCopy[key]
-        }
-      }
-      props.model.translations[index] = modelCopy
+  editFormRef.value?.validate()
+  if (editFormRef.value?.errors.length === 0) {
+    const modelCopy = {
+      language: editModel.language,
+      text: editModel.text,
+      publicComment: editModel.publicComment,
+      bibliography: JSON.parse(JSON.stringify(editModel.bibliography)),
+      personRoles: JSON.parse(JSON.stringify(editModel.personRoles)),
     }
-    // Add new translation
+
+    if (!modelCopy.publicComment) {
+      delete modelCopy.publicComment
+    }
+
+    if (editModel.index != null) {
+      props.model.translations[editModel.index] = modelCopy
+    }
     else {
-      const modelCopy = JSON.parse(JSON.stringify(editModel))
-      delete modelCopy.index
+      if (!props.model.translations) {
+        props.model.translations = []
+      }
       props.model.translations.push(modelCopy)
     }
+
     calcChanges()
     emit('validated', 0, null)
     editModal.value = false
   }
 }
-
 const submitDelete = () => {
-  props.model.translations.splice(editModel.index, 1)
-  calcChanges()
-  emit('validated', 0, null)
+  if (props.model.translations && editModel.index != null) {
+    props.model.translations.splice(editModel.index, 1)
+    calcChanges()
+    emit('validated', 0, null)
+  }
   delModal.value = false
 }
 
 const displayTranslations = (translations) => {
+  if (!translations || !Array.isArray(translations)) {
+    return []
+  }
+
   const result = []
   for (const t of translations) {
+    if (!t) continue
+
     result.push(
-        t.text +
-        '\nLanguage: ' + t.language.name +
+        (t.text || '') +
+        '\nLanguage: ' + (t.language?.name || '') +
         (displayBibliography(t.bibliography).length > 0 ? '\nBibliography:\n' + displayBibliography(t.bibliography).join('\n') : '') +
         (t.personRoles?.translator?.length > 0 ? '\nTranslator(s):\n' + t.personRoles.translator.map(tr => tr.name).join('\n') : '') +
         ((t.publicComment != null && t.publicComment !== '') ? '\nPublic comment:\n' + t.publicComment : '')
@@ -437,52 +498,70 @@ const displayTranslations = (translations) => {
 }
 
 const displayBibliography = (bibliography) => {
+  if (!bibliography) {
+    return []
+  }
+
   const result = []
 
   for (const bib of bibliography.articles || []) {
-    result.push(
-        bib.article.name +
-        formatPages(bib.startPage, bib.endPage, ': ') +
-        '.'
-    )
+    if (bib?.article?.name) {
+      result.push(
+          bib.article.name +
+          formatPages(bib.startPage, bib.endPage, ': ') +
+          '.'
+      )
+    }
   }
   for (const bib of bibliography.blogPosts || []) {
-    result.push(bib.blogPost.name + '.')
+    if (bib?.blogPost?.name) {
+      result.push(bib.blogPost.name + '.')
+    }
   }
   for (const bib of bibliography.books || []) {
-    result.push(
-        bib.book.name +
-        formatPages(bib.startPage, bib.endPage, ': ') +
-        '.'
-    )
+    if (bib?.book?.name) {
+      result.push(
+          bib.book.name +
+          formatPages(bib.startPage, bib.endPage, ': ') +
+          '.'
+      )
+    }
   }
   for (const bib of bibliography.bookChapters || []) {
-    result.push(
-        bib.bookChapter.name +
-        formatPages(bib.startPage, bib.endPage, ': ') +
-        '.'
-    )
+    if (bib?.bookChapter?.name) {
+      result.push(
+          bib.bookChapter.name +
+          formatPages(bib.startPage, bib.endPage, ': ') +
+          '.'
+      )
+    }
   }
   for (const bib of bibliography.onlineSources || []) {
-    result.push(
-        bib.onlineSource.url +
-        (bib.relUrl == null ? '' : bib.relUrl) +
-        '.'
-    )
+    if (bib?.onlineSource?.url) {
+      result.push(
+          bib.onlineSource.url +
+          (bib.relUrl == null ? '' : bib.relUrl) +
+          '.'
+      )
+    }
   }
   for (const bib of bibliography.phds || []) {
-    result.push(
-        bib.phd.name +
-        formatPages(bib.startPage, bib.endPage, ': ') +
-        '.'
-    )
+    if (bib?.phd?.name) {
+      result.push(
+          bib.phd.name +
+          formatPages(bib.startPage, bib.endPage, ': ') +
+          '.'
+      )
+    }
   }
   for (const bib of bibliography.bibVarias || []) {
-    result.push(
-        bib.bibVaria.name +
-        formatPages(bib.startPage, bib.endPage, ': ') +
-        '.'
-    )
+    if (bib?.bibVaria?.name) {
+      result.push(
+          bib.bibVaria.name +
+          formatPages(bib.startPage, bib.endPage, ': ') +
+          '.'
+      )
+    }
   }
 
   return result
@@ -515,3 +594,9 @@ defineExpose({
   changes,
 })
 </script>
+
+<style scoped>
+.preserve-newlines {
+  white-space: pre-wrap;
+}
+</style>
