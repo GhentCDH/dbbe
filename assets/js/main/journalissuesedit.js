@@ -17,5 +17,4 @@ app.use(VueFormGenerator);
 app.component('multiselect', VueMultiselect);
 app.component('field-multiselect', fieldMultiselectClear);
 app.component('FieldMultiselectClear', fieldMultiselectClear)
-app.component('multiselect', VueMultiselect)
 app.mount('#journal-issues-edit-app');

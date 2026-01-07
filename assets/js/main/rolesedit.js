@@ -17,5 +17,4 @@ app.component('multiselect', VueMultiselect);
 app.component('field-multiselect', fieldMultiselectClear);
 app.use(VueFormGenerator);
 app.component('FieldMultiselectClear', fieldMultiselectClear)
-app.component('multiselect', VueMultiselect)
 app.mount('#roles-edit-app');

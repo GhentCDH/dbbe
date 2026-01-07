@@ -13,7 +13,6 @@ const app = createApp({
 
 
 app.use(uiv);
-app.component('multiselect', VueMultiselect);
 app.component('field-multiselect', fieldMultiselectClear);
 app.use(VueFormGenerator);
 app.component('FieldMultiselectClear', fieldMultiselectClear)
