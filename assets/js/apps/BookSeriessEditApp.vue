@@ -35,14 +35,15 @@
         @confirm="submitEdit"
         @dismiss-alert="editAlerts.splice($event, 1)"
     >
+      <template #extra>
       <UrlPanel
           id="urls"
           ref="urls"
           header="Urls"
-          slot="extra"
           :model="submitModel.bookSeries"
           :as-slot="true"
       />
+      </template>
     </Edit>
 
     <Merge
@@ -56,6 +57,7 @@
         @confirm="submitMerge"
         @dismiss-alert="mergeAlerts.splice($event, 1)"
     >
+      <template #preview>
       <table
           v-if="mergeModel.primary && mergeModel.secondary"
           slot="preview"
@@ -84,6 +86,7 @@
         </tr>
         </tbody>
       </table>
+      </template>
     </Merge>
 
     <Delete
