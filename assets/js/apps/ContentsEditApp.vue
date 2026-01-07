@@ -34,10 +34,18 @@
         :submit-model="submitModel"
         :original-submit-model="originalSubmitModel"
         :alerts="editAlerts"
-        @cancel="cancelEdit"
-        @reset="resetEdit(submitModel)"
+        @cancel="() => {
+          cancelEdit(submitModel);
+          $nextTick(() => editRef?.validate());
+        }"
+        @reset="() => {
+          resetEdit(submitModel);
+          $nextTick(() => editRef?.validate());
+        }"
         @confirm="submitEdit"
         @dismiss-alert="editAlerts.splice($event, 1)"
+        ref="editRef"
+
     />
 
     <Merge
@@ -113,6 +121,7 @@ const props = defineProps({
 })
 
 const persons = ref(JSON.parse(props.initPersons))
+const editRef = ref(null)
 
 const depUrls = computed(() => ({}))
 
