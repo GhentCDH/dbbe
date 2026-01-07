@@ -1,1037 +1,1026 @@
 <template>
-    <panel
-        :header="header"
-        :links="links"
-        :reloads="reloads"
-        @reload="reload"
-    >
-        <div class="pbottom-large">
-            <h3>Books</h3>
-            <table
-                v-if="model.books.length > 0"
-                class="table table-striped table-bordered table-hover"
-            >
-                <thead>
-                    <tr>
-                        <th>Book</th>
-                        <th>Start page</th>
-                        <th>End page</th>
-                        <th>Raw pages</th>
-                        <th v-if="referenceType">Type</th>
-                        <th v-if="image">Plate</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr
-                        v-for="(item, index) in model.books"
-                        :key="index"
-                    >
-                        <td>{{ item.book.name }}</td>
-                        <td>{{ item.startPage }}</td>
-                        <td>{{ item.endPage }}</td>
-                        <td>{{ item.rawPages }}</td>
-                        <td v-if="referenceType">
-                            <template v-if="item.referenceType != null">
-                                {{ item.referenceType.name }}
-                            </template>
-                        </td>
-                        <td v-if="image">
-                            <template v-if="item.image != null">
-                                {{ item.image }}
-                            </template>
-                        </td>
-                        <td>
-                            <a
-                                href="#"
-                                title="Edit"
-                                class="action"
-                                @click.prevent="updateBib(item, index)"
-                            >
-                                <i class="fa fa-pencil-square-o" />
-                            </a>
-                            <a
-                                href="#"
-                                title="Delete"
-                                class="action"
-                                @click.prevent="delBib(item, index)"
-                            >
-                                <i class="fa fa-trash-o" />
-                            </a>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-            <btn @click="newBib('book')"><i class="fa fa-plus" />&nbsp;Add a book reference</btn>
-        </div>
-        <div class="pbottom-large">
-            <h3>Articles</h3>
-            <table
-                v-if="model.articles.length > 0"
-                class="table table-striped table-bordered table-hover"
-            >
-                <thead>
-                    <tr>
-                        <th>Article</th>
-                        <th>Start page</th>
-                        <th>End page</th>
-                        <th>Raw pages</th>
-                        <th v-if="referenceType">Type</th>
-                        <th v-if="image">Plate</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr
-                        v-for="(item, index) in model.articles"
-                        :key="index"
-                    >
-                        <td>{{ item.article.name }}</td>
-                        <td>{{ item.startPage }}</td>
-                        <td>{{ item.endPage }}</td>
-                        <td>{{ item.rawPages }}</td>
-                        <td v-if="referenceType">
-                            <template v-if="item.referenceType != null">
-                                {{ item.referenceType.name }}
-                            </template>
-                        </td>
-                        <td v-if="image">
-                            <template v-if="item.image != null">
-                                {{ item.image }}
-                            </template>
-                        </td>
-                        <td>
-                            <a
-                                href="#"
-                                title="Edit"
-                                class="action"
-                                @click.prevent="updateBib(item, index)"
-                            >
-                                <i class="fa fa-pencil-square-o" />
-                            </a>
-                            <a
-                                href="#"
-                                title="Delete"
-                                class="action"
-                                @click.prevent="delBib(item, index)"
-                            >
-                                <i class="fa fa-trash-o" />
-                            </a>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-            <btn @click="newBib('article')"><i class="fa fa-plus" />&nbsp;Add an article reference</btn>
-        </div>
-        <div class="pbottom-large">
-            <h3>Book chapters</h3>
-            <table
-                v-if="model.bookChapters.length > 0"
-                class="table table-striped table-bordered table-hover"
-            >
-                <thead>
-                    <tr>
-                        <th>Book Chapter</th>
-                        <th>Start page</th>
-                        <th>End page</th>
-                        <th>Raw pages</th>
-                        <th v-if="referenceType">Type</th>
-                        <th v-if="image">Plate</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr
-                        v-for="(item, index) in model.bookChapters"
-                        :key="index"
-                    >
-                        <td>{{ item.bookChapter.name }}</td>
-                        <td>{{ item.startPage }}</td>
-                        <td>{{ item.endPage }}</td>
-                        <td>{{ item.rawPages }}</td>
-                        <td v-if="referenceType">
-                            <template v-if="item.referenceType != null">
-                                {{ item.referenceType.name }}
-                            </template>
-                        </td>
-                        <td v-if="image">
-                            <template v-if="item.image != null">
-                                {{ item.image }}
-                            </template>
-                        </td>
-                        <td>
-                            <a
-                                href="#"
-                                title="Edit"
-                                class="action"
-                                @click.prevent="updateBib(item, index)"
-                            >
-                                <i class="fa fa-pencil-square-o" />
-                            </a>
-                            <a
-                                href="#"
-                                title="Delete"
-                                class="action"
-                                @click.prevent="delBib(item, index)"
-                            >
-                                <i class="fa fa-trash-o" />
-                            </a>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-            <btn @click="newBib('bookChapter')"><i class="fa fa-plus" />&nbsp;Add a book chapter reference</btn>
-        </div>
-        <div class="pbottom-large">
-            <h3>Online sources</h3>
-            <table
-                v-if="model.onlineSources.length > 0"
-                class="table table-striped table-bordered table-hover"
-            >
-                <thead>
-                    <tr>
-                        <th>Online source</th>
-                        <th>Source link</th>
-                        <th>Relative link</th>
-                        <th v-if="referenceType">Type</th>
-                        <th v-if="image">Plate</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr
-                        v-for="(item, index) in model.onlineSources"
-                        :key="index"
-                    >
-                        <td>{{ item.onlineSource.name }}</td>
-                        <td>{{ item.onlineSource.url }}</td>
-                        <td>{{ item.relUrl }}</td>
-                        <td v-if="referenceType">
-                            <template v-if="item.referenceType != null">
-                                {{ item.referenceType.name }}
-                            </template>
-                        </td>
-                        <td v-if="image">
-                            <template v-if="item.image != null">
-                                {{ item.image }}
-                            </template>
-                        </td>
-                        <td>
-                            <a
-                                href="#"
-                                title="Edit"
-                                class="action"
-                                @click.prevent="updateBib(item, index)"
-                            >
-                                <i class="fa fa-pencil-square-o" />
-                            </a>
-                            <a
-                                href="#"
-                                title="Delete"
-                                class="action"
-                                @click.prevent="delBib(item, index)"
-                            >
-                                <i class="fa fa-trash-o" />
-                            </a>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-            <btn @click="newBib('onlineSource')"><i class="fa fa-plus" />&nbsp;Add an online source</btn>
-        </div>
-        <div class="pbottom-large">
-            <h3>Blog posts</h3>
-            <table
-                v-if="model.blogPosts.length > 0"
-                class="table table-striped table-bordered table-hover"
-            >
-                <thead>
-                <tr>
-                    <th>Blog posts</th>
-                    <th v-if="referenceType">Type</th>
-                    <th v-if="image">Plate</th>
-                    <th>Actions</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr
-                    v-for="(item, index) in model.blogPosts"
-                    :key="index"
-                >
-                    <td>{{ item.blogPost.name }}</td>
-                    <td v-if="referenceType">
-                        <template v-if="item.referenceType != null">
-                            {{ item.referenceType.name }}
-                        </template>
-                    </td>
-                    <td v-if="image">
-                        <template v-if="item.image != null">
-                            {{ item.image }}
-                        </template>
-                    </td>
-                    <td>
-                        <a
-                            href="#"
-                            title="Edit"
-                            class="action"
-                            @click.prevent="updateBib(item, index)"
-                        >
-                            <i class="fa fa-pencil-square-o" />
-                        </a>
-                        <a
-                            href="#"
-                            title="Delete"
-                            class="action"
-                            @click.prevent="delBib(item, index)"
-                        >
-                            <i class="fa fa-trash-o" />
-                        </a>
-                    </td>
-                </tr>
-                </tbody>
-            </table>
-            <btn @click="newBib('blogPost')"><i class="fa fa-plus" />&nbsp;Add a blog post reference</btn>
-        </div>
-        <div class="pbottom-large">
-            <h3>PhD theses</h3>
-            <table
-                v-if="model.phds.length > 0"
-                class="table table-striped table-bordered table-hover"
-            >
-                <thead>
-                <tr>
-                    <th>PhD theses</th>
-                    <th>Start page</th>
-                    <th>End page</th>
-                    <th>Raw pages</th>
-                    <th v-if="referenceType">Type</th>
-                    <th v-if="image">Plate</th>
-                    <th>Actions</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr
-                    v-for="(item, index) in model.phds"
-                    :key="index"
-                >
-                    <td>{{ item.phd.name }}</td>
-                    <td>{{ item.startPage }}</td>
-                    <td>{{ item.endPage }}</td>
-                    <td>{{ item.rawPages }}</td>
-                    <td v-if="referenceType">
-                        <template v-if="item.referenceType != null">
-                            {{ item.referenceType.name }}
-                        </template>
-                    </td>
-                    <td v-if="image">
-                        <template v-if="item.image != null">
-                            {{ item.image }}
-                        </template>
-                    </td>
-                    <td>
-                        <a
-                            href="#"
-                            title="Edit"
-                            class="action"
-                            @click.prevent="updateBib(item, index)"
-                        >
-                            <i class="fa fa-pencil-square-o" />
-                        </a>
-                        <a
-                            href="#"
-                            title="Delete"
-                            class="action"
-                            @click.prevent="delBib(item, index)"
-                        >
-                            <i class="fa fa-trash-o" />
-                        </a>
-                    </td>
-                </tr>
-                </tbody>
-            </table>
-            <btn @click="newBib('phd')"><i class="fa fa-plus" />&nbsp;Add a PhD thesis reference</btn>
-        </div>
-        <div class="pbottom-large">
-            <h3>Varia bibliography items</h3>
-            <table
-                v-if="model.bibVarias.length > 0"
-                class="table table-striped table-bordered table-hover"
-            >
-                <thead>
-                <tr>
-                    <th>Bib varia</th>
-                    <th>Start page</th>
-                    <th>End page</th>
-                    <th>Raw pages</th>
-                    <th v-if="referenceType">Type</th>
-                    <th v-if="image">Plate</th>
-                    <th>Actions</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr
-                    v-for="(item, index) in model.bibVarias"
-                    :key="index"
-                >
-                    <td>{{ item.bibVaria.name }}</td>
-                    <td>{{ item.startPage }}</td>
-                    <td>{{ item.endPage }}</td>
-                    <td>{{ item.rawPages }}</td>
-                    <td v-if="referenceType">
-                        <template v-if="item.referenceType != null">
-                            {{ item.referenceType.name }}
-                        </template>
-                    </td>
-                    <td v-if="image">
-                        <template v-if="item.image != null">
-                            {{ item.image }}
-                        </template>
-                    </td>
-                    <td>
-                        <a
-                            href="#"
-                            title="Edit"
-                            class="action"
-                            @click.prevent="updateBib(item, index)"
-                        >
-                            <i class="fa fa-pencil-square-o" />
-                        </a>
-                        <a
-                            href="#"
-                            title="Delete"
-                            class="action"
-                            @click.prevent="delBib(item, index)"
-                        >
-                            <i class="fa fa-trash-o" />
-                        </a>
-                    </td>
-                </tr>
-                </tbody>
-            </table>
-            <btn @click="newBib('bibVaria')"><i class="fa fa-plus" />&nbsp;Add a bib varia reference</btn>
-        </div>
-        <modal
-            v-model="editBibModal"
-            size="lg"
-            auto-focus
-            :backdrop="false"
-            :append-to-body="appendToBody"
+  <panel
+      :header="header"
+      :links="links"
+      :reloads="reloads"
+      @reload="reload"
+  >
+    <div class="pbottom-large">
+      <h3>Books</h3>
+      <table
+          v-if="model.books.length > 0"
+          class="table table-striped table-bordered table-hover"
+      >
+        <thead>
+        <tr>
+          <th>Book</th>
+          <th>Start page</th>
+          <th>End page</th>
+          <th>Raw pages</th>
+          <th v-if="referenceType">Type</th>
+          <th v-if="image">Plate</th>
+          <th>Actions</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr
+            v-for="(item, index) in model.books"
+            :key="index"
         >
-            <vue-form-generator
-                v-if="editBib.type === 'book'"
-                ref="editBibForm"
-                :schema="editBookBibSchema"
-                :model="editBib"
-                :options="formOptions"
-                @validated="validated"
-            />
-            <vue-form-generator
-                v-if="editBib.type === 'article'"
-                ref="editBibForm"
-                :schema="editArticleBibSchema"
-                :model="editBib"
-                :options="formOptions"
-                @validated="validated"
-            />
-            <vue-form-generator
-                v-if="editBib.type === 'bookChapter'"
-                ref="editBibForm"
-                :schema="editBookChapterBibSchema"
-                :model="editBib"
-                :options="formOptions"
-                @validated="validated"
-            />
-            <vue-form-generator
-                v-if="editBib.type === 'onlineSource'"
-                ref="editBibForm"
-                :schema="editOnlineSourceBibSchema"
-                :model="editBib"
-                :options="formOptions"
-                @validated="validated"
-            />
-            <vue-form-generator
-                v-if="editBib.type === 'blogPost'"
-                ref="editBibForm"
-                :schema="editBlogPostBibSchema"
-                :model="editBib"
-                :options="formOptions"
-                @validated="validated"
-            />
-            <vue-form-generator
-                v-if="editBib.type === 'phd'"
-                ref="editBibForm"
-                :schema="editPhdBibSchema"
-                :model="editBib"
-                :options="formOptions"
-                @validated="validated"
-            />
-            <vue-form-generator
-                v-if="editBib.type === 'bibVaria'"
-                ref="editBibForm"
-                :schema="editBibVariaBibSchema"
-                :model="editBib"
-                :options="formOptions"
-                @validated="validated"
-            />
-            <div slot="header">
-                <h4
-                    v-if="editBib.id"
-                    class="modal-title"
-                >
-                    Edit bibliography
-                </h4>
-                <h4
-                    v-if="!editBib.id"
-                    class="modal-title"
-                >
-                    Add a new bibliography item
-                </h4>
-            </div>
-            <div slot="footer">
-                <btn @click="editBibModal=false">Cancel</btn>
-                <btn
-                    type="success"
-                    :disabled="!isValid"
-                    @click="submitBib()"
-                >
-                    {{ bibIndex > -1 ? 'Update' : 'Add' }}
-                </btn>
-            </div>
-        </modal>
-        <modal
-            v-model="delBibModal"
-            title="Delete bibliography"
-            auto-focus
-            :append-to-body="appendToBody"
-        >
-            <p>Are you sure you want to delete this bibliography?</p>
-            <div slot="footer">
-                <btn @click="delBibModal=false">Cancel</btn>
-                <btn
-                    type="danger"
-                    @click="submitDeleteBib()"
-                >
-                    Delete
-                </btn>
-            </div>
-        </modal>
-    </panel>
-</template>
-<script>
-import Vue from 'vue';
+          <td>{{ item.book.name }}</td>
+          <td>{{ item.startPage }}</td>
+          <td>{{ item.endPage }}</td>
+          <td>{{ item.rawPages }}</td>
+          <td v-if="referenceType">
+            <template v-if="item.referenceType != null">
+              {{ item.referenceType.name }}
+            </template>
+          </td>
+          <td v-if="image">
+            <template v-if="item.image != null">
+              {{ item.image }}
+            </template>
+          </td>
+          <td>
 
+            <a href="#"
+            title="Edit"
+            class="action"
+            @click.prevent="updateBib(item, index)"
+            >
+            <i class="fa fa-pencil-square-o" />
+            </a>
+
+            <a href="#"
+            title="Delete"
+            class="action"
+            @click.prevent="delBib(item, index)"
+            >
+            <i class="fa fa-trash-o" />
+            </a>
+          </td>
+        </tr>
+        </tbody>
+      </table>
+      <btn @click.native="newBib('book')">
+        <i class="fa fa-plus" />&nbsp;Add a book reference
+      </btn>
+    </div>
+
+    <div class="pbottom-large">
+      <h3>Articles</h3>
+      <table
+          v-if="model.articles.length > 0"
+          class="table table-striped table-bordered table-hover"
+      >
+        <thead>
+        <tr>
+          <th>Article</th>
+          <th>Start page</th>
+          <th>End page</th>
+          <th>Raw pages</th>
+          <th v-if="referenceType">Type</th>
+          <th v-if="image">Plate</th>
+          <th>Actions</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr
+            v-for="(item, index) in model.articles"
+            :key="index"
+        >
+          <td>{{ item.article.name }}</td>
+          <td>{{ item.startPage }}</td>
+          <td>{{ item.endPage }}</td>
+          <td>{{ item.rawPages }}</td>
+          <td v-if="referenceType">
+            <template v-if="item.referenceType != null">
+              {{ item.referenceType.name }}
+            </template>
+          </td>
+          <td v-if="image">
+            <template v-if="item.image != null">
+              {{ item.image }}
+            </template>
+          </td>
+          <td>
+
+            <a href="#"
+            title="Edit"
+            class="action"
+            @click.prevent="updateBib(item, index)"
+            >
+            <i class="fa fa-pencil-square-o" />
+            </a>
+
+            <a href="#"
+            title="Delete"
+            class="action"
+            @click.prevent="delBib(item, index)"
+            >
+            <i class="fa fa-trash-o" />
+            </a>
+          </td>
+        </tr>
+        </tbody>
+      </table>
+      <btn @click.native="newBib('article')">
+        <i class="fa fa-plus" />&nbsp;Add an article reference
+      </btn>
+    </div>
+
+    <div class="pbottom-large">
+      <h3>Book chapters</h3>
+      <table
+          v-if="model.bookChapters.length > 0"
+          class="table table-striped table-bordered table-hover"
+      >
+        <thead>
+        <tr>
+          <th>Book Chapter</th>
+          <th>Start page</th>
+          <th>End page</th>
+          <th>Raw pages</th>
+          <th v-if="referenceType">Type</th>
+          <th v-if="image">Plate</th>
+          <th>Actions</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr
+            v-for="(item, index) in model.bookChapters"
+            :key="index"
+        >
+          <td>{{ item.bookChapter.name }}</td>
+          <td>{{ item.startPage }}</td>
+          <td>{{ item.endPage }}</td>
+          <td>{{ item.rawPages }}</td>
+          <td v-if="referenceType">
+            <template v-if="item.referenceType != null">
+              {{ item.referenceType.name }}
+            </template>
+          </td>
+          <td v-if="image">
+            <template v-if="item.image != null">
+              {{ item.image }}
+            </template>
+          </td>
+          <td>
+
+            <a href="#"
+            title="Edit"
+            class="action"
+            @click.prevent="updateBib(item, index)"
+            >
+            <i class="fa fa-pencil-square-o" />
+            </a>
+
+            <a href="#"
+            title="Delete"
+            class="action"
+            @click.prevent="delBib(item, index)"
+            >
+            <i class="fa fa-trash-o" />
+            </a>
+          </td>
+        </tr>
+        </tbody>
+      </table>
+      <btn @click.native="newBib('bookChapter')">
+        <i class="fa fa-plus" />&nbsp;Add a book chapter reference
+      </btn>
+    </div>
+
+    <div class="pbottom-large">
+      <h3>Online sources</h3>
+      <table
+          v-if="model.onlineSources.length > 0"
+          class="table table-striped table-bordered table-hover"
+      >
+        <thead>
+        <tr>
+          <th>Online source</th>
+          <th>Source link</th>
+          <th>Relative link</th>
+          <th v-if="referenceType">Type</th>
+          <th v-if="image">Plate</th>
+          <th>Actions</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr
+            v-for="(item, index) in model.onlineSources"
+            :key="index"
+        >
+          <td>{{ item.onlineSource.name }}</td>
+          <td>{{ item.onlineSource.url }}</td>
+          <td>{{ item.relUrl }}</td>
+          <td v-if="referenceType">
+            <template v-if="item.referenceType != null">
+              {{ item.referenceType.name }}
+            </template>
+          </td>
+          <td v-if="image">
+            <template v-if="item.image != null">
+              {{ item.image }}
+            </template>
+          </td>
+          <td>
+
+           <a href="#"
+            title="Edit"
+            class="action"
+            @click.prevent="updateBib(item, index)"
+            >
+            <i class="fa fa-pencil-square-o" />
+            </a>
+
+            <a href="#"
+            title="Delete"
+            class="action"
+            @click.prevent="delBib(item, index)"
+            >
+            <i class="fa fa-trash-o" />
+            </a>
+          </td>
+        </tr>
+        </tbody>
+      </table>
+      <btn @click.native="newBib('onlineSource')">
+        <i class="fa fa-plus" />&nbsp;Add an online source
+      </btn>
+    </div>
+
+    <div class="pbottom-large">
+      <h3>Blog posts</h3>
+      <table
+          v-if="model.blogPosts.length > 0"
+          class="table table-striped table-bordered table-hover"
+      >
+        <thead>
+        <tr>
+          <th>Blog posts</th>
+          <th v-if="referenceType">Type</th>
+          <th v-if="image">Plate</th>
+          <th>Actions</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr
+            v-for="(item, index) in model.blogPosts"
+            :key="index"
+        >
+          <td>{{ item.blogPost.name }}</td>
+          <td v-if="referenceType">
+            <template v-if="item.referenceType != null">
+              {{ item.referenceType.name }}
+            </template>
+          </td>
+          <td v-if="image">
+            <template v-if="item.image != null">
+              {{ item.image }}
+            </template>
+          </td>
+          <td>
+
+            <a href="#"
+            title="Edit"
+            class="action"
+            @click.prevent="updateBib(item, index)"
+            >
+            <i class="fa fa-pencil-square-o" />
+            </a>
+
+           <a href="#"
+            title="Delete"
+            class="action"
+            @click.prevent="delBib(item, index)"
+            >
+            <i class="fa fa-trash-o" />
+            </a>
+          </td>
+        </tr>
+        </tbody>
+      </table>
+      <btn @click.native="newBib('blogPost')">
+        <i class="fa fa-plus" />&nbsp;Add a blog post reference
+      </btn>
+    </div>
+
+    <div class="pbottom-large">
+      <h3>PhD theses</h3>
+      <table
+          v-if="model.phds.length > 0"
+          class="table table-striped table-bordered table-hover"
+      >
+        <thead>
+        <tr>
+          <th>PhD theses</th>
+          <th>Start page</th>
+          <th>End page</th>
+          <th>Raw pages</th>
+          <th v-if="referenceType">Type</th>
+          <th v-if="image">Plate</th>
+          <th>Actions</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr
+            v-for="(item, index) in model.phds"
+            :key="index"
+        >
+          <td>{{ item.phd.name }}</td>
+          <td>{{ item.startPage }}</td>
+          <td>{{ item.endPage }}</td>
+          <td>{{ item.rawPages }}</td>
+          <td v-if="referenceType">
+            <template v-if="item.referenceType != null">
+              {{ item.referenceType.name }}
+            </template>
+          </td>
+          <td v-if="image">
+            <template v-if="item.image != null">
+              {{ item.image }}
+            </template>
+          </td>
+          <td>
+
+            <a href="#"
+            title="Edit"
+            class="action"
+            @click.prevent="updateBib(item, index)"
+            >
+            <i class="fa fa-pencil-square-o" />
+            </a>
+
+           <a href="#"
+            title="Delete"
+            class="action"
+            @click.prevent="delBib(item, index)"
+            >
+            <i class="fa fa-trash-o" />
+            </a>
+          </td>
+        </tr>
+        </tbody>
+      </table>
+      <btn @click.native="newBib('phd')">
+        <i class="fa fa-plus" />&nbsp;Add a PhD thesis reference
+      </btn>
+    </div>
+
+    <div class="pbottom-large">
+      <h3>Varia bibliography items</h3>
+      <table
+          v-if="model.bibVarias.length > 0"
+          class="table table-striped table-bordered table-hover"
+      >
+        <thead>
+        <tr>
+          <th>Bib varia</th>
+          <th>Start page</th>
+          <th>End page</th>
+          <th>Raw pages</th>
+          <th v-if="referenceType">Type</th>
+          <th v-if="image">Plate</th>
+          <th>Actions</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr
+            v-for="(item, index) in model.bibVarias"
+            :key="index"
+        >
+          <td>{{ item.bibVaria.name }}</td>
+          <td>{{ item.startPage }}</td>
+          <td>{{ item.endPage }}</td>
+          <td>{{ item.rawPages }}</td>
+          <td v-if="referenceType">
+            <template v-if="item.referenceType != null">
+              {{ item.referenceType.name }}
+            </template>
+          </td>
+          <td v-if="image">
+            <template v-if="item.image != null">
+              {{ item.image }}
+            </template>
+          </td>
+          <td>
+
+           <a href="#"
+            title="Edit"
+            class="action"
+            @click.prevent="updateBib(item, index)"
+            >
+            <i class="fa fa-pencil-square-o" />
+            </a>
+
+          <a  href="#"
+            title="Delete"
+            class="action"
+            @click.prevent="delBib(item, index)"
+            >
+            <i class="fa fa-trash-o" />
+            </a>
+          </td>
+        </tr>
+        </tbody>
+      </table>
+      <btn @click.native="newBib('bibVaria')">
+        <i class="fa fa-plus" />&nbsp;Add a bib varia reference
+      </btn>
+    </div>
+
+    <!-- Edit Bibliography Modal -->
+    <modal
+        :model-value="editBibModal"
+        size="lg"
+        auto-focus
+        :backdrop="null"
+        :append-to-body="appendToBody"
+    >
+      <template #header>
+        <h4 v-if="editBib.id" class="modal-title">
+          Edit bibliography
+        </h4>
+        <h4 v-if="!editBib.id" class="modal-title">
+          Add a new bibliography item
+        </h4>
+      </template>
+
+      <vue-form-generator
+          v-if="editBib.type === 'book'"
+          ref="editBibFormRef"
+          :schema="editBookBibSchema"
+          :model="editBib"
+          :options="formOptions"
+          @validated="validated"
+      />
+      <vue-form-generator
+          v-if="editBib.type === 'article'"
+          ref="editBibFormRef"
+          :schema="editArticleBibSchema"
+          :model="editBib"
+          :options="formOptions"
+          @validated="validated"
+      />
+      <vue-form-generator
+          v-if="editBib.type === 'bookChapter'"
+          ref="editBibFormRef"
+          :schema="editBookChapterBibSchema"
+          :model="editBib"
+          :options="formOptions"
+          @validated="validated"
+      />
+      <vue-form-generator
+          v-if="editBib.type === 'onlineSource'"
+          ref="editBibFormRef"
+          :schema="editOnlineSourceBibSchema"
+          :model="editBib"
+          :options="formOptions"
+          @validated="validated"
+      />
+      <vue-form-generator
+          v-if="editBib.type === 'blogPost'"
+          ref="editBibFormRef"
+          :schema="editBlogPostBibSchema"
+          :model="editBib"
+          :options="formOptions"
+          @validated="validated"
+      />
+      <vue-form-generator
+          v-if="editBib.type === 'phd'"
+          ref="editBibFormRef"
+          :schema="editPhdBibSchema"
+          :model="editBib"
+          :options="formOptions"
+          @validated="validated"
+      />
+      <vue-form-generator
+          v-if="editBib.type === 'bibVaria'"
+          ref="editBibFormRef"
+          :schema="editBibVariaBibSchema"
+          :model="editBib"
+          :options="formOptions"
+          @validated="validated"
+      />
+
+      <template #footer>
+        <btn @click.native="editBibModal = false">Cancel</btn>
+        <btn
+            type="success"
+            :disabled="!isValid"
+            @click.native="submitBib"
+        >
+          {{ bibIndex > -1 ? 'Update' : 'Add' }}
+        </btn>
+      </template>
+    </modal>
+
+    <!-- Delete Bibliography Modal -->
+    <modal
+        :model-value="delBibModal"
+        title="Delete bibliography"
+        auto-focus
+        :append-to-body="appendToBody"
+    >
+      <p>Are you sure you want to delete this bibliography?</p>
+      <template #footer>
+        <btn @click.native="delBibModal = false">Cancel</btn>
+        <btn
+            type="danger"
+            @click.native="submitDeleteBib"
+        >
+          Delete
+        </btn>
+      </template>
+    </modal>
+  </panel>
+</template>
+
+<script setup>
+import { ref, computed, watch, reactive } from 'vue';
+import Panel from '../Panel.vue';
+import Alerts from "@/components/Alerts.vue";
+import { Btn as btn, Modal as modal } from 'uiv';
+import validatorUtil from '@/helpers/validatorUtil';
 import {
   createMultiSelect,
   disableField,
   enableField,
-
 } from '@/helpers/formFieldUtils';
-import Panel from '../Panel'
-import validatorUtil from "@/helpers/validatorUtil";
 
-Vue.component('panel', Panel)
+const props = defineProps({
+  referenceType: {
+    type: Boolean,
+    default: false,
+  },
+  image: {
+    type: Boolean,
+    default: false,
+  },
+  values: {
+    type: Object,
+    default: () => ({}),
+  },
+  appendToBody: {
+    type: Boolean,
+    default: false,
+  },
+  keys: {
+    type: Object,
+    default: () => ({
+      books: { field: 'book', init: false },
+      articles: { field: 'article', init: false },
+      bookChapters: { field: 'bookChapter', init: false },
+      onlineSources: { field: 'onlineSource', init: false },
+      blogPosts: { field: 'blogPost', init: false },
+      phds: { field: 'phd', init: false },
+      bibVarias: { field: 'bibVaria', init: false },
+    }),
+  },
+  header: {
+    type: String,
+    default: '',
+  },
+  links: {
+    type: Array,
+    default: () => [],
+  },
+  model: {
+    type: Object,
+    default: () => ({}),
+  },
+  reloads: {
+    type: Array,
+    default: () => [],
+  },
+});
 
-export default {
-    props: {
-        referenceType: {
-            type: Boolean,
-            default: false,
-        },
-        image: {
-            type: Boolean,
-            default: false,
-        },
-        values: {
-            type: Object,
-            default: () => {return {}}
-        },
-        appendToBody: {
-            type: Boolean,
-            default: false,
-        },
-        keys: {
-            type: Object,
-            default: () => {
-                return {
-                    books: {field: 'book', init: false},
-                    articles: {field: 'article', init: false},
-                    bookChapters: {field: 'bookChapter', init: false},
-                    onlineSources: {field: 'onlineSource', init: false},
-                    blogPosts: {field: 'blogPost', init: false},
-                    phds: {field: 'phd', init: false},
-                    bibVarias: {field: 'bibVaria', init: false},
-                };
-            },
-        },
-        header: {
-          type: String,
-          default: '',
-        },
-        links: {
-          type: Array,
-          default: () => {return []},
-        },
-        model: {
-          type: Object,
-          default: () => {return {}},
-        },
-        reloads: {
-          type: Array,
-          default: () => {return []},
-        },
-    },
-    data() {
-        let data = {
-            editBookBibSchema: {
-                fields: {
-                    book: createMultiSelect(
-                        'Book',
-                        {
-                            required: true,
-                            validator: validatorUtil.required
-                        },
-                        {
-                            customLabel: ({id, name}) => {
-                                return `${id} - ${name}`
-                            },
-                        }
-                    ),
-                }
-            },
-            editArticleBibSchema: {
-                fields: {
-                    article: createMultiSelect(
-                        'Article',
-                        {
-                            required: true,
-                            validator: validatorUtil.required
-                        },
-                        {
-                            customLabel: ({id, name}) => {
-                                return `${id} - ${name}`
-                            },
-                        }
-                    ),
-                }
-            },
-            editBookChapterBibSchema: {
-                fields: {
-                    bookChapter: createMultiSelect(
-                        'Book Chapter',
-                        {
-                            required: true,
-                            validator: validatorUtil.required
-                        },
-                        {
-                            customLabel: ({id, name}) => {
-                                return `${id} - ${name}`
-                            },
-                        }
-                    ),
-                }
-            },
-            editOnlineSourceBibSchema: {
-                fields: {
-                    onlineSource: createMultiSelect(
-                        'Online Source',
-                        {
-                            required: true,
-                            validator: validatorUtil.required
-                        },
-                        {
-                            customLabel: ({id, name}) => {
-                                return `${id} - ${name}`
-                            },
-                        }
-                    ),
-                    sourceLink: {
-                        type: 'input',
-                        inputType: 'text',
-                        disabled: 'true',
-                        label: 'Source link',
-                        labelClasses: 'control-label',
-                        model: 'onlineSource.url',
-                    },
-                    relUrl: {
-                        type: 'input',
-                        inputType: 'text',
-                        label: 'Relative link',
-                        labelClasses: 'control-label',
-                        model: 'relUrl',
-                        validator: validatorUtil.string,
-                    }
-                }
-            },
-            editBlogPostBibSchema: {
-                fields: {
-                    blogPost: createMultiSelect(
-                        'Blog Post',
-                        {
-                            required: true,
-                            validator: validatorUtil.required
-                        },
-                        {
-                            customLabel: ({id, name}) => {
-                                return `${id} - ${name}`
-                            },
-                        }
-                    ),
-                }
-            },
-            editPhdBibSchema: {
-                fields: {
-                    phd: createMultiSelect(
-                        'Phd',
-                        {
-                            required: true,
-                            validator: validatorUtil.required
-                        },
-                        {
-                            customLabel: ({id, name}) => {
-                                return `${id} - ${name}`
-                            },
-                        }
-                    ),
-                }
-            },
-            editBibVariaBibSchema: {
-                fields: {
-                    bibVaria: createMultiSelect(
-                        'BibVaria',
-                        {
-                            required: true,
-                            validator: validatorUtil.required
-                        },
-                        {
-                            customLabel: ({id, name}) => {
-                                return `${id} - ${name}`
-                            },
-                        }
-                    ),
-                }
-            },
-            editBibModal: false,
-            delBibModal: false,
-            bibIndex: null,
-            editBib: {},
+const emit = defineEmits(['validated', 'reload']);
+
+// Refs
+const editBibFormRef = ref(null);
+const editBibModal = ref(false);
+const delBibModal = ref(false);
+const bibIndex = ref(null);
+const editBib = ref({});
+const changes = ref([]);
+const isValid = ref(true);
+const originalModel = ref({});
+
+// Form options
+const formOptions = {
+  validateAfterChanged: true,
+  validationErrorClass: 'has-error',
+  validationSuccessClass: 'success',
+};
+
+// Common field definitions
+const createStartPageField = () => ({
+  type: 'input',
+  inputType: 'text',
+  label: 'Start page',
+  labelClasses: 'control-label',
+  model: 'startPage',
+  validator: validatorUtil.string,
+});
+
+const createEndPageField = () => ({
+  type: 'input',
+  inputType: 'text',
+  label: 'End page',
+  labelClasses: 'control-label',
+  model: 'endPage',
+  validator: validatorUtil.string,
+});
+
+const createRawPagesField = () => ({
+  type: 'input',
+  inputType: 'text',
+  label: 'Raw Pages',
+  labelClasses: 'control-label',
+  model: 'rawPages',
+  disabled: true,
+  validator: validatorUtil.string,
+});
+
+const createReferenceTypeField = () => createMultiSelect('Type', {
+  model: 'referenceType',
+  values: props.values.referenceTypes,
+  required: true,
+  validator: validatorUtil.required,
+});
+
+const createImageField = () => ({
+  type: 'input',
+  inputType: 'text',
+  label: 'Plate',
+  labelClasses: 'control-label',
+  model: 'image',
+  validator: validatorUtil.string,
+});
+
+// Schema builder helper
+const buildSchema = (mainField, hasPages = true, hasRelUrl = false) => {
+  const fields = { ...mainField };
+
+  if (hasPages) {
+    fields.startPage = createStartPageField();
+    fields.endPage = createEndPageField();
+    fields.rawPages = createRawPagesField();
+  }
+
+  if (hasRelUrl) {
+    fields.sourceLink = {
+      type: 'input',
+      inputType: 'text',
+      disabled: 'true',
+      label: 'Source link',
+      labelClasses: 'control-label',
+      model: 'onlineSource.url',
+    };
+    fields.relUrl = {
+      type: 'input',
+      inputType: 'text',
+      label: 'Relative link',
+      labelClasses: 'control-label',
+      model: 'relUrl',
+      validator: validatorUtil.string,
+    };
+  }
+
+  if (props.referenceType) {
+    fields.referenceType = createReferenceTypeField();
+  }
+
+  if (props.image) {
+    fields.image = createImageField();
+  }
+
+  return { fields };
+};
+
+// Schemas
+const editBookBibSchema = reactive(buildSchema({
+  book: createMultiSelect('Book', {
+    required: true,
+    validator: validatorUtil.required,
+  }, {
+    customLabel: ({ id, name }) => `${id} - ${name}`,
+  }),
+}, true));
+
+const editArticleBibSchema = reactive(buildSchema({
+  article: createMultiSelect('Article', {
+    required: true,
+    validator: validatorUtil.required,
+  }, {
+    customLabel: ({ id, name }) => `${id} - ${name}`,
+  }),
+}, true));
+
+const editBookChapterBibSchema = reactive(buildSchema({
+  bookChapter: createMultiSelect('Book Chapter', {
+    required: true,
+    validator: validatorUtil.required,
+  }, {
+    customLabel: ({ id, name }) => `${id} - ${name}`,
+  }),
+}, true));
+
+const editOnlineSourceBibSchema = reactive(buildSchema({
+  onlineSource: createMultiSelect('Online Source', {
+    required: true,
+    validator: validatorUtil.required,
+  }, {
+    customLabel: ({ id, name }) => `${id} - ${name}`,
+  }),
+}, false, true));
+
+const editBlogPostBibSchema = reactive(buildSchema({
+  blogPost: createMultiSelect('Blog Post', {
+    required: true,
+    validator: validatorUtil.required,
+  }, {
+    customLabel: ({ id, name }) => `${id} - ${name}`,
+  }),
+}, false));
+
+const editPhdBibSchema = reactive(buildSchema({
+  phd: createMultiSelect('Phd', {
+    required: true,
+    validator: validatorUtil.required,
+  }, {
+    customLabel: ({ id, name }) => `${id} - ${name}`,
+  }),
+}, true));
+
+const editBibVariaBibSchema = reactive(buildSchema({
+  bibVaria: createMultiSelect('BibVaria', {
+    required: true,
+    validator: validatorUtil.required,
+  }, {
+    customLabel: ({ id, name }) => `${id} - ${name}`,
+  }),
+}, true));
+
+// Computed
+const fields = computed(() => ({}));
+
+// Methods
+const formatPages = (startPage = null, endPage = null, rawPages = null, prefix = '') => {
+  if (startPage == null) {
+    if (rawPages != null) {
+      return prefix + rawPages;
+    }
+    return '';
+  }
+  if (endPage == null) {
+    return prefix + startPage;
+  }
+  return prefix + startPage + '-' + endPage;
+};
+
+const displayBibliography = (bibliography) => {
+  if (Object.keys(bibliography).length === 0) {
+    return [];
+  }
+
+  const result = [];
+  const types = [
+    { key: 'books', field: 'book', hasPages: true },
+    { key: 'articles', field: 'article', hasPages: true },
+    { key: 'bookChapters', field: 'bookChapter', hasPages: true },
+    { key: 'onlineSources', field: 'onlineSource', hasPages: false },
+    { key: 'blogPosts', field: 'blogPost', hasPages: false },
+    { key: 'phds', field: 'phd', hasPages: true },
+    { key: 'bibVarias', field: 'bibVaria', hasPages: true },
+  ];
+
+  for (const type of types) {
+    for (const bib of bibliography[type.key] || []) {
+      let text = '';
+
+      if (type.key === 'onlineSources') {
+        text = bib.onlineSource.url;
+        if (bib.relUrl != null) {
+          text += '\n(Relative url: ' + bib.relUrl + ')';
         }
-        let startPageField = {
-            type: 'input',
-            inputType: 'text',
-            label: 'Start page',
-            labelClasses: 'control-label',
-            model: 'startPage',
-            validator: validatorUtil.string,
+      } else {
+        text = bib[type.field].name;
+        if (type.hasPages) {
+          text += formatPages(bib.startPage, bib.endPage, bib.rawPages, ': ');
         }
-        data.editBookBibSchema.fields['startPage'] = startPageField
-        data.editArticleBibSchema.fields['startPage'] = startPageField
-        data.editBookChapterBibSchema.fields['startPage'] = startPageField
-        data.editPhdBibSchema.fields['startPage'] = startPageField
-        data.editBibVariaBibSchema.fields['startPage'] = startPageField
-        let endPageField = {
-            type: 'input',
-            inputType: 'text',
-            label: 'End page',
-            labelClasses: 'control-label',
-            model: 'endPage',
-            validator: validatorUtil.string,
+        text += '.';
+      }
+
+      if (bib.referenceType) {
+        text += '\n(Type: ' + bib.referenceType.name + ')';
+      }
+      if (bib.image) {
+        text += '\n(Image: ' + bib.image + ')';
+      }
+
+      result.push(text);
+    }
+  }
+
+  return result;
+};
+
+const calcChanges = () => {
+  changes.value = [];
+
+  for (const key of Object.keys(props.model)) {
+    if (
+        JSON.stringify(props.model[key]) !== JSON.stringify(originalModel.value[key]) &&
+        !(props.model[key] == null && originalModel.value[key] == null)
+    ) {
+      changes.value.push({
+        key: 'bibliography',
+        label: 'Bibliography',
+        old: displayBibliography(originalModel.value),
+        new: displayBibliography(props.model),
+        value: props.model,
+      });
+      break;
+    }
+  }
+};
+
+const init = () => {
+  originalModel.value = JSON.parse(JSON.stringify(props.model));
+  enableFields();
+};
+
+const reload = (type) => {
+  if (!props.reloads.includes(type)) {
+    emit('reload', type);
+  }
+};
+
+const enableFields = (enableKeys = null) => {
+  if (enableKeys == null) {
+    if (props.referenceType && props.values.referenceTypes?.length > 0) {
+      enableField(editBookBibSchema.fields.referenceType);
+      enableField(editArticleBibSchema.fields.referenceType);
+      enableField(editBookChapterBibSchema.fields.referenceType);
+      enableField(editOnlineSourceBibSchema.fields.referenceType);
+      enableField(editBlogPostBibSchema.fields.referenceType);
+      enableField(editPhdBibSchema.fields.referenceType);
+      enableField(editBibVariaBibSchema.fields.referenceType);
+    }
+  } else {
+    const schemaMap = {
+      books: { schema: editBookBibSchema, field: 'book', values: 'books' },
+      articles: { schema: editArticleBibSchema, field: 'article', values: 'articles' },
+      bookChapters: { schema: editBookChapterBibSchema, field: 'bookChapter', values: 'bookChapters' },
+      onlineSources: { schema: editOnlineSourceBibSchema, field: 'onlineSource', values: 'onlineSources' },
+      blogPosts: { schema: editBlogPostBibSchema, field: 'blogPost', values: 'blogPosts' },
+      phds: { schema: editPhdBibSchema, field: 'phd', values: 'phds' },
+      bibVarias: { schema: editBibVariaBibSchema, field: 'bibVaria', values: 'bibVarias' },
+    };
+
+    for (const key of enableKeys) {
+      const config = schemaMap[key];
+      if (config) {
+        config.schema.fields[config.field].values = props.values[config.values];
+        enableField(config.schema.fields[config.field]);
+      }
+    }
+  }
+};
+
+const disableFields = (disableKeys) => {
+  const schemaMap = {
+    books: { schema: editBookBibSchema, field: 'book' },
+    articles: { schema: editArticleBibSchema, field: 'article' },
+    bookChapters: { schema: editBookChapterBibSchema, field: 'bookChapter' },
+    onlineSources: { schema: editOnlineSourceBibSchema, field: 'onlineSource' },
+    blogPosts: { schema: editBlogPostBibSchema, field: 'blogPost' },
+    phds: { schema: editPhdBibSchema, field: 'phd' },
+    bibVarias: { schema: editBibVariaBibSchema, field: 'bibVaria' },
+  };
+
+  for (const key of disableKeys) {
+    const config = schemaMap[key];
+    if (config) {
+      disableField(config.schema.fields[config.field]);
+    }
+  }
+};
+
+const validate = () => {};
+
+const updateBib = (bibliography, index) => {
+  bibIndex.value = index;
+  editBib.value = JSON.parse(JSON.stringify(bibliography));
+  editBibModal.value = true;
+};
+
+const delBib = (bibliography, index) => {
+  bibIndex.value = index;
+  editBib.value = JSON.parse(JSON.stringify(bibliography));
+  delBibModal.value = true;
+};
+
+const newBib = (type) => {
+  bibIndex.value = -1;
+  editBib.value = { type };
+
+  if (['article', 'book', 'bookChapter', 'phd', 'bibVaria'].includes(type)) {
+    editBib.value.startPage = '';
+    editBib.value.endPage = '';
+  } else if (['onlineSource'].includes(type)) {
+    editBib.value.relUrl = '';
+  }
+
+  editBibModal.value = true;
+};
+
+const validated = (valid, errors) => {
+  isValid.value = valid;
+};
+
+const submitBib = () => {
+  editBibFormRef.value?.validate();
+  if (editBibFormRef.value?.errors.length === 0) {
+    if (editBib.value.startPage != null) {
+      editBib.value.rawPages = null;
+    }
+
+    // Edit existing bibliography
+    if (bibIndex.value > -1) {
+      props.model[editBib.value.type + 's'][bibIndex.value] = JSON.parse(
+          JSON.stringify(editBib.value)
+      );
+    }
+    // Add new bibliography
+    else {
+      props.model[editBib.value.type + 's'].push(
+          JSON.parse(JSON.stringify(editBib.value))
+      );
+    }
+
+    calcChanges();
+    emit('validated', 0, null, { changes: changes.value });
+    editBibModal.value = false;
+  }
+};
+
+const submitDeleteBib = () => {
+  props.model[editBib.value.type + 's'].splice(bibIndex.value, 1);
+  calcChanges();
+  emit('validated', 0, null, { changes: changes.value });
+  delBibModal.value = false;
+};
+
+// Watch for reference types changes
+watch(
+    () => props.values.referenceTypes,
+    (newVal) => {
+      if (props.referenceType && newVal && newVal.length > 0) {
+        if (editBookBibSchema.fields.referenceType) {
+          editBookBibSchema.fields.referenceType.values = newVal;
         }
-        data.editBookBibSchema.fields['endPage'] = endPageField
-        data.editArticleBibSchema.fields['endPage'] = endPageField
-        data.editBookChapterBibSchema.fields['endPage'] = endPageField
-        data.editPhdBibSchema.fields['endPage'] = endPageField
-        data.editBibVariaBibSchema.fields['endPage'] = endPageField
-        let rawPagesField = {
-            type: 'input',
-            inputType: 'text',
-            label: 'Raw Pages',
-            labelClasses: 'control-label',
-            model: 'rawPages',
-            disabled: true,
-            validator: validatorUtil.string,
+        if (editArticleBibSchema.fields.referenceType) {
+          editArticleBibSchema.fields.referenceType.values = newVal;
         }
-        data.editBookBibSchema.fields['rawPages'] = rawPagesField
-        data.editArticleBibSchema.fields['rawPages'] = rawPagesField
-        data.editBookChapterBibSchema.fields['rawPages'] = rawPagesField
-        data.editPhdBibSchema.fields['rawPages'] = rawPagesField
-        data.editBibVariaBibSchema.fields['rawPages'] = rawPagesField
-        if (this.referenceType) {
-            let referenceTypeField = createMultiSelect('Type', {
-                model: 'referenceType',
-                values: this.values.referenceTypes,
-                required: true,
-                validator: validatorUtil.required,
-            })
-            data.editBookBibSchema.fields['referenceType'] = referenceTypeField
-            data.editArticleBibSchema.fields['referenceType'] = referenceTypeField
-            data.editBookChapterBibSchema.fields['referenceType'] = referenceTypeField
-            data.editOnlineSourceBibSchema.fields['referenceType'] = referenceTypeField
-            data.editBlogPostBibSchema.fields['referenceType'] = referenceTypeField
-            data.editPhdBibSchema.fields['referenceType'] = referenceTypeField
-            data.editBibVariaBibSchema.fields['referenceType'] = referenceTypeField
+        if (editBookChapterBibSchema.fields.referenceType) {
+          editBookChapterBibSchema.fields.referenceType.values = newVal;
         }
-        if (this.image) {
-            let imageField = {
-                type: 'input',
-                inputType: 'text',
-                label: 'Plate',
-                labelClasses: 'control-label',
-                model: 'image',
-                validator: validatorUtil.string,
-            }
-            data.editBookBibSchema.fields['image'] = imageField
-            data.editArticleBibSchema.fields['image'] = imageField
-            data.editBookChapterBibSchema.fields['image'] = imageField
-            data.editOnlineSourceBibSchema.fields['image'] = imageField
-            data.editBlogPostBibSchema.fields['image'] = imageField
-            data.editPhdBibSchema.fields['image'] = imageField
-            data.editBibVariaBibSchema.fields['image'] = imageField
+        if (editOnlineSourceBibSchema.fields.referenceType) {
+          editOnlineSourceBibSchema.fields.referenceType.values = newVal;
         }
-        return {
-          changes: [],
-          formOptions: {
-            validateAfterChanged: true,
-            validationErrorClass: 'has-error',
-            validationSuccessClass: 'success',
-          },
-          isValid: true,
-          originalModel: {},
-          ...data
+        if (editBlogPostBibSchema.fields.referenceType) {
+          editBlogPostBibSchema.fields.referenceType.values = newVal;
         }
-    },
-    computed: {
-        fields() {
-            return {};
+        if (editPhdBibSchema.fields.referenceType) {
+          editPhdBibSchema.fields.referenceType.values = newVal;
         }
-    },
-    watch: {
-      'values.referenceTypes'(newVal) {
-        if (this.referenceType && newVal && newVal.length > 0) {
-          this.editBookBibSchema.fields.referenceType.values = newVal;
-          this.editArticleBibSchema.fields.referenceType.values = newVal;
-          this.editBookChapterBibSchema.fields.referenceType.values = newVal;
-          this.editOnlineSourceBibSchema.fields.referenceType.values = newVal;
-          this.editBlogPostBibSchema.fields.referenceType.values = newVal;
-          this.editPhdBibSchema.fields.referenceType.values = newVal;
-          this.editBibVariaBibSchema.fields.referenceType.values = newVal;
+        if (editBibVariaBibSchema.fields.referenceType) {
+          editBibVariaBibSchema.fields.referenceType.values = newVal;
         }
       }
-    },
-    methods: {
-        init() {
-          this.originalModel = JSON.parse(JSON.stringify(this.model));
-          this.enableFields();
-        },
-        reload(type) {
-          if (!this.reloads.includes(type)) {
-            this.$emit('reload', type);
-          }
-        },
-        enableFields(enableKeys) {
-            if (enableKeys == null) {
-                if (this.referenceType && this.values.referenceTypes.length > 0) {
-                    enableField(this.editBookBibSchema.fields.referenceType);
-                    enableField(this.editArticleBibSchema.fields.referenceType);
-                    enableField(this.editBookChapterBibSchema.fields.referenceType);
-                    enableField(this.editOnlineSourceBibSchema.fields.referenceType);
-                    enableField(this.editBlogPostBibSchema.fields.referenceType);
-                    enableField(this.editPhdBibSchema.fields.referenceType);
-                    enableField(this.editBibVariaBibSchema.fields.referenceType);
-                }
-            } else {
-                if (enableKeys.includes('books')) {
-                    this.editBookBibSchema.fields.book.values = this.values.books;
-                    enableField(this.editBookBibSchema.fields.book);
-                } else if (enableKeys.includes('articles')) {
-                    this.editArticleBibSchema.fields.article.values = this.values.articles;
-                    enableField(this.editArticleBibSchema.fields.article);
-                } else if (enableKeys.includes('bookChapters')) {
-                    this.editBookChapterBibSchema.fields.bookChapter.values = this.values.bookChapters;
-                    enableField(this.editBookChapterBibSchema.fields.bookChapter);
-                } else if (enableKeys.includes('onlineSources')) {
-                    this.editOnlineSourceBibSchema.fields.onlineSource.values = this.values.onlineSources;
-                    enableField(this.editOnlineSourceBibSchema.fields.onlineSource);
-                } else if (enableKeys.includes('blogPosts')) {
-                    this.editBlogPostBibSchema.fields.blogPost.values = this.values.blogPosts;
-                    enableField(this.editBlogPostBibSchema.fields.blogPost);
-                } else if (enableKeys.includes('phds')) {
-                    this.editPhdBibSchema.fields.phd.values = this.values.phds;
-                    enableField(this.editPhdBibSchema.fields.phd);
-                } else if (enableKeys.includes('bibVarias')) {
-                    this.editBibVariaBibSchema.fields.bibVaria.values = this.values.bibVarias;
-                    enableField(this.editBibVariaBibSchema.fields.bibVaria);
-                }
-            }
-        },
-        disableFields(disableKeys) {
-            if (disableKeys.includes('books')) {
-                disableField(this.editBookBibSchema.fields.book);
-            } else if (disableKeys.includes('articles')) {
-                disableField(this.editArticleBibSchema.fields.article);
-            } else if (disableKeys.includes('bookChapters')) {
-                disableField(this.editBookChapterBibSchema.fields.bookChapter);
-            } else if (disableKeys.includes('onlineSources')) {
-                disableField(this.editOnlineSourceBibSchema.fields.onlineSource);
-            } else if (disableKeys.includes('blogPosts')) {
-                disableField(this.editBlogPostBibSchema.fields.blogPost);
-            } else if (disableKeys.includes('phds')) {
-                disableField(this.editPhdBibSchema.fields.phd);
-            } else if (disableKeys.includes('bibVarias')) {
-                disableField(this.editBibVariaBibSchema.fields.bibVaria);
-            }
-        },
-        validate() {},
-        calcChanges() {
-            this.changes = []
-            for (let key of Object.keys(this.model)) {
-                if (JSON.stringify(this.model[key]) !== JSON.stringify(this.originalModel[key]) && !(this.model[key] == null && this.originalModel[key] == null)) {
-                    // bibliography is regarded as a single item
-                    this.changes.push({
-                        'key': 'bibliography',
-                        'label': 'Bibliography',
-                        'old': this.displayBibliography(this.originalModel),
-                        'new': this.displayBibliography(this.model),
-                        'value': this.model,
-                    })
-                    break
-                }
-            }
-        },
-        updateBib(bibliography, index) {
-            this.bibIndex = index
-            this.editBib = JSON.parse(JSON.stringify(bibliography))
-            this.editBibModal = true
-        },
-        delBib(bibliography, index) {
-            this.bibIndex = index
-            this.editBib = JSON.parse(JSON.stringify(bibliography))
-            this.delBibModal = true
-        },
-        newBib(type) {
-            this.bibIndex = -1
-            this.editBib = {
-                type: type
-            }
-            if (['article', 'book', 'bookChapter', 'phd', 'bibVaria'].includes(type)) {
-                this.editBib.startPage = ''
-                this.editBib.endPage = ''
-            }
-            else if (['onlineSource'].includes(type)) {
-                this.editBib.relUrl = ''
-            }
-            this.editBibModal = true
-        },
-        validated(isValid, errors) {
-            this.isValid = isValid
-        },
-        submitBib() {
-            this.$refs.editBibForm.validate()
-            if (this.$refs.editBibForm.errors.length == 0) {
-                if (this.editBib.startPage != null) {
-                    this.editBib.rawPages = null
-                }
-                // Edit existing bibliography
-                if (this.bibIndex > -1) {
-                    this.model[this.editBib.type + "s"][this.bibIndex] = JSON.parse(JSON.stringify(this.editBib))
-                }
-                // Add new bibliography
-                else {
-                    this.model[this.editBib.type + "s"].push(JSON.parse(JSON.stringify(this.editBib)))
-                }
-                this.calcChanges()
-                this.$emit('validated', 0, null, this)
-                this.editBibModal = false
-            }
-        },
-        submitDeleteBib() {
-            this.model[this.editBib.type + "s"].splice(this.bibIndex, 1)
-            this.calcChanges()
-            this.$emit('validated', 0, null, this)
-            this.delBibModal = false
-        },
-        displayBibliography(bibliography) {
-            // Return null if bibliography is empty (e.g. old values when cloning)
-            if (Object.keys(bibliography).length === 0) {
-                return [];
-            }
-            let result = []
-            for (let bib of bibliography['books']) {
-                result.push(
-                    bib.book.name
-                        + this.formatPages(bib.startPage, bib.endPage, bib.rawPages, ': ')
-                        + '.'
-                        + (bib.referenceType ? '\n(Type: ' + bib.referenceType.name + ')' : '')
-                        + (bib.image ? '\n(Image: ' + bib.image + ')' : '')
-                )
-            }
-            for (let bib of bibliography['articles']) {
-                result.push(
-                    bib.article.name
-                        + this.formatPages(bib.startPage, bib.endPage, bib.rawPages, ': ')
-                        + '.'
-                        + (bib.referenceType ? '\n(Type: ' + bib.referenceType.name + ')' : '')
-                        + (bib.image ? '\n(Image: ' + bib.image + ')' : '')
-                )
-            }
-            for (let bib of bibliography['bookChapters']) {
-                result.push(
-                    bib.bookChapter.name
-                        + this.formatPages(bib.startPage, bib.endPage, bib.rawPages, ': ')
-                        + '.'
-                        + (bib.referenceType ? '\n(Type: ' + bib.referenceType.name + ')' : '')
-                        + (bib.image ? '\n(Image: ' + bib.image + ')' : '')
-                )
-            }
-            for (let bib of bibliography['onlineSources']) {
-                result.push(
-                    bib.onlineSource.url
-                        + (bib.relUrl == null ? '' : '\n(Relative url: ' + bib.relUrl + ')')
-                        + (bib.referenceType ? '\n(Type: ' + bib.referenceType.name + ')' : '')
-                        + (bib.image ? '\n(Image: ' + bib.image + ')' : '')
-                )
-            }
-            for (let bib of bibliography['blogPosts']) {
-                result.push(
-                    bib.blogPost.name
-                    + '.'
-                    + (bib.referenceType ? '\n(Type: ' + bib.referenceType.name + ')' : '')
-                    + (bib.image ? '\n(Image: ' + bib.image + ')' : '')
-                )
-            }
-            for (let bib of bibliography['phds']) {
-                result.push(
-                    bib.phd.name
-                    + this.formatPages(bib.startPage, bib.endPage, bib.rawPages, ': ')
-                    + '.'
-                    + (bib.referenceType ? '\n(Type: ' + bib.referenceType.name + ')' : '')
-                    + (bib.image ? '\n(Image: ' + bib.image + ')' : '')
-                )
-            }
-            for (let bib of bibliography['bibVarias']) {
-                result.push(
-                    bib.bibVaria.name
-                    + this.formatPages(bib.startPage, bib.endPage, bib.rawPages, ': ')
-                    + '.'
-                    + (bib.referenceType ? '\n(Type: ' + bib.referenceType.name + ')' : '')
-                    + (bib.image ? '\n(Image: ' + bib.image + ')' : '')
-                )
-            }
-            return result
-        },
-        formatPages(startPage = null, endPage = null, rawPages = null, prefix = '') {
-            if (startPage == null) {
-                if (rawPages != null) {
-                    return prefix + rawPages
-                }
-                else {
-                    return ''
-                }
-            }
-            if (endPage == null) {
-                return prefix + startPage
-            }
-            return prefix + startPage + '-' + endPage
-        },
     }
-}
+);
+
+// Expose methods for parent component
+defineExpose({
+  validate,
+  init,
+  reload,
+  enableFields,
+  disableFields,
+  calcChanges,
+  changes,
+  isValid,
+});
 </script>
+
+<style scoped>
+.pbottom-large {
+  padding-bottom: 2rem;
+}
+</style>

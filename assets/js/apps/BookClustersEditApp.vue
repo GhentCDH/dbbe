@@ -29,24 +29,24 @@
   </article>
 
     <Edit
-        :show="editModalValue"
+        v-model:show="editModalValue"
         :schema="editSchema"
         :submit-model="submitModel"
         :original-submit-model="originalSubmitModel"
         :alerts="editAlerts"
-        @cancel="cancelEdit"
+        @cancel="editModalValue = false"
         @reset="resetEdit(submitModel)"
         @confirm="submitEdit"
         @dismiss-alert="editAlerts.splice($event, 1)"
     >
+      <template #extra>
       <UrlPanel
           id="urls"
-          ref="urls"
           header="Urls"
-          slot="extra"
           :model="submitModel.bookCluster"
           :as-slot="true"
       />
+      </template>
     </Edit>
 
     <Merge
@@ -56,13 +56,13 @@
         :original-merge-model="originalMergeModel"
         :alerts="mergeAlerts"
         @cancel="cancelMerge"
-        @reset="resetMerge"
+        @reset="resetMerge(mergeModel)"
         @confirm="submitMerge"
         @dismiss-alert="mergeAlerts.splice($event, 1)"
     >
+      <template #preview>
       <table
           v-if="mergeModel.primary && mergeModel.secondary"
-          slot="preview"
           class="table table-striped table-hover"
       >
         <thead>
@@ -88,6 +88,7 @@
         </tr>
         </tbody>
       </table>
+      </template>
     </Merge>
 
     <Delete
@@ -105,8 +106,7 @@
 <script setup>
 import { reactive, watch, onMounted, computed } from 'vue'
 import axios from 'axios'
-import VueFormGenerator from 'vue-form-generator'
-
+import VueFormGenerator from 'vue3-form-generator-legacy'
 import Edit from '@/components/Edit/Modals/Edit.vue'
 import Merge from '@/components/Edit/Modals/Merge.vue'
 import Delete from '@/components/Edit/Modals/Delete.vue'
@@ -273,7 +273,7 @@ async function update() {
 }
 
 async function submitEdit() {
-  editModalValue.value = false
+  editModalValue.value = null
   openRequests.value++
 
   try {
@@ -328,9 +328,14 @@ async function submitMerge() {
   try {
     const { primary, secondary } = mergeModel
     if (!primary || !secondary) return
+    const primaryId = parseInt(primary.id, 10)
+    const secondaryId = parseInt(secondary.id, 10)
 
+    if (isNaN(primaryId) || isNaN(secondaryId)) {
+      throw new Error('Invalid ID values')
+    }
     await axios.put(
-        urls.book_cluster_merge.replace('primary_book_cluster_id', primary.id).replace('secondary_book_cluster_id', secondary.id)
+        urls.book_cluster_merge.replace('primary_book_cluster_id', primaryId).replace('secondary_book_cluster_id', secondaryId)
     )
     alerts.value.push({ type: 'success', message: 'Merge successful.' })
     await update()

@@ -34,10 +34,18 @@
         :submit-model="submitModel"
         :original-submit-model="originalSubmitModel"
         :alerts="editAlerts"
-        @cancel="cancelEdit"
-        @reset="resetEdit(submitModel)"
+        @cancel="() => {
+          cancelEdit(submitModel);
+          $nextTick(() => editRef?.validate());
+        }"
+        @reset="() => {
+          resetEdit(submitModel);
+          $nextTick(() => editRef?.validate());
+        }"
         @confirm="submitEdit"
         @dismiss-alert="editAlerts.splice($event, 1)"
+        ref="editRef"
+
     />
 
     <Merge
@@ -47,7 +55,7 @@
         :original-merge-model="originalMergeModel"
         :alerts="mergeAlerts"
         @cancel="cancelMerge"
-        @reset="resetMerge"
+        @reset="resetMerge(mergeModel)"
         @confirm="submitMerge"
         @dismiss-alert="mergeAlerts.splice($event, 1)"
     >
@@ -84,7 +92,7 @@
 <script setup>
 import { reactive, ref, watch, onMounted, computed } from 'vue'
 import axios from 'axios'
-import VueFormGenerator from 'vue-form-generator'
+import VueFormGenerator from 'vue3-form-generator-legacy'
 
 import Edit from '@/components/Edit/Modals/Edit.vue'
 import Merge from '@/components/Edit/Modals/Merge.vue'
@@ -113,10 +121,10 @@ const props = defineProps({
 })
 
 const persons = ref(JSON.parse(props.initPersons))
+const editRef = ref(null)
 
 const depUrls = computed(() => ({}))
 
-// Use composable for common logic (you may want to adapt or create your own)
 const {
   urls,
   values,
@@ -140,7 +148,6 @@ const {
   deleteDependencies,
 } = useEditMergeMigrateDelete(props.initUrls, props.initData, depUrls)
 
-// Main schema for the list selector
 const schema = reactive({
   fields: {
     content: createMultiSelect('Content')

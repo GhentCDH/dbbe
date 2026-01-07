@@ -1,108 +1,155 @@
 <template>
   <panel :header="header">
-    <draggable
-        v-model="model.occurrenceOrder"
-        @change="onChange">
-      <transition-group>
-        <div
-            class="panel panel-default draggable-item"
-            v-for="occurrence in model.occurrenceOrder"
-            :key="occurrence.id">
-          <div class="panel-body">
-            <i class="fa fa-arrows draggable-icon" />[{{ occurrence.id }}] <span class="greek">{{ occurrence.name }}</span> ({{ occurrence.location}})
-          </div>
+    <div ref="sortableContainer">
+      <div
+          class="panel panel-default draggable-item"
+          v-for="occurrence in model.occurrenceOrder"
+          :key="occurrence.id"
+          :data-id="occurrence.id">
+        <div class="panel-body">
+          <i class="fa fa-arrows draggable-icon" />[{{ occurrence.id }}] <span class="greek">{{ occurrence.name }}</span> ({{ occurrence.location}})
         </div>
-      </transition-group>
-    </draggable>
+      </div>
+    </div>
   </panel>
 </template>
 
-<script>
-import Vue from 'vue';
-import draggable from 'vuedraggable'
-import Panel from '../Panel'
-import {disableFields, enableFields} from "@/helpers/formFieldUtils";
-import {calcChanges} from "@/helpers/modelChangeUtil";
+<script setup>
+import { ref, computed, onMounted, watch } from 'vue'
+import Sortable from 'sortablejs'
+import Panel from '../Panel.vue'
+import { disableFields, enableFields } from "@/helpers/formFieldUtils"
+import { calcChanges } from "@/helpers/modelChangeUtil"
 
-Vue.component('panel', Panel)
-Vue.component('draggable', draggable)
+const props = defineProps({
+  header: {
+    type: String,
+    default: '',
+  },
+  links: {
+    type: Array,
+    default: () => [],
+  },
+  model: {
+    type: Object,
+    default: () => ({}),
+  },
+  reloads: {
+    type: Array,
+    default: () => [],
+  },
+  values: {
+    type: Array,
+    default: () => [],
+  },
+  keys: {
+    type: Object,
+    default: () => ({}),
+  },
+})
 
-export default {
-  props: {
-    header: {
-      type: String,
-      default: '',
-    },
-    links: {
-      type: Array,
-      default: () => {return []},
-    },
-    model: {
-      type: Object,
-      default: () => {return {}},
-    },
-    reloads: {
-      type: Array,
-      default: () => {return []},
-    },
-    values: {
-      type: Array,
-      default: () => {return []},
-    },
-    keys: {
-      type: Object,
-      default: () => {return {}},
-    },
+const emit = defineEmits(['validated', 'reload'])
+
+// Refs
+const sortableContainer = ref(null)
+let sortableInstance = null
+
+// Data
+const changes = ref([])
+const isValid = ref(true)
+const originalModel = ref({})
+
+const formOptions = ref({
+  validateAfterChanged: true,
+  validationErrorClass: 'has-error',
+  validationSuccessClass: 'success',
+})
+
+// Computed
+const fields = computed(() => ({
+  occurrenceOrder: {
+    label: 'Occurrence Order',
   },
-  computed: {
-    fields() {
-      return {
-        occurrenceOrder: {
-          label: 'Occurrence Order',
-        },
-      }
-    }
-  },
-  data() {
-    return {
-      changes: [],
-      formOptions: {
-        validateAfterChanged: true,
-        validationErrorClass: 'has-error',
-        validationSuccessClass: 'success',
-      },
-      isValid: true,
-      originalModel: {}
-    }
-  },
-  methods: {
-    validate() {
-      this.changes = calcChanges(this.model, this.originalModel, this.fields);
-    },
-    onChange() {
-      this.changes = calcChanges(this.model, this.originalModel, this.fields);
-      this.$emit('validated', this.isValid, [], this);
-    },
-    init() {
-      this.originalModel = JSON.parse(JSON.stringify(this.model));
-      this.enableFields();
-    },
-    reload(type) {
-      if (!this.reloads.includes(type)) {
-        this.$emit('reload', type);
-      }
-    },
-    disableFields(disableKeys) {
-      disableFields(this.keys, this.fields, disableKeys);
-    },
-    enableFields(enableKeys) {
-      enableFields(this.keys, this.fields, this.values, enableKeys);
-    },
-    validated(isValid, errors) {
-      this.isValid = isValid
-      this.changes = calcChanges(this.model, this.originalModel, this.fields);
-      this.$emit('validated', isValid, errors, this)
-    },
+}))
+
+// Methods
+const validate = () => {
+  changes.value = calcChanges(props.model, originalModel.value, fields.value)
+}
+
+const onChange = () => {
+  changes.value = calcChanges(props.model, originalModel.value, fields.value)
+  emit('validated', isValid.value, [])
+}
+
+const init = () => {
+  originalModel.value = JSON.parse(JSON.stringify(props.model))
+  enableFieldsMethod()
+}
+
+const reload = (type) => {
+  if (!props.reloads.includes(type)) {
+    emit('reload', type)
   }
 }
+
+const disableFieldsMethod = (disableKeys) => {
+  disableFields(props.keys, fields.value, disableKeys)
+}
+
+const enableFieldsMethod = (enableKeys) => {
+  enableFields(props.keys, fields.value, props.values, enableKeys)
+}
+
+const validated = (isValidParam, errors) => {
+  isValid.value = isValidParam
+  changes.value = calcChanges(props.model, originalModel.value, fields.value)
+  emit('validated', isValidParam, errors)
+}
+
+// Initialize Sortable
+onMounted(() => {
+  if (sortableContainer.value) {
+    sortableInstance = new Sortable(sortableContainer.value, {
+      animation: 150,
+      handle: '.draggable-icon',
+      onEnd: (evt) => {
+        const { oldIndex, newIndex } = evt
+        if (oldIndex !== newIndex) {
+          const movedItem = props.model.occurrenceOrder.splice(oldIndex, 1)[0]
+          props.model.occurrenceOrder.splice(newIndex, 0, movedItem)
+          onChange()
+        }
+      }
+    })
+  }
+})
+
+// Expose methods for parent component
+defineExpose({
+  init,
+  reload,
+  disableFields: disableFieldsMethod,
+  enableFields: enableFieldsMethod,
+  validate,
+  validated,
+  isValid,
+  changes,
+})
 </script>
+
+<style scoped>
+.draggable-item {
+  cursor: move;
+  margin-bottom: 10px;
+}
+
+.draggable-icon {
+  cursor: grab;
+  margin-right: 10px;
+}
+
+.draggable-icon:active {
+  cursor: grabbing;
+}
+</style>

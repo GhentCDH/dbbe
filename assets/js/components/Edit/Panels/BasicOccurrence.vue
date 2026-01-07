@@ -15,29 +15,21 @@
     </panel>
 </template>
 <script>
-import Vue from 'vue';
-
-import VueMultiselect from 'vue-multiselect'
-
 import {
   createMultiSelect, disableFields, enableFields,
 
 } from '@/helpers/formFieldUtils';
-import Panel from '../Panel'
 import validatorUtil from "@/helpers/validatorUtil";
 import {calcChanges} from "@/helpers/modelChangeUtil";
 
-Vue.component('panel', Panel)
-
 export default {
-   
     props: {
-        keys: {
-            type: Object,
-            default: () => {
-                return {manuscripts: {field: 'manuscript', init: false}};
-            },
+      keys: {
+        type: Object,
+        default: () => {
+          return {manuscripts: {field: 'manuscript', init: false}};
         },
+      },
         header: {
           type: String,
           default: '',
@@ -62,6 +54,7 @@ export default {
     },
     data() {
         return {
+            isInitialized: false,
             schema: {
                 groups: [
                     {
@@ -185,6 +178,7 @@ export default {
             changes: [],
             formOptions: {
               validateAfterChanged: true,
+              validateAfterLoad: false,
               validationErrorClass: 'has-error',
               validationSuccessClass: 'success',
             },
@@ -203,75 +197,103 @@ export default {
         }
     },
     watch: {
-        'model.foliumStart'(val) {
-            if (val == null || val === '') {
-                this.model.foliumStart = null;
-                this.model.foliumStartRecto = null;
-            }
-            this.validate();
-        },
-        'model.foliumStartRecto'() {
-            this.validate();
-        },
-        'model.foliumEnd'(val) {
-            if (val == null || val === '') {
-                this.model.foliumEnd = null;
-                this.model.foliumEndRecto = null;
-            }
-            this.validate();
-        },
-        'model.foliumEndRecto'() {
-            this.validate();
-        },
-        'model.pageStart'(val) {
-            if (val === '') {
-                this.model.pageStart = null;
-            }
-            this.validate();
-        },
-        'model.pageEnd'(val) {
-            if (val === '') {
-                this.model.pageEnd = null;
-            }
-            this.validate();
-        },
-        'model.alternativeFoliumStart'(val) {
-            if (val == null || val === '') {
-                this.model.alternativeFoliumStart = null;
-                this.model.alternativeFoliumStartRecto = null;
-            }
-            this.validate();
-        },
-        'model.alternativeFoliumStartRecto'() {
-            this.validate();
-        },
-        'model.alternativeFoliumEnd'(val) {
-            if (val == null || val === '') {
-                this.model.alternativeFoliumEnd = null;
-                this.model.alternativeFoliumEndRecto = null;
-            }
-            this.validate();
-        },
-        'model.alternativeFoliumEndRecto'() {
-            this.validate();
-        },
-        'model.alternativePageStart'(val) {
-            if (val === '') {
-                this.model.alternativePageStart = null;
-            }
-            this.validate();
-        },
-        'model.alternativePageEnd'(val) {
-            if (val === '') {
-                this.model.alternativePageEnd = null;
-            }
-            this.validate();
-        },
+    'model.foliumStart'(val) {
+      if (val == null || val === '') {
+        this.model.foliumStart = null;
+        this.model.foliumStartRecto = null;
+      }
+      if (this.isInitialized) { // ADD THIS CHECK
+        this.validate();
+      }
     },
+    'model.foliumStartRecto'() {
+      if (this.isInitialized) { // ADD THIS CHECK
+        this.validate();
+      }
+    },
+    'model.foliumEnd'(val) {
+      if (val == null || val === '') {
+        this.model.foliumEnd = null;
+        this.model.foliumEndRecto = null;
+      }
+      if (this.isInitialized) { // ADD THIS CHECK
+        this.validate();
+      }
+    },
+    'model.foliumEndRecto'() {
+      if (this.isInitialized) { // ADD THIS CHECK
+        this.validate();
+      }
+    },
+    'model.pageStart'(val) {
+      if (val === '') {
+        this.model.pageStart = null;
+      }
+      if (this.isInitialized) { // ADD THIS CHECK
+        this.validate();
+      }
+    },
+    'model.pageEnd'(val) {
+      if (val === '') {
+        this.model.pageEnd = null;
+      }
+      if (this.isInitialized) { // ADD THIS CHECK
+        this.validate();
+      }
+    },
+    'model.alternativeFoliumStart'(val) {
+      if (val == null || val === '') {
+        this.model.alternativeFoliumStart = null;
+        this.model.alternativeFoliumStartRecto = null;
+      }
+      if (this.isInitialized) { // ADD THIS CHECK
+        this.validate();
+      }
+    },
+    'model.alternativeFoliumStartRecto'() {
+      if (this.isInitialized) { // ADD THIS CHECK
+        this.validate();
+      }
+    },
+    'model.alternativeFoliumEnd'(val) {
+      if (val == null || val === '') {
+        this.model.alternativeFoliumEnd = null;
+        this.model.alternativeFoliumEndRecto = null;
+      }
+      if (this.isInitialized) { // ADD THIS CHECK
+        this.validate();
+      }
+    },
+    'model.alternativeFoliumEndRecto'() {
+      if (this.isInitialized) { // ADD THIS CHECK
+        this.validate();
+      }
+    },
+    'model.alternativePageStart'(val) {
+      if (val === '') {
+        this.model.alternativePageStart = null;
+      }
+      if (this.isInitialized) { // ADD THIS CHECK
+        this.validate();
+      }
+    },
+    'model.alternativePageEnd'(val) {
+      if (val === '') {
+        this.model.alternativePageEnd = null;
+      }
+      if (this.isInitialized) { // ADD THIS CHECK
+        this.validate();
+      }
+    },
+  },
     methods: {
         init() {
-        this.originalModel = JSON.parse(JSON.stringify(this.model));
-        this.calcChanges()
+          this.isInitialized = false;
+          this.originalModel = JSON.parse(JSON.stringify(this.model));
+          this.calcChanges()
+          this.$nextTick(() => {
+            this.isInitialized = true;
+          });
       },
         calcChanges() {
             this.changes = []
@@ -368,20 +390,38 @@ export default {
             this.$emit('reload', type);
           }
         },
-        disableFields(disableKeys) {
-          disableFields(this.keys, this.fields, disableKeys);
-        },
+      disableFields(disableKeys) {
+        for (const key of Object.keys(this.keys)) {
+          if (disableKeys.includes(key)) {
+            disableFields(this.keys, this.fields, disableKeys);
+            break;
+          }
+        }
+      },
         validated(isValid, errors) {
           this.isValid = isValid
           this.changes = calcChanges(this.model, this.originalModel, this.fields);
           this.$emit('validated', isValid, this.errors, this)
+          if(errors.length>0){
+            console.log('isValid:', isValid);
+            console.log('errors:', errors);
+          }
+
         },
-        validate() {
-          this.$refs.form.validate()
-        },
-        enableFields(enableKeys) {
-          enableFields(this.keys, this.fields, this.values, enableKeys);
-          this.validate();
+      validate() {
+        if (!this.isInitialized) return;
+        this.$refs.form.validate()
+      },
+      enableFields(enableKeys) {
+        for (const key of Object.keys(this.keys)) {
+          if (enableKeys.includes(key)) {
+            enableFields(this.keys, this.fields, this.values, enableKeys);
+            if (this.isInitialized) {
+              this.validate();
+            }
+            break;
+          }
+        }
       },
 
     }

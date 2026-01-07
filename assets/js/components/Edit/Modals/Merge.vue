@@ -1,9 +1,9 @@
 <template>
     <modal
-        :value="show"
+        :model-value="show"
         size="lg"
         auto-focus
-        :backdrop="false"
+        :backdrop="null"
         @input="$emit('cancel')">
         <alerts
             :alerts="alerts"
@@ -21,34 +21,37 @@
                 <slot name="preview" />
             </div>
         </div>
-        <div slot="header">
+      <template #header>
             <h4 class="modal-title">
                 Merge {{ formatType(mergeModel.submitType) }}
             </h4>
-        </div>
-        <div slot="footer">
-            <btn @click="$emit('cancel')">Cancel</btn>
+      </template>
+      <template #footer>
+            <btn @click.native="$emit('cancel')">Cancel</btn>
             <btn
                 :disabled="JSON.stringify(mergeModel) === JSON.stringify(originalMergeModel)"
                 type="warning"
-                @click="$emit('reset')">
+                @click.native="$emit('reset')">
                 Reset
             </btn>
             <btn
                 type="success"
                 :disabled="invalidMergeForm"
-                @click="$emit('confirm')">
+                @click.native="$emit('confirm')">
                 Merge
             </btn>
-        </div>
+      </template>
     </modal>
 </template>
 <script>
 import Alert from "@/components/Alerts.vue";
+import {Btn, Modal} from "uiv";
 
 export default {
   components: {
-    alerts: Alert
+    alerts: Alert,
+    modal: Modal,
+    btn: Btn,
   },
     props: {
         show: {

@@ -35,14 +35,15 @@
         @confirm="submitEdit"
         @dismiss-alert="editAlerts.splice($event, 1)"
     >
+      <template #extra>
       <UrlPanel
           id="urls"
           ref="urls"
           header="Urls"
-          slot="extra"
           :model="submitModel.bookSeries"
           :as-slot="true"
       />
+      </template>
     </Edit>
 
     <Merge
@@ -52,10 +53,11 @@
         :original-merge-model="originalMergeModel"
         :alerts="mergeAlerts"
         @cancel="cancelMerge"
-        @reset="resetMerge"
+        @reset="resetMerge(mergeModel)"
         @confirm="submitMerge"
         @dismiss-alert="mergeAlerts.splice($event, 1)"
     >
+      <template #preview>
       <table
           v-if="mergeModel.primary && mergeModel.secondary"
           slot="preview"
@@ -84,6 +86,7 @@
         </tr>
         </tbody>
       </table>
+      </template>
     </Merge>
 
     <Delete
@@ -112,7 +115,7 @@ import UrlPanel from '@/components/Edit/Panels/Url.vue'
 
 import { isLoginError } from '@/helpers/errorUtil'
 import { createMultiSelect, enableField } from '@/helpers/formFieldUtils'
-import VueFormGenerator from 'vue-form-generator'
+import VueFormGenerator from 'vue3-form-generator-legacy'
 import { useEditMergeMigrateDelete } from '@/composables/editAppComposables/useEditMergeMigrateDelete'
 
 const depUrls = computed(() => ({}))

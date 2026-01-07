@@ -17,4 +17,4 @@ fi
 
 pnpm dev & symfony server:start --no-tls --allow-http --allow-all-ip
 
-sleep infinity
+#sleep infinity

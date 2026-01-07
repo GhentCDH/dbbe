@@ -1,23 +1,31 @@
 <template>
     <modal
-        :value="show"
+        :model-value="show"
         :title="'Reset' + title"
         auto-focus
         @input="$emit('cancel')">
         <p>Are you sure you want to reset the {{ title }} information?</p>
-        <div slot="footer">
-            <btn @click="$emit('cancel')">Cancel</btn>
+      <template #footer>
+        <btn @click.native="$emit('cancel')">Cancel</btn>
             <btn
                 type="danger"
-                @click="$emit('confirm')"
+                @click.native="$emit('confirm')"
                 data-action="auto-focus">
                 Reset
             </btn>
-        </div>
+        </template>
     </modal>
 </template>
 <script>
+
+
+import {Btn, Modal} from "uiv";
+
 export default {
+    components:{
+      modal: Modal,
+      btn: Btn
+    },
     props: {
         show: {
             type: Boolean,
