@@ -31,10 +31,17 @@
         :submit-model="submitModel"
         :original-submit-model="originalSubmitModel"
         :alerts="editAlerts"
-        @cancel="cancelEdit"
-        @reset="resetEdit(submitModel)"
+        @cancel="() => {
+          cancelEdit(submitModel);
+          $nextTick(() => editRef?.validate());
+        }"
+        @reset="() => {
+          resetEdit(submitModel);
+          $nextTick(() => editRef?.validate());
+        }"
         @confirm="submitEdit"
         @dismiss-alert="editAlerts.splice($event, 1)"
+        ref="editRef"
     />
 
     <Delete
@@ -53,7 +60,6 @@
 import { ref, reactive, watch, computed } from 'vue'
 import axios from 'axios'
 import VueFormGenerator from 'vue3-form-generator-legacy'
-
 import Alerts from '@/components/Alerts.vue'
 import Panel from '@/components/Edit/Panel.vue'
 import Edit from '@/components/Edit/Modals/Edit.vue'
@@ -96,7 +102,7 @@ const schema = reactive({
     {
       type: 'multiselect',
       label: 'Role',
-      model: 'origin',
+      model: 'role',
       values: [], // will be set below
       multiSelect: {
         multiple: false
