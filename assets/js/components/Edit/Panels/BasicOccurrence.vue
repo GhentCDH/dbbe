@@ -24,12 +24,12 @@ import {calcChanges} from "@/helpers/modelChangeUtil";
 
 export default {
     props: {
-        keys: {
-            type: Object,
-            default: () => {
-                return {manuscripts: {field: 'manuscript', init: false}};
-            },
+      keys: {
+        type: Object,
+        default: () => {
+          return {manuscripts: {field: 'manuscript', init: false}};
         },
+      },
         header: {
           type: String,
           default: '',
@@ -390,9 +390,14 @@ export default {
             this.$emit('reload', type);
           }
         },
-        disableFields(disableKeys) {
-          disableFields(this.keys, this.fields, disableKeys);
-        },
+      disableFields(disableKeys) {
+        for (const key of Object.keys(this.keys)) {
+          if (disableKeys.includes(key)) {
+            disableFields(this.keys, this.fields, disableKeys);
+            break;
+          }
+        }
+      },
         validated(isValid, errors) {
           this.isValid = isValid
           this.changes = calcChanges(this.model, this.originalModel, this.fields);
@@ -407,11 +412,16 @@ export default {
         if (!this.isInitialized) return;
         this.$refs.form.validate()
       },
-        enableFields(enableKeys) {
-          enableFields(this.keys, this.fields, this.values, enableKeys);
-          if (this.isInitialized) {
-            this.validate();
+      enableFields(enableKeys) {
+        for (const key of Object.keys(this.keys)) {
+          if (enableKeys.includes(key)) {
+            enableFields(this.keys, this.fields, this.values, enableKeys);
+            if (this.isInitialized) {
+              this.validate();
+            }
+            break;
           }
+        }
       },
 
     }
