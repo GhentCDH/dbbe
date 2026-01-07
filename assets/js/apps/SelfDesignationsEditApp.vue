@@ -35,10 +35,11 @@
             :submit-model="submitModel"
             :original-submit-model="originalSubmitModel"
             :alerts="editAlerts"
-            @cancel="cancelEdit()"
+            @cancel="cancelEdit(submitModel)"
             @reset="resetEdit(submitModel)"
             @confirm="submitEdit()"
             @dismiss-alert="editAlerts.splice($event, 1)"
+            ref="editRef"
         />
         <Merge
             :show="mergeModal"
@@ -47,13 +48,13 @@
             :original-merge-model="originalMergeModel"
             :alerts="mergeAlerts"
             @cancel="cancelMerge()"
-            @reset="resetMerge()"
+            @reset="resetMerge(mergeModel)"
             @confirm="submitMerge()"
             @dismiss-alert="mergeAlerts.splice($event, 1)"
         >
-            <table
+          <template #preview>
+          <table
                 v-if="mergeModel.primary && mergeModel.secondary"
-                slot="preview"
                 class="table table-striped table-hover"
             >
                 <thead>
@@ -69,6 +70,7 @@
                     </tr>
                 </tbody>
             </table>
+          </template>
         </Merge>
         <Delete
             :show="deleteModal"
@@ -83,7 +85,7 @@
 </template>
 
 <script setup>
-import { reactive, watch, onMounted } from 'vue'
+import { reactive, watch, onMounted,ref, nextTick } from 'vue'
 import axios from 'axios'
 
 import Edit from '@/components/Edit/Modals/Edit.vue'
@@ -98,7 +100,7 @@ import VueFormGenerator from 'vue3-form-generator-legacy'
 import { useEditMergeMigrateDelete } from '@/composables/editAppComposables/useEditMergeMigrateDelete'
 import { removeGreekAccents } from '@/helpers/formFieldUtils'
 import validatorUtil from "@/helpers/validatorUtil";
-
+const editRef = ref(null)
 const props = defineProps({
   initUrls: {
     type: String,
@@ -250,6 +252,9 @@ function edit(add = false) {
   }
   Object.assign(originalSubmitModel, JSON.parse(JSON.stringify(submitModel)))
   editModalValue.value = true
+  nextTick(() => {
+    editRef.value?.validate()
+  })
 }
 
 function merge() {
