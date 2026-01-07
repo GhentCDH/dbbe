@@ -189,13 +189,23 @@ export default {
               validationSuccessClass: 'success',
             },
             isValid: true,
-            originalModel: {}
+            originalModel: {},
+            fields: {}
         };
     },
     methods: {
         init() {
         this.originalModel = JSON.parse(JSON.stringify(this.model));
+        this.computeFields()
         this.enableFields();
+      },
+      computeFields() {
+        this.fields = {};
+        for (const identifier of this.identifiers) {
+          this.fields[identifier.systemName] = {
+            label: identifier.name
+          };
+        }
       },
         add(identifier) {
             this.editModel.index = null;
