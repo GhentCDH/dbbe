@@ -116,7 +116,6 @@ const persons = ref(JSON.parse(props.initPersons))
 
 const depUrls = computed(() => ({}))
 
-// Use composable for common logic (you may want to adapt or create your own)
 const {
   urls,
   values,
@@ -140,7 +139,6 @@ const {
   deleteDependencies,
 } = useEditMergeMigrateDelete(props.initUrls, props.initData, depUrls)
 
-// Main schema for the list selector
 const schema = reactive({
   fields: {
     content: createMultiSelect('Content')
