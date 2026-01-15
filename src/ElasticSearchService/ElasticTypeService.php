@@ -163,7 +163,6 @@ class ElasticTypeService extends ElasticEntityService
             }
 
             if (!$viewInternal) {
-                unset($result['data'][$key]['created']);
                 unset($result['data'][$key]['modified']);
             }
         }
