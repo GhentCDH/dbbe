@@ -481,6 +481,7 @@ const tableFields = computed(() => {
     { key: 'name', label: 'Name', sortable: true },
     { key: 'date', label: 'Date', sortable: true },
     { key: 'content', label: 'Content' },
+    { key: 'created', label: 'Created', sortable: true },
   ];
 
   if (commentSearch.value) {
@@ -490,7 +491,6 @@ const tableFields = computed(() => {
   if (props.isViewInternal) {
     fields.push(
         { key: 'occ', label: 'Occurrences', sortable: true },
-        { key: 'created', label: 'Created', sortable: true },
         { key: 'modified', label: 'Modified', sortable: true },
         { key: 'actions', label: 'Actions' }
     );

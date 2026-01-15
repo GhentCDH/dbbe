@@ -419,6 +419,7 @@ const tableFields = computed(() => {
     { key: 'id', label: 'ID', sortable: true, thClass: 'no-wrap' },
     { key: 'incipit', label: 'Incipit', sortable: true },
     { key: 'numberOfOccurrences', label: 'Number of Occurrences', sortable: true },
+    { key: 'created', label: 'Created', sortable: true },
   ];
 
   if (textSearch.value) {
@@ -432,7 +433,6 @@ const tableFields = computed(() => {
   }
   if (props.isViewInternal) {
     fields.push(
-        { key: 'created', label: 'Created', sortable: true },
         { key: 'modified', label: 'Modified', sortable: true },
         { key: 'actions', label: 'Actions' }
     );

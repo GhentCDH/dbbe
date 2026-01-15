@@ -590,6 +590,7 @@ const tableFields = computed(() => {
     { key: 'self_designation', label: '(Self) designation' },
     { key: 'office', label: 'Office' },
     { key: 'date', label: 'Date', sortable: true },
+    { key: 'created', label: 'Created', sortable: true }
   ];
 
   if (commentSearch.value) {
@@ -598,7 +599,6 @@ const tableFields = computed(() => {
 
   if (props.isViewInternal) {
     fields.push(
-        { key: 'created', label: 'Created', sortable: true },
         { key: 'modified', label: 'Modified', sortable: true },
         { key: 'actions', label: 'Actions' }
     );
