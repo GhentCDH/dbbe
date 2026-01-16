@@ -867,18 +867,31 @@ const toSave = () => {
   let result = {}
 
   if (data.clone) {
-    for (const [panelKey, panelValue] of Object.entries(model)) {
-      if (typeof panelValue === 'object' && panelValue !== null && !Array.isArray(panelValue)) {
-        for (const [key, value] of Object.entries(panelValue)) {
-          if (key !== 'id') {
-            result[key] = value
-          }
-        }
-      } else {
-        result[panelKey] = panelValue
+    const clone = {
+      ...model.verses,
+      ...model.basic,
+      ...model.types,
+      ...model.general,
+      ...model.managements,
+      ...model.dates && { dates: model.dates },
+      ...model.metres && { metres: model.metres.metres },
+      ...model.genres && { genres: model.genres.genres },
+      ...model.personRoles,
+      ...model.contributorRoles,
+      ...model.subjects,
+      ...model.images,
+      ...model.identification,
+      bibliography: model.bibliography || {
+        books: [],
+        articles: [],
+        bookChapters: [],
+        onlineSources: [],
+        blogPosts: [],
+        phds: [],
+        bibVarias: []
       }
-    }
-    return result
+    };
+    return clone
   }
 
   for (let diffItem of diff.value) {
