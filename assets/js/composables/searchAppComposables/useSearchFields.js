@@ -123,6 +123,7 @@ export function useSearchFields(model, schema, fields, aggregation, {
             currentKey === 'text_fields' ||
             currentKey === 'date_search_type' ||
             currentKey === 'title_type' ||
+            currentKey === 'management_inverse' ||
             currentKey.endsWith('_mode');
 
         if (value === undefined ||
