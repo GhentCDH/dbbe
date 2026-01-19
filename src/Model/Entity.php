@@ -195,6 +195,7 @@ class Entity implements IdJsonInterface, IdElasticInterface
         foreach ($this->identifications as $identification) {
             $result = array_merge($result, $identification[1]);
         }
+        print_r($result);
         return $result;
     }
 
