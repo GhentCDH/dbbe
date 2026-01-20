@@ -118,6 +118,14 @@ export function useSearchFields(model, schema, fields, aggregation, {
         const value = model.value[currentKey];
         const label = field.label;
 
+        if (currentKey === 'management_inverse') {
+            const hasManagement = model.value.management &&
+                (Array.isArray(model.value.management) ? model.value.management.length > 0 : model.value.management);
+            if (!hasManagement) {
+                return show;
+            }
+        }
+
         const isIgnored =
             currentKey === 'text_combination' ||
             currentKey === 'text_fields' ||
