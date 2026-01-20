@@ -772,6 +772,13 @@ watch(
     },
     { immediate: true }
 );
+
+watch(() => model.value.management, (newVal) => {
+  if (!newVal || (Array.isArray(newVal) && newVal.length === 0)) {
+    model.value.management_inverse = false;
+  }
+});
+
 const {
   collectionArray,
   collectionToggleAll,
