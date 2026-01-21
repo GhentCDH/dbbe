@@ -330,7 +330,8 @@ const model = ref({
   origin_op: 'or',
   comment_mode: ['latin'],
   acknowledgement: [],
-  acknowledgement_op: 'or'
+  acknowledgement_op: 'or',
+  exactly_dated: false
 });
 
 const originalModel = ref({});
@@ -432,6 +433,16 @@ const buildSchemaFields = () => {
       { value: 'overlap', name: 'overlap', toggleGroup: 'exact_included_overlap' },
     ],
   };
+
+  schemaFields.exactly_dated = {
+    type: 'checkbox',
+    label: 'Exactly dated:',
+    labelClasses: 'control-label',
+    styleClasses: 'has-warning',
+    model: 'exactly_dated',
+    default: false,
+  };
+
 
   [schemaFields.content_op, schemaFields.content] = createMultiMultiSelect('Content');
 
