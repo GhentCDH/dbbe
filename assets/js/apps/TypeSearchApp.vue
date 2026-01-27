@@ -160,7 +160,7 @@
           />
         </template>
 
-        <template #numberOfOccurrences="{ row }">
+        <template #number_of_occurrences="{ row }">
           {{ row.number_of_occurrences }}
         </template>
 
@@ -418,7 +418,7 @@ const tableFields = computed(() => {
   const fields = [
     { key: 'id', label: 'ID', sortable: true, thClass: 'no-wrap' },
     { key: 'incipit', label: 'Incipit', sortable: true },
-    { key: 'numberOfOccurrences', label: 'Number of Occurrences', sortable: true },
+    { key: 'number_of_occurrences', label: 'Number of Occurrences', sortable: true },
     { key: 'created', label: 'Created', sortable: true },
   ];
 
