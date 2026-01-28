@@ -274,6 +274,7 @@ import Panel from '../Panel'
 import VerseTable from './Components/VerseTable'
 import {disableFields, enableFields} from "@/helpers/formFieldUtils";
 import validatorUtil from "@/helpers/validatorUtil";
+import {isLoginError} from "../../../helpers/errorUtil";
 
 Vue.component('draggable', draggable)
 Vue.component('panel', Panel)
@@ -672,7 +673,7 @@ export default {
                 })
                 .catch( (error) => {
                     console.log(error)
-                    this.alerts.push({type: 'error', message: 'Something went wrong while searching for linkable verses.', login: this.$parent.isLoginError(error)})
+                    this.alerts.push({type: 'error', message: 'Something went wrong while searching for linkable verses. If you are searching for a verse with special characters, either remove them from the "Search linkable verses" field or prepend them with backslash (e.g. ἰω\\(άνν\\)\\(ης\\)\\:\\-)', login:isLoginError(error)})
                     this.editVerseModal = true
                     this.$parent.openRequests--
                 })
