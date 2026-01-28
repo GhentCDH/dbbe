@@ -835,17 +835,7 @@ const {
   onDataExtend
 }, 'TypeSearchConfig');
 
-watch(
-    () => aggregationLoaded.value,
-    (loaded) => {
-      if (loaded && !urlInitialized.value) {
-        initFromURL(aggregation.value);
-        urlInitialized.value = true;
-        nextTick(() => onValidated(true));
-      }
-    },
-    { immediate: true }
-);
+
 
 const { delDependencies, deleteModal } = useEditMergeMigrateDelete(props.initUrls, props.initData);
 
@@ -916,8 +906,16 @@ const modelUpdated = (fieldName) => {
   lastChangedField.value = fieldName;
 };
 
+
 const resetAllFilters = () => {
-  model.value = JSON.parse(JSON.stringify(originalModel));
+  model.value = JSON.parse(JSON.stringify(originalModel.value));
+  noHistory.value = true;
+  window.history.replaceState(
+      {},
+      document.title,
+      document.location.pathname
+  );
+
   onValidated(true);
 };
 
