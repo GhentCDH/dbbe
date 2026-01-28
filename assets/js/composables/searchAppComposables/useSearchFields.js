@@ -140,6 +140,18 @@ export function useSearchFields(model, schema, fields, aggregation, {
             isIgnored) {
             return show;
         }
+
+        if (currentKey === 'exactly_dated') {
+            if (value === true) {
+                show.push({
+                    key: currentKey,
+                    value: [{ name: 'Yes' }],
+                    label,
+                    type: 'boolean',
+                });
+            }
+            return show;
+        }
         if (currentKey.endsWith('_op')) {
             if (value !== 'or') {
                 show.push({
@@ -177,6 +189,8 @@ export function useSearchFields(model, schema, fields, aggregation, {
     function deleteActiveFilter({ key, valueIndex }, onValidated) {
         if (key === 'year_from' || key === 'year_to') {
             model.value[key] = undefined;
+        } else if (key === 'exactly_dated') {
+            model.value[key] = false;
         } else if (valueIndex === -1) {
             model.value[key] = 'or';
         } else if (valueIndex === -2) {

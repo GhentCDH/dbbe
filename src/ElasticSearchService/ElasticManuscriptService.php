@@ -49,6 +49,8 @@ class ElasticManuscriptService extends ElasticEntityService
             'origin' => ['type' => 'nested'],
             'acknowledgement' => ['type' => 'nested'],
             'management' => ['type' => 'nested'],
+            'completion_floor' => ['type' => 'date', 'format' => 'yyyy-MM-dd'],
+            'completion_ceiling' => ['type' => 'date', 'format' => 'yyyy-MM-dd'],
         ];
         foreach ($this->getRoleSystemNames(true) as $role) {
             $properties[$role] = ['type' => 'nested'];
@@ -283,6 +285,15 @@ class ElasticManuscriptService extends ElasticEntityService
                     break;
                 case 'public':
                     $result['boolean'][$key] = ($value === '1');
+                    break;
+                case 'exactly_dated':
+                    if ($value === true || $value === '1' || $value === 1 || $value === 'true') {
+                        $result['date_range'][] = [
+                            'floorField' => 'completion_floor',
+                            'ceilingField' => 'completion_ceiling',
+                            'type' => 'exactly_dated',
+                        ];
+                    }
                     break;
             }
         }

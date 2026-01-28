@@ -62,6 +62,9 @@ class Manuscript extends Document
      */
     protected $illustrated;
 
+    protected ?string $completionFloor = null;
+    protected ?string $completionCeiling = null;
+
     public function setLocatedAt(LocatedAt $locatedAt): Manuscript
     {
         $this->locatedAt = $locatedAt;
@@ -82,6 +85,16 @@ class Manuscript extends Document
     public function getDescription(): string
     {
         return $this->getName();
+    }
+
+    public function getCompletionFloor(): ?string
+    {
+        return $this->completionFloor;
+    }
+
+    public function getCompletionCeiling(): ?string
+    {
+        return $this->completionCeiling;
     }
 
     private function setContentsWithParents(array $contentsWithParents): Manuscript
@@ -117,6 +130,18 @@ class Manuscript extends Document
     {
         $this->occurrencePersonRoles = $occurrencePersonRoles;
 
+        return $this;
+    }
+
+    public function setCompletionFloor(?string $date): self
+    {
+        $this->completionFloor = $date;
+        return $this;
+    }
+
+    public function setCompletionCeiling(?string $date): self
+    {
+        $this->completionCeiling = $date;
         return $this;
     }
 
@@ -463,6 +488,12 @@ class Manuscript extends Document
         }
         if (!empty($this->date) && !empty($this->date->getCeiling())) {
             $result['date_ceiling_year'] = intval($this->date->getCeiling()->format('Y'));
+        }
+        if (!empty($this->getCompletionFloor())) {
+            $result['completion_floor'] = $this->getCompletionFloor();
+        }
+        if (!empty($this->getCompletionCeiling())) {
+            $result['completion_ceiling'] = $this->getCompletionCeiling();
         }
         foreach ($this->getFixedRelatedPersonRoles() as $roleName => $personRole) {
             $result[$roleName] = ArrayToJson::arrayToShortJson($personRole[1]);

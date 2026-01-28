@@ -128,6 +128,27 @@ class ManuscriptManager extends DocumentManager
             }
         }
 
+        // Raw dates
+        $rawCompletionDates = $this->dbs->getCompletionDates($ids);
+        foreach ($rawCompletionDates as $raw) {
+            $manuscriptId = $raw['document_id'];
+            if (!isset($manuscripts[$manuscriptId])) {
+                continue;
+            }
+            if ($raw['completion_date'] !== null) {
+                $range=$raw['completion_date'];
+                $range = trim($range, '()');
+                [$floor, $ceiling] = array_map('trim', explode(',', $range));
+                $parsed = [
+                    'floor' => $floor !== '' ? $floor : null,
+                    'ceiling' => $ceiling !== '' ? $ceiling : null,
+                ];
+                $manuscripts[$manuscriptId]
+                    ->setCompletionFloor($parsed['floor'])
+                    ->setCompletionCeiling($parsed['ceiling']);
+            }
+        }
+
         $this->setAcknowledgements($manuscripts);
 
         $this->setIdentifications($manuscripts);
