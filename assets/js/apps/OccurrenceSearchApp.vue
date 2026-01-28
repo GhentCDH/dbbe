@@ -759,19 +759,6 @@ const { init, onData, setupCollapsibleLegends, aggregationLoaded } = useSearchSe
   onDataExtend
 }, 'OccurrenceSearchConfig');
 
-const urlInitialized = ref(false);
-
-watch(
-    () => aggregationLoaded.value,
-    (loaded) => {
-      if (loaded && !urlInitialized.value) {
-        initFromURL(aggregation.value);
-        urlInitialized.value = true;
-        nextTick(() => onValidated(true));
-      }
-    },
-    { immediate: true }
-);
 
 watch(() => model.value.management, (newVal) => {
   if (!newVal || (Array.isArray(newVal) && newVal.length === 0)) {
@@ -856,7 +843,14 @@ const modelUpdated = (fieldName) => {
 };
 
 const resetAllFilters = () => {
-  model.value = JSON.parse(JSON.stringify(originalModel));
+  model.value = JSON.parse(JSON.stringify(originalModel.value));
+  noHistory.value = true;
+  window.history.replaceState(
+      {},
+      document.title,
+      document.location.pathname
+  );
+
   onValidated(true);
 };
 
