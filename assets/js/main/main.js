@@ -12,16 +12,6 @@ Promise.all([
 import 'mark.js/dist/jquery.mark.js';
 import '../../scss/screen.scss'
 import '@firstandthird/toc/dist/toc.js';
-import Vue from "vue";
-import VueMatomo from "vue-matomo";
-Vue.use(VueMatomo, {
-    host: 'https://analytics.ghentcdh.ugent.be/',
-    siteId: 4,
-    enableLinkTracking: true,
-    trackInitialView: true,
-    debug: false,
-});
-
 
 (function() {
     $(document).on('click', '[data-toggle="lightbox"]', function (event) {
