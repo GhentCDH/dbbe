@@ -494,6 +494,14 @@ const tableFields = computed(() => {
         { key: 'occ', label: 'Occurrences', sortable: true },
         { key: 'actions', label: 'Actions' }
     );
+
+    const occIndex = fields.findIndex(f => f.key === 'occ');
+    const createdIndex = fields.findIndex(f => f.key === 'created');
+
+    if (occIndex !== -1 && createdIndex !== -1) {
+      const [occField] = fields.splice(occIndex, 1);
+      fields.splice(createdIndex, 0, occField);
+    }
   }
 
   return fields;
