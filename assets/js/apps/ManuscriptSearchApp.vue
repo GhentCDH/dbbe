@@ -490,8 +490,8 @@ const tableFields = computed(() => {
 
   if (props.isViewInternal) {
     fields.push(
-        { key: 'occ', label: 'Occurrences', sortable: true },
         { key: 'modified', label: 'Modified', sortable: true },
+        { key: 'occ', label: 'Occurrences', sortable: true },
         { key: 'actions', label: 'Actions' }
     );
   }
