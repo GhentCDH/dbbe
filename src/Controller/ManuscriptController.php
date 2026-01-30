@@ -614,6 +614,12 @@ class ManuscriptController extends BaseController
                             $filters[$key] = $params['filters'][$key];
                         }
                         break;
+                    case 'exactly_dated':
+                        if (is_bool($params['filters'][$key]) ||
+                            (is_string($params['filters'][$key]) && in_array($params['filters'][$key], ['true', 'false', '0', '1']))) {
+                            $filters[$key] = $params['filters'][$key];
+                        }
+                        break;
                     case 'city':
                     case 'library':
                     case 'collection':
