@@ -103,6 +103,9 @@ You can run the script **after** launching the application via the docker-compos
 docker-compose -f docker-compose.test.yml --env-file .env.dev up playwright
 ```
 
+### Matomo
+
+Matomo is used for minimal tracking of page visits. By default, requests from localhost are also sent to the server. Therefore, localhost tracking is disabled via an environment variable set in the .env.dev file.
 #### Planned improvements
 Note that, at this point, the script does not run tests on inserts. It just navigates to every page without filling in forms. 
 
