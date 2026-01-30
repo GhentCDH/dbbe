@@ -501,10 +501,18 @@ const tableFields = computed(() => {
 
   if (props.isViewInternal) {
     fields.push(
-        { key: 'occ', label: 'Occurrences', sortable: true },
         { key: 'modified', label: 'Modified', sortable: true },
+        { key: 'occ', label: 'Occurrences', sortable: true },
         { key: 'actions', label: 'Actions' }
     );
+
+    const occIndex = fields.findIndex(f => f.key === 'occ');
+    const createdIndex = fields.findIndex(f => f.key === 'created');
+
+    if (occIndex !== -1 && createdIndex !== -1) {
+      const [occField] = fields.splice(occIndex, 1);
+      fields.splice(createdIndex, 0, occField);
+    }
   }
 
   return fields;
@@ -770,7 +778,14 @@ const modelUpdated = (fieldName) => {
 };
 
 const resetAllFilters = () => {
-  model.value = JSON.parse(JSON.stringify(originalModel));
+  model.value = JSON.parse(JSON.stringify(originalModel.value));
+  noHistory.value = true;
+  window.history.replaceState(
+      {},
+      document.title,
+      document.location.pathname
+  );
+
   onValidated(true);
 };
 

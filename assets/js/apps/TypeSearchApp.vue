@@ -160,7 +160,7 @@
           />
         </template>
 
-        <template #numberOfOccurrences="{ row }">
+        <template #number_of_occurrences="{ row }">
           {{ row.number_of_occurrences }}
         </template>
 
@@ -418,7 +418,7 @@ const tableFields = computed(() => {
   const fields = [
     { key: 'id', label: 'ID', sortable: true, thClass: 'no-wrap' },
     { key: 'incipit', label: 'Incipit', sortable: true },
-    { key: 'numberOfOccurrences', label: 'Number of Occurrences', sortable: true },
+    { key: 'number_of_occurrences', label: 'Number of Occurrences', sortable: true },
     { key: 'created', label: 'Created', sortable: true },
   ];
 
@@ -835,17 +835,7 @@ const {
   onDataExtend
 }, 'TypeSearchConfig');
 
-watch(
-    () => aggregationLoaded.value,
-    (loaded) => {
-      if (loaded && !urlInitialized.value) {
-        initFromURL(aggregation.value);
-        urlInitialized.value = true;
-        nextTick(() => onValidated(true));
-      }
-    },
-    { immediate: true }
-);
+
 
 const { delDependencies, deleteModal } = useEditMergeMigrateDelete(props.initUrls, props.initData);
 
@@ -916,8 +906,16 @@ const modelUpdated = (fieldName) => {
   lastChangedField.value = fieldName;
 };
 
+
 const resetAllFilters = () => {
-  model.value = JSON.parse(JSON.stringify(originalModel));
+  model.value = JSON.parse(JSON.stringify(originalModel.value));
+  noHistory.value = true;
+  window.history.replaceState(
+      {},
+      document.title,
+      document.location.pathname
+  );
+
   onValidated(true);
 };
 
