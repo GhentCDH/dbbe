@@ -373,6 +373,7 @@ const model = ref({
   manuscript_content_op: 'or',
   acknowledgement: [],
   acknowledgement_op: 'or',
+  exactly_dated: false
 });
 
 const perPage = ref(25);
@@ -556,6 +557,15 @@ const buildSchema = () => {
     ],
   };
 
+  fields.exactly_dated = {
+    type: 'checkbox',
+    label: 'Exactly dated',
+    labelClasses: 'control-label',
+    styleClasses: 'has-warning',
+    model: 'exactly_dated',
+    default: false,
+  }
+
   fields.year_from = {
     type: 'input',
     inputType: 'number',
@@ -690,6 +700,8 @@ const fields = computed(() => {
       }
     });
   }
+  res.exactly_dated = schema.value.fields.exactly_dated;
+
   return res;
 });
 

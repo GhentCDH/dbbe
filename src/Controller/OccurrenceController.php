@@ -716,6 +716,20 @@ class OccurrenceController extends BaseController
             ) {
                 $filters['date_search_type'] = 'exact';
             }
+            // sanitize exactly_dated
+            if (isset($filters['exactly_dated'])) {
+                $value = $filters['exactly_dated'];
+
+                if (is_bool($value)) {
+                    $filters['exactly_dated'] = $value ? '1' : '0';
+                } elseif (is_string($value) && in_array($value, ['true', 'false', '0', '1'], true)) {
+                    $filters['exactly_dated'] = in_array($value, ['true', '1'], true) ? '1' : '0';
+                } else {
+                    unset($filters['exactly_dated']);
+                }
+            }
+
+
 
             $esParams['filters'] = $filters;
         }

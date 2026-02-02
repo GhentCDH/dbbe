@@ -380,6 +380,15 @@ class ElasticOccurrenceService extends ElasticEntityService
             case 'dbbe':
                 $result['boolean'][$key] = ($value === '1');
                 break;
+            case 'exactly_dated':
+                    if ($value === true || $value === '1' || $value === 1 || $value === 'true') {
+                        $result['date_range'][] = [
+                            'floorField' => 'completion_floor',
+                            'ceilingField' => 'completion_ceiling',
+                            'type' => 'exactly_dated',
+                        ];
+                    }
+                    break;
             }
         }
         return $result;

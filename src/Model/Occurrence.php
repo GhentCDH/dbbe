@@ -127,6 +127,10 @@ class Occurrence extends Poem
      */
     protected $imageLinks = [];
 
+    protected ?string $completionFloor = null;
+    protected ?string $completionCeiling = null;
+
+
     /**
      * @param  string|null $foliumStart
      * @return Occurrence
@@ -463,6 +467,28 @@ class Occurrence extends Poem
         return $this->recordStatus;
     }
 
+    public function getCompletionFloor(): ?string
+    {
+        return $this->completionFloor;
+    }
+
+    public function getCompletionCeiling(): ?string
+    {
+        return $this->completionCeiling;
+    }
+
+    public function setCompletionFloor(?string $date): self
+    {
+        $this->completionFloor = $date;
+        return $this;
+    }
+
+    public function setCompletionCeiling(?string $date): self
+    {
+        $this->completionCeiling = $date;
+        return $this;
+    }
+
     public function setDividedStatus(Status $dividedStatus = null): Occurrence
     {
         $this->dividedStatus = $dividedStatus;
@@ -689,6 +715,13 @@ class Occurrence extends Poem
         }
         if (!empty($this->getContextualInfo())) {
             $result['contextual_info'] = $this->getContextualInfo();
+        }
+
+        if (!empty($this->getCompletionFloor())) {
+            $result['completion_floor'] = $this->getCompletionFloor();
+        }
+        if (!empty($this->getCompletionCeiling())) {
+            $result['completion_ceiling'] = $this->getCompletionCeiling();
         }
 
         return $result;

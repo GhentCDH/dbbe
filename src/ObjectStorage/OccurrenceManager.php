@@ -193,6 +193,27 @@ class OccurrenceManager extends PoemManager
             }
         }
 
+        // Raw dates
+        $rawCompletionDates = $this->dbs->getCompletionDates($ids);
+        foreach ($rawCompletionDates as $raw) {
+            $occurrenceId = $raw['document_id'];
+            if (!isset($occurrences[$occurrenceId])) {
+                continue;
+            }
+            if ($raw['completion_date'] !== null) {
+                $range=$raw['completion_date'];
+                $range = trim($range, '()');
+                [$floor, $ceiling] = array_map('trim', explode(',', $range));
+                $parsed = [
+                    'floor' => $floor !== '' ? $floor : null,
+                    'ceiling' => $ceiling !== '' ? $ceiling : null,
+                ];
+                $occurrences[$occurrenceId]
+                    ->setCompletionFloor($parsed['floor'])
+                    ->setCompletionCeiling($parsed['ceiling']);
+            }
+        }
+
         $this->setAcknowledgements($occurrences);
 
         // Needed to index DBBE in elasticsearch
