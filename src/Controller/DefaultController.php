@@ -2,6 +2,10 @@
 
 namespace App\Controller;
 
+use App\ElasticSearchService\ElasticManuscriptService;
+use App\ElasticSearchService\ElasticOccurrenceService;
+use App\ElasticSearchService\ElasticPersonService;
+use App\ElasticSearchService\ElasticTypeService;
 use Doctrine\DBAL\DBALException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
@@ -34,7 +38,13 @@ class DefaultController extends AbstractController
      * @return Response
      */
     #[Route(path: '/', name: 'homepage', methods: ['GET'])]
-    public function home(NewsEventService $newsEventService): Response
+    public function home(
+        NewsEventService $newsEventService,
+        ElasticOccurrenceService $elasticOccurrenceService,
+        ElasticPersonService $elasticPersonService,
+        ElasticTypeService $elasticTypeService,
+        ElasticManuscriptService $elasticManuscriptService
+    ): Response
     {
         try {
             if ($this->isGranted(Roles::ROLE_VIEW_INTERNAL)) {
@@ -43,16 +53,103 @@ class DefaultController extends AbstractController
                 $newsEvents = $newsEventService->getThreePublic();
             }
         } catch (DBALException $e) {
-            return $this->render(
-                'Home/home.html.twig',
-                ['newsEvents' => []]
-            );
+            $newsEvents = [];
         }
-        return $this->render(
-            'Home/home.html.twig',
-            ['newsEvents' => $newsEvents]
+
+        $latestItems = [];
+
+        // latest occurrences
+        $occRes = $elasticOccurrenceService->searchAndAggregate(
+            [
+                'limit'     => 3,
+                'page'      => 1,
+                'orderBy'   => ['created'],
+                'ascending' => 0,
+            ],
+            $this->isGranted(Roles::ROLE_VIEW_INTERNAL)
         );
+        foreach (($occRes['data'] ?? []) as $occ) {
+            $latestItems[] = [
+                'id'    => $occ['id'],
+                'type'  => 'Occurrence',
+                'label' => $occ['incipit'] ?? '[no incipit]',
+                'date'  => isset($occ['created']) ? new \DateTime($occ['created']) : null,
+                'route' => 'occurrence_get',
+            ];
+        }
+
+        // latest persons
+        $personRes = $elasticPersonService->searchAndAggregate(
+            [
+                'limit'     => 3,
+                'page'      => 1,
+                'orderBy'   => ['created'],
+                'ascending' => 0,
+            ],
+            $this->isGranted(Roles::ROLE_VIEW_INTERNAL)
+        );
+        foreach (($personRes['data'] ?? []) as $person) {
+            $latestItems[] = [
+                'id'    => $person['id'],
+                'type'  => 'Person',
+                'label' => $person['name'] ?? '[unnamed person]',
+                'date'  => isset($person['created']) ? new \DateTime($person['created']) : null,
+                'route' => 'person_get',
+            ];
+        }
+
+        // latest types
+        $typeRes = $elasticTypeService->searchAndAggregate(
+            [
+                'limit'     => 3,
+                'page'      => 1,
+                'orderBy'   => ['created'],
+                'ascending' => 0,
+            ],
+            $this->isGranted(Roles::ROLE_VIEW_INTERNAL)
+        );
+        foreach (($typeRes['data'] ?? []) as $type) {
+            $latestItems[] = [
+                'id'    => $type['id'],
+                'type'  => 'Type',
+                'label' => $type['incipit'] ?? '[no incipit]',
+                'date'  => isset($type['created']) ? new \DateTime($type['created']) : null,
+                'route' => 'type_get',
+            ];
+        }
+
+        // latest manuscripts
+        $msRes = $elasticManuscriptService->searchAndAggregate(
+            [
+                'limit'     => 3,
+                'page'      => 1,
+                'orderBy'   => ['created'],
+                'ascending' => 0,
+            ],
+            $this->isGranted(Roles::ROLE_VIEW_INTERNAL)
+        );
+        foreach (($msRes['data'] ?? []) as $ms) {
+            $latestItems[] = [
+                'id'    => $ms['id'],
+                'type'  => 'Manuscript',
+                'label' => $ms['name'] ?? '[unnamed manuscript]',
+                'date'  => isset($ms['created']) ? new \DateTime($ms['created']) : null,
+                'route' => 'manuscript_get',
+            ];
+        }
+
+        // sort everything by date desc
+        usort($latestItems, function ($a, $b) {
+            return ($b['date']?->getTimestamp() ?? 0)
+                <=> ($a['date']?->getTimestamp() ?? 0);
+        });
+
+        return $this->render('Home/home.html.twig', [
+            'newsEvents'  => $newsEvents,
+            'latestItems' => $latestItems,
+        ]);
     }
+
 
     /**
      * @param OccurrenceManager $occurrenceManager
