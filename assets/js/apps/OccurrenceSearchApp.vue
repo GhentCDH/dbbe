@@ -557,15 +557,6 @@ const buildSchema = () => {
     ],
   };
 
-  fields.exactly_dated = {
-    type: 'checkbox',
-    label: 'Exactly dated',
-    labelClasses: 'control-label',
-    styleClasses: 'has-warning',
-    model: 'exactly_dated',
-    default: false,
-  }
-
   fields.year_from = {
     type: 'input',
     inputType: 'number',
@@ -599,6 +590,16 @@ const buildSchema = () => {
       { value: 'overlap', name: 'overlap', toggleGroup: 'exact_included_overlap' },
     ],
   };
+
+
+  fields.exactly_dated = {
+    type: 'checkbox',
+    label: 'Exactly dated',
+    labelClasses: 'control-label',
+    styleClasses: 'has-warning',
+    model: 'exactly_dated',
+    default: false,
+  }
 
   fields.person = createMultiSelect('Person', {}, {
     multiple: true,
