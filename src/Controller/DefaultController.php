@@ -40,70 +40,28 @@ class DefaultController extends AbstractController
     #[Route(path: '/', name: 'homepage', methods: ['GET'])]
     public function home(
         NewsEventService $newsEventService,
-        ElasticOccurrenceService $elasticOccurrenceService,
-        ElasticPersonService $elasticPersonService,
-        ElasticTypeService $elasticTypeService,
-        ElasticManuscriptService $elasticManuscriptService
+        OccurrenceManager $occurrenceManager,
+        PersonManager $personManager,
+        TypeManager $typeManager,
+        ManuscriptManager $manuscriptManager
     ): Response
     {
         try {
-            if ($this->isGranted(Roles::ROLE_VIEW_INTERNAL)) {
-                $newsEvents = $newsEventService->getThree();
-            } else {
-                $newsEvents = $newsEventService->getThreePublic();
-            }
+            $newsEvents = $this->isGranted(Roles::ROLE_VIEW_INTERNAL)
+                ? $newsEventService->getThree()
+                : $newsEventService->getThreePublic();
         } catch (DBALException $e) {
             $newsEvents = [];
         }
+
         $isInternal = $this->isGranted(Roles::ROLE_VIEW_INTERNAL);
 
-        $searchOptions = [
-            'limit'     => 3,
-            'page'      => 1,
-            'orderBy'   => ['created'],
-            'ascending' => 0,
-        ];
-        $sources = [
-            [
-                'service' => $elasticOccurrenceService,
-                'type'    => 'Occurrence',
-                'label'   => fn ($d) => $d['incipit'] ?? '[no incipit]',
-                'route'   => 'occurrence_get',
-            ],
-            [
-                'service' => $elasticPersonService,
-                'type'    => 'Person',
-                'label'   => fn ($d) => $d['name'] ?? '[unnamed person]',
-                'route'   => 'person_get',
-            ],
-            [
-                'service' => $elasticTypeService,
-                'type'    => 'Type',
-                'label'   => fn ($d) => $d['incipit'] ?? '[no incipit]',
-                'route'   => 'type_get',
-            ],
-            [
-                'service' => $elasticManuscriptService,
-                'type'    => 'Manuscript',
-                'label'   => fn ($d) => $d['name'] ?? '[unnamed manuscript]',
-                'route'   => 'manuscript_get',
-            ],
-        ];
-        $latestItems = [];
-
-        foreach ($sources as $source) {
-            $result = $source['service']->searchAndAggregate($searchOptions, $isInternal);
-
-            foreach ($result['data'] ?? [] as $item) {
-                $latestItems[] = [
-                    'id'    => $item['id'],
-                    'type'  => $source['type'],
-                    'label' => ($source['label'])($item),
-                    'date'  => isset($item['created']) ? new \DateTime($item['created']) : null,
-                    'route' => $source['route'],
-                ];
-            }
-        }
+        $latestItems = array_merge(
+            $occurrenceManager->getLatest(3, $isInternal),
+            $personManager->getLatest(3, $isInternal),
+            $typeManager->getLatest(3, $isInternal),
+            $manuscriptManager->getLatest(3, $isInternal)
+        );
 
         usort($latestItems, function ($a, $b) {
             return ($b['date']?->getTimestamp() ?? 0)
