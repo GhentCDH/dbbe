@@ -532,4 +532,29 @@ class ManuscriptManager extends DocumentManager
         }
         return $stream;
     }
+
+    public function getLatest(int $n = 3, bool $viewInternal = false): array
+    {
+        $params = [
+            'limit'     => $n,
+            'page'      => 1,
+            'orderBy'   => ['created'],
+            'ascending' => 0,
+        ];
+
+        $result = $this->ess->searchAndAggregate($params, $viewInternal);
+
+        $latest = [];
+        foreach ($result['data'] ?? [] as $item) {
+            $latest[] = [
+                'id'    => $item['id'],
+                'label' => $item['name'] ?? '[unnamed manuscript]',
+                'date'  => isset($item['created']) ? new \DateTime($item['created']) : null,
+                'route' => 'manuscript_get',
+                'type'  => 'Manuscript',
+            ];
+        }
+
+        return $latest;
+    }
 }

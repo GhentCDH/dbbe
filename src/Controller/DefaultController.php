@@ -2,6 +2,10 @@
 
 namespace App\Controller;
 
+use App\ElasticSearchService\ElasticManuscriptService;
+use App\ElasticSearchService\ElasticOccurrenceService;
+use App\ElasticSearchService\ElasticPersonService;
+use App\ElasticSearchService\ElasticTypeService;
 use Doctrine\DBAL\DBALException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
@@ -34,25 +38,42 @@ class DefaultController extends AbstractController
      * @return Response
      */
     #[Route(path: '/', name: 'homepage', methods: ['GET'])]
-    public function home(NewsEventService $newsEventService): Response
+    public function home(
+        NewsEventService $newsEventService,
+        OccurrenceManager $occurrenceManager,
+        PersonManager $personManager,
+        TypeManager $typeManager,
+        ManuscriptManager $manuscriptManager
+    ): Response
     {
         try {
-            if ($this->isGranted(Roles::ROLE_VIEW_INTERNAL)) {
-                $newsEvents = $newsEventService->getThree();
-            } else {
-                $newsEvents = $newsEventService->getThreePublic();
-            }
+            $newsEvents = $this->isGranted(Roles::ROLE_VIEW_INTERNAL)
+                ? $newsEventService->getThree()
+                : $newsEventService->getThreePublic();
         } catch (DBALException $e) {
-            return $this->render(
-                'Home/home.html.twig',
-                ['newsEvents' => []]
-            );
+            $newsEvents = [];
         }
-        return $this->render(
-            'Home/home.html.twig',
-            ['newsEvents' => $newsEvents]
+
+        $isInternal = $this->isGranted(Roles::ROLE_VIEW_INTERNAL);
+
+        $latestItems = array_merge(
+            $occurrenceManager->getLatest(3, $isInternal),
+            $personManager->getLatest(3, $isInternal),
+            $typeManager->getLatest(3, $isInternal),
+            $manuscriptManager->getLatest(3, $isInternal)
         );
+
+        usort($latestItems, function ($a, $b) {
+            return ($b['date']?->getTimestamp() ?? 0)
+                <=> ($a['date']?->getTimestamp() ?? 0);
+        });
+
+        return $this->render('Home/home.html.twig', [
+            'newsEvents'  => $newsEvents,
+            'latestItems' => $latestItems,
+        ]);
     }
+
 
     /**
      * @param OccurrenceManager $occurrenceManager

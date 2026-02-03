@@ -1151,6 +1151,31 @@ class OccurrenceManager extends PoemManager
         return $stream;
     }
 
+    public function getLatest(int $n = 3, bool $viewInternal = false): array
+    {
+        $params = [
+            'limit'     => $n,
+            'page'      => 1,
+            'orderBy'   => ['created'],
+            'ascending' => 0,
+        ];
+
+        $result = $this->ess->searchAndAggregate($params, $viewInternal);
+
+        $latest = [];
+        foreach ($result['data'] ?? [] as $item) {
+            $latest[] = [
+                'id'    => $item['id'],
+                'label' => $item['incipit'] ?? '[no incipit]',
+                'date'  => isset($item['created']) ? new \DateTime($item['created']) : null,
+                'route' => 'occurrence_get',
+                'type'  => 'Occurrence',
+            ];
+        }
+
+        return $latest;
+    }
+
 
 
 
