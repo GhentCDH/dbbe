@@ -71,12 +71,16 @@
             <h2>Latest additions</h2>
             <div id="latest-additions-content">
                 {% if latestItems is defined and latestItems|length > 0 %}
-                    <ul class="list-unstyled">
+                    <ul>
                         {% for item in latestItems %}
                             <li class="mbottom-small">
-                                <a class="greek" href="{{ path(item.route, {'id': item.id}) }}">
+                                <a
+                                        href="{{ path(item.route, {'id': item.id}) }}"
+                                        class="{% if item.type in ['Occurrence', 'Type'] %}greek{% endif %}"
+                                >
                                     {{ item.label }}
                                 </a>
+
                                 <br>
                                 <small class="text-muted">
                                     {{ item.type }}
