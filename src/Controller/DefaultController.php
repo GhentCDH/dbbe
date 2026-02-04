@@ -54,19 +54,29 @@ class DefaultController extends AbstractController
             $newsEvents = [];
         }
 
-        $isInternal = $this->isGranted(Roles::ROLE_VIEW_INTERNAL);
+        $publicOnlyFilter = [
+            'public' => '1',
+        ];
+
+        $limitPerType = 10;
 
         $latestItems = array_merge(
-            $occurrenceManager->getLatest(3, $isInternal),
-            $personManager->getLatest(3, $isInternal),
-            $typeManager->getLatest(3, $isInternal),
-            $manuscriptManager->getLatest(3, $isInternal)
+            $occurrenceManager->getLatest($limitPerType, false, $publicOnlyFilter),
+            $personManager->getLatest(
+                $limitPerType,
+                false,
+                array_merge($publicOnlyFilter, ['historical' => '1'])
+            ),
+            $typeManager->getLatest($limitPerType, false, $publicOnlyFilter),
+            $manuscriptManager->getLatest($limitPerType, false, $publicOnlyFilter)
         );
 
         usort($latestItems, function ($a, $b) {
             return ($b['date']?->getTimestamp() ?? 0)
                 <=> ($a['date']?->getTimestamp() ?? 0);
         });
+
+        $latestItems = array_slice($latestItems, 0, 10);
 
         return $this->render('Home/home.html.twig', [
             'newsEvents'  => $newsEvents,
