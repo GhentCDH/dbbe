@@ -533,7 +533,7 @@ class ManuscriptManager extends DocumentManager
         return $stream;
     }
 
-    public function getLatest(int $n = 3, bool $viewInternal = false): array
+    public function getLatest(int $n = 3, bool $viewInternal = false, array $filters = []): array
     {
         $params = [
             'limit'     => $n,
@@ -541,6 +541,10 @@ class ManuscriptManager extends DocumentManager
             'orderBy'   => ['created'],
             'ascending' => 0,
         ];
+
+        if (!empty($filters)) {
+            $params['filters'] = $filters;
+        }
 
         $result = $this->ess->searchAndAggregate($params, $viewInternal);
 

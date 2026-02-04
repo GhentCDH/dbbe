@@ -1573,7 +1573,7 @@ class PersonManager extends ObjectEntityManager
         return $stream;
     }
 
-    public function getLatest(int $n = 3, bool $viewInternal = false): array
+    public function getLatest(int $n = 3, bool $viewInternal = false, array $filters = []): array
     {
         $params = [
             'limit'     => $n,
@@ -1581,6 +1581,10 @@ class PersonManager extends ObjectEntityManager
             'orderBy'   => ['created'],
             'ascending' => 0,
         ];
+
+        if (!empty($filters)) {
+            $params['filters'] = $filters;
+        }
 
         $result = $this->ess->searchAndAggregate($params, $viewInternal);
 
