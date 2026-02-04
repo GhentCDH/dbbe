@@ -810,7 +810,7 @@ class TypeManager extends PoemManager
         return $stream;
     }
 
-    public function getLatest(int $n = 3, bool $viewInternal = false): array
+    public function getLatest(int $n = 3, bool $viewInternal = false, array $filters = []): array
     {
         $params = [
             'limit'     => $n,
@@ -818,6 +818,10 @@ class TypeManager extends PoemManager
             'orderBy'   => ['created'],
             'ascending' => 0,
         ];
+
+        if (!empty($filters)) {
+            $params['filters'] = $filters;
+        }
 
         $result = $this->ess->searchAndAggregate($params, $viewInternal);
 
