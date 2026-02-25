@@ -103,9 +103,18 @@ You can run the script **after** launching the application via the docker-compos
 docker-compose -f docker-compose.test.yml --env-file .env.dev up playwright
 ```
 
-### Matomo
+## Matomo
 
 Matomo is used for minimal tracking of page visits. By default, requests from localhost are also sent to the server. Therefore, localhost tracking is disabled via an environment variable set in the .env.dev file.
+
+## Database schemas
+
+- The core application information is in the `data` schema
+- The two `Julie*` schemas are related to old PhD research and need to be stored elsewhere (to do)
+- The `migration` schema was probably used when a large version update of dbbe happened. It is however still in use in the live application so that the website can display old IDs
+- The `logic` schema focuses on information linked to DBBE as a project rather than the processed data
+- The `public` schema does no longer seem to be used and probably contains data from the old project. This is, however, to be verified!
+
 #### Planned improvements
 Note that, at this point, the script does not run tests on inserts. It just navigates to every page without filling in forms. 
 
