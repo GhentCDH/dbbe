@@ -363,7 +363,11 @@ class ElasticTypeService extends ElasticEntityService
                     }
                     break;
                 case 'management':
-                    if (isset($filters['management_inverse']) && $filters['management_inverse']) {
+                    $isInverse = false;
+                    if (isset($filters['management_inverse'])) {
+                        $isInverse = filter_var($filters['management_inverse'], FILTER_VALIDATE_BOOLEAN);
+                    }
+                    if ($isInverse) {
                         $result['nested_toggle'][$key] = [$value, false];
                     } else {
                         $result['nested_toggle'][$key] = [$value, true];
