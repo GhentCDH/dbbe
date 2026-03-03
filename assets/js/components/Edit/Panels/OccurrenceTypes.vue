@@ -157,8 +157,8 @@ export default {
             );
         },
         onChange() {
-            calcChanges();
-            this.$emit('validated');
+            this.changes = calcChanges(this.model, this.originalModel, this.fields);
+            this.$emit('validated', this.isValid, this.errors, this);
         },
     },
 };
