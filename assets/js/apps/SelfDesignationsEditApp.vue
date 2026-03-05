@@ -218,9 +218,13 @@ const mergeModel = reactive({
 })
 
 watch(values, (newValues) => {
-  schema.fields.selfDesignation.values = Array.isArray(newValues) ? newValues : []
-  mergeSchema.fields.primary.values = schema.fields.selfDesignation.values
-  mergeSchema.fields.secondary.values = schema.fields.selfDesignation.values
+  const list = Array.isArray(newValues) ? newValues : []
+  schema.fields.selfDesignation.values = list
+  schema.fields.selfDesignation.originalValues = list
+  mergeSchema.fields.primary.values = list
+  mergeSchema.fields.primary.originalValues = list
+  mergeSchema.fields.secondary.values = list
+  mergeSchema.fields.secondary.originalValues = list
 }, { immediate: true })
 
 watch(originalSubmitModel, (newVal) => {
@@ -234,9 +238,13 @@ watch(values, () => {
 })
 
 onMounted(() => {
-  schema.fields.selfDesignation.values = values.value || []
-  mergeSchema.fields.primary.values = values.value || []
-  mergeSchema.fields.secondary.values = values.value || []
+  const list = values.value || []
+  schema.fields.selfDesignation.values = list
+  schema.fields.selfDesignation.originalValues = list
+  mergeSchema.fields.primary.values = list
+  mergeSchema.fields.primary.originalValues = list
+  mergeSchema.fields.secondary.values = list
+  mergeSchema.fields.secondary.originalValues = list
   enableField(schema.fields.selfDesignation, model)
   enableField(mergeSchema.fields.primary)
   enableField(mergeSchema.fields.secondary)
