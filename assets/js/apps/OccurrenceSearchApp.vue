@@ -140,7 +140,7 @@
             </ol>
           </template>
           <template v-if="row.private_comment">
-            <em>Private comment</em>
+            <em>Internal comment</em>
             <ol>
               <li
                   v-for="(item, index) in row.private_comment"

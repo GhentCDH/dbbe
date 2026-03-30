@@ -735,7 +735,7 @@ class PersonManager extends ObjectEntityManager
             }
             if (property_exists($data, 'privateComment')) {
                 if (!is_string($data->privateComment)) {
-                    throw new BadRequestHttpException('Incorrect private comment data.');
+                    throw new BadRequestHttpException('Incorrect internal comment data.');
                 }
                 $changes['short'] = true;
                 $this->dbs->updatePrivateComment($id, $data->privateComment);

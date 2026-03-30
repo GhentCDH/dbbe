@@ -369,7 +369,7 @@
           <td>{{ mergeModel.primaryFull.publicComment }}</td>
         </tr>
         <tr>
-          <td>Private comment</td>
+          <td>Internal comment</td>
           <td>{{ mergeModel.primaryFull.privateComment }}</td>
         </tr>
         </tbody>

@@ -371,6 +371,7 @@ onMounted(() => {
         panelRefs.value[panel]?.init?.()
       }
     }
+    model.managements = JSON.parse(JSON.stringify(model.managements))
   })
   reload('modernPersons',modernPersons.value)
   reload('books',books.value)
