@@ -1,18 +1,20 @@
 <template>
-    <panel
-        :header="header"
-        :links="links"
-        :reloads="reloads"
-        @reload="reload"
-    >
-        <vue-form-generator
-            ref="form"
-            :schema="schema"
-            :model="model"
-            :options="formOptions"
-            @validated="validated"
-        />
-    </panel>
+  <panel
+      :header="header"
+      :links="links"
+      :reloads="reloads"
+      @reload="reload"
+  >
+    <vue-form-generator
+        ref="form"
+        :schema="schema"
+        :model="model"
+        :options="formOptions"
+        @validated="validated"
+        @model-updated="validated"
+    />
+
+  </panel>
 </template>
 <script>
 import Vue from 'vue';
@@ -23,9 +25,9 @@ import {
 import Panel from '../Panel'
 import validatorUtil from "@/helpers/validatorUtil";
 import {calcChanges} from "@/helpers/modelChangeUtil";
-
+import alternativeNameField from "../../FormFields/alternativeNameField.vue";
 Vue.component('panel', Panel);
-
+Vue.component('field-alternativeNames', alternativeNameField)
 validatorUtil.name = function(value, field, model) {
     if (
         (model.firstName == null || model.firstName === '')
@@ -118,6 +120,11 @@ export default {
                         labelClasses: 'control-label',
                         model: 'lastName',
                         validator: [validatorUtil.string, validatorUtil.name],
+                    },
+                    alternativeNames: {
+                      type: 'alternativeNames',
+                      label: 'Alternative Names',
+                      model: 'alternativeNames',
                     },
                     selfDesignations: createMultiSelect(
                         '(Self) designation',

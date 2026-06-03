@@ -324,9 +324,10 @@ class PersonService extends EntityService
                 factoid_born.born_date,
                 factoid_died.death_date,
                 factoid_attested.attested_dates,
-                factoid_attested.attested_intervals
+                factoid_attested.attested_intervals,
+                alt_names.alternative_names 
             from data.person
-            inner join data.name on name.idperson = person.identity
+            inner join data.name on name.idperson = person.identity AND name.is_primary = TRUE
             left join (
                 select
                     factoid.subject_identity,
@@ -343,6 +344,19 @@ class PersonService extends EntityService
                 inner join data.factoid_type on factoid.idfactoid_type = factoid_type.idfactoid_type
                 where factoid_type.type = \'died\'
             ) as factoid_died on person.identity = factoid_died.subject_identity
+            left join (
+                select
+                    name.idperson,
+                    array_to_json(array_agg(
+                        json_build_object(
+                            \'firstName\', name.first_name,
+                            \'lastName\', name.last_name
+                        )
+                    )) as alternative_names
+                from data.name
+                where name.is_primary = FALSE
+                group by name.idperson
+            ) as alt_names on person.identity = alt_names.idperson
             left join (
                 select
                     factoid.subject_identity,
@@ -747,6 +761,33 @@ class PersonService extends EntityService
                 $lastName,
                 $id,
             ]
+        );
+    }
+
+    public function updateAlternativeName(int $id, string $firstName, ?string $lastName): int
+    {
+        return $this->conn->executeUpdate(
+            'INSERT INTO data.name (
+            idperson,
+            first_name,
+            last_name,
+            is_primary
+        ) VALUES (?, ?, ?, FALSE)',
+            [
+                $id,
+                $firstName,
+                $lastName
+            ]
+        );
+    }
+
+    public function deleteAlternativeNames(int $id): int
+    {
+        return $this->conn->executeUpdate(
+            'DELETE FROM data.name
+        WHERE idperson = ?
+        AND is_primary = FALSE',
+            [$id]
         );
     }
 

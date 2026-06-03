@@ -91,6 +91,7 @@ class Person extends Entity implements SubjectInterface
      * @var array
      */
     protected $manuscriptRoles = [];
+    protected $alternativeNames = [];
     /**
      * Array containing all manuscriptroles inherited via occurrences
      * Structure:
@@ -175,6 +176,17 @@ class Person extends Entity implements SubjectInterface
     public function getLastName(): ?string
     {
         return $this->lastName;
+    }
+
+    public function setAlternativeNames(array $alternativeNames): Person
+    {
+        $this->alternativeNames = $alternativeNames;
+        return $this;
+    }
+
+    public function getAlternativeNames(): array
+    {
+        return $this->alternativeNames;
     }
 
     /**
@@ -998,6 +1010,9 @@ class Person extends Entity implements SubjectInterface
         if (isset($this->lastName)) {
             $result['lastName'] = $this->lastName;
         }
+        if (!empty($this->alternativeNames)) {
+            $result['alternativeNames'] = $this->alternativeNames;
+        }
         if (!empty($this->selfDesignations)) {
             $result['selfDesignations'] = ArrayToJson::arrayToShortJson($this->selfDesignations);
         }
@@ -1061,6 +1076,13 @@ class Person extends Entity implements SubjectInterface
         $result['historical'] = $this->historical;
         $result['modern'] = $this->modern;
         $result['dbbe'] = $this->dbbe;
+
+        if (!empty($this->alternativeNames)) {
+            $result['alternative_name'] = array_map(
+                fn($alt) => trim(implode(' ', array_filter([$alt['firstName'] ?? null, $alt['lastName'] ?? null]))),
+                $this->alternativeNames
+            );
+        }
 
         if (isset($this->bornDate) && !empty($this->bornDate->getFloor())) {
             $result['born_date_floor_year'] = intval($this->bornDate->getFloor()->format('Y'));
