@@ -148,6 +148,7 @@ class TypeController extends BaseController
      */
     #[Route(path: '/types/add', name: 'type_add', methods: ['GET'])]
     public function add(
+        Request $request,
         TypeRelationTypeManager $typeRelationTypeManager,
         PersonManager $personManager,
         MetreManager $metreManager,
@@ -495,6 +496,7 @@ class TypeController extends BaseController
      */
     #[Route(path: '/types/{id}/edit', name: 'type_edit', methods: ['GET'])]
     public function edit(
+        Request $request,
         TypeRelationTypeManager $typeRelationTypeManager,
         PersonManager $personManager,
         MetreManager $metreManager,
@@ -511,11 +513,46 @@ class TypeController extends BaseController
     ) {
         $this->denyAccessUnlessGranted(Roles::ROLE_EDITOR_VIEW);
 
+        $typeJson = null;
+        $clone = false;
+        if (!empty($id)) {
+            $typeJson = $this->manager->getFull($id)->getJson();
+
+            if (
+                !empty($request->query->get('clone'))
+                && $request->query->get('clone') === '1'
+            ) {
+                $clone = true;
+                $id = null;
+
+                unset($typeJson['id']);
+
+                if (isset($typeJson['bibliography'])) {
+                    foreach (array_keys($typeJson['bibliography']) as $index) {
+                        unset($typeJson['bibliography'][$index]['id']);
+                    }
+                }
+
+                if (isset($typeJson['translations'])) {
+                    foreach (array_keys($typeJson['translations']) as $index) {
+                        unset($typeJson['translations'][$index]['id']);
+
+                        if (isset($typeJson['translations'][$index]['bibliography'])) {
+                            foreach (array_keys($typeJson['translations'][$index]['bibliography']) as $bibIndex) {
+                                unset($typeJson['translations'][$index]['bibliography'][$bibIndex]['id']);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         return $this->render(
             $this->templateFolder . 'edit.html.twig',
             [
                 // @codingStandardsIgnoreStart Generic.Files.LineLength
                 'id' => $id,
+                'clone' => $clone,
                 'urls' => json_encode([
                     'type_get' => $this->generateUrl('type_get', ['id' => $id == null ? 'type_id' : $id]),
                     'type_post' => $this->generateUrl('type_post'),
@@ -553,9 +590,8 @@ class TypeController extends BaseController
                     'login' => $this->generateUrl('login'),
                 ]),
                 'data' => json_encode([
-                    'type' => empty($id)
-                        ? null
-                        : $this->manager->getFull($id)->getJson(),
+                    'clone' => $clone,
+                    'type' => $typeJson,
                     'typeRelationTypes' => $typeRelationTypeManager->getAllShortJson(),
                     'dbbePersons' => $personManager->getAllDBBEShortJson(),
                     'modernPersons' => $personManager->getAllModernShortJson(),

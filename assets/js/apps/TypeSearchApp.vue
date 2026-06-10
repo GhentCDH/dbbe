@@ -181,7 +181,15 @@
           <i class="fa fa-pencil-square-o" />
           </a>
 
-         <a href="#"
+          <a :href="urls['type_edit'].replace('type_id', row.id) + '?clone=1'"
+             class="action"
+             title="Duplicate"
+          >
+            <i class="fa fa-files-o" />
+          </a>
+
+
+          <a href="#"
           class="action"
           title="Delete"
           @click.prevent="del(row)"
