@@ -178,7 +178,7 @@
       <btn
           id="actions"
           type="warning"
-          :disabled="diff.length === 0"
+          :disabled="data.clone ? JSON.stringify(originalModel) !== JSON.stringify(model) : diff.length === 0"
           @click="resetModal = true"
       >
         Reset
@@ -818,7 +818,7 @@ const {
 const save = () => {
   openRequests.value++
   saveModal.value = false
-  if (type.value == null) {
+  if (type.value == null || data.clone) {
     postUpdatedModel('type', toSave())
   } else {
     putUpdatedModel('type', toSave())
@@ -935,6 +935,37 @@ const validated = (isValid, errors) => {
 
 const toSave = () => {
   let result = {}
+  if (data.clone) {
+
+    const clone = {
+      ...model.verses,
+      ...model.basic,
+      ...model.types,
+      ...model.personRoles,
+      ...model.contributorRoles,
+      ...model.metres && {metres: model.metres.metres},
+      ...model.genres && {genres: model.genres.genres},
+      ...model.subjects,
+      ...model.keywords,
+      ...model.identification,
+      ...model.general,
+      ...model.managements,
+      ...model.translations,
+      bibliography: model.bibliography || {
+        books: [],
+        articles: [],
+        bookChapters: [],
+        onlineSources: [],
+        blogPosts: [],
+        phds: [],
+        bibVarias: []
+      },
+    }
+    return clone
+  }
+
+
+
   for (let diffItem of diff.value) {
     if ('keyGroup' in diffItem) {
       if (!(diffItem.keyGroup in result)) {
@@ -1042,16 +1073,12 @@ onMounted(() => {
   initScrollListener()
   setData()
   originalModel.value = JSON.parse(JSON.stringify(model))
-
-  // Initialize panels after model is updated
   nextTick(() => {
-    if (!data.clone) {
       for (let panel of panels) {
         const panelRef = panelRefs.value[panel]
         if (panelRef) {
           panelRef.init()
         }
-      }
     }
   })
 
