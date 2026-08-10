@@ -25,7 +25,7 @@ jobs:
         include:
           - target: dbbe
             image: ghentcdh/dbbe
-            dockerfile: docker/Dockerfile
+            dockerfile: Dockerfile
 
     steps:
       - name: Checkout repository
