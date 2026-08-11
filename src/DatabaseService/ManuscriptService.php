@@ -783,6 +783,11 @@ class ManuscriptService extends DocumentService
                 where factoid.subject_identity = ?',
                 [$manuscriptId]
             );
+            $this->conn->executeUpdate(
+                'DELETE from data.document_acknowledgement
+                where iddocument = ?',
+                [$manuscriptId]
+            );
             $delete = $this->conn->executeUpdate(
                 'DELETE from data.document
                 where document.identity = ?',
