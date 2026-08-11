@@ -71,7 +71,7 @@ export function disableFields(keys, fields, disableKeys) {
 }
 export function dependencyField(field, model) {
     const modelName = field.model.split('.').pop();
-    delete model[modelName];
+    model[modelName] = null;  // was: delete model[modelName]
     field.disabled = true;
     field.selectOptions.loading = false;
     field.placeholder = `Please select a ${field.dependencyName ?? field.dependency} first`;

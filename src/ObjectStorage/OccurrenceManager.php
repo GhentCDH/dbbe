@@ -193,6 +193,27 @@ class OccurrenceManager extends PoemManager
             }
         }
 
+        // Raw dates
+        $rawCompletionDates = $this->dbs->getCompletionDates($ids);
+        foreach ($rawCompletionDates as $raw) {
+            $occurrenceId = $raw['document_id'];
+            if (!isset($occurrences[$occurrenceId])) {
+                continue;
+            }
+            if ($raw['completion_date'] !== null) {
+                $range=$raw['completion_date'];
+                $range = trim($range, '()');
+                [$floor, $ceiling] = array_map('trim', explode(',', $range));
+                $parsed = [
+                    'floor' => $floor !== '' ? $floor : null,
+                    'ceiling' => $ceiling !== '' ? $ceiling : null,
+                ];
+                $occurrences[$occurrenceId]
+                    ->setCompletionFloor($parsed['floor'])
+                    ->setCompletionCeiling($parsed['ceiling']);
+            }
+        }
+
         $this->setAcknowledgements($occurrences);
 
         // Needed to index DBBE in elasticsearch
@@ -641,7 +662,7 @@ class OccurrenceManager extends PoemManager
             }
             if (property_exists($data, 'privateComment')) {
                 if (!is_string($data->privateComment)) {
-                    throw new BadRequestHttpException('Incorrect private comment data.');
+                    throw new BadRequestHttpException('Incorrect internal comment data.');
                 }
                 $changes['short'] = true;
                 $this->dbs->updatePrivateComment($id, $data->privateComment);
@@ -1128,6 +1149,35 @@ class OccurrenceManager extends PoemManager
 
         rewind($stream);
         return $stream;
+    }
+
+    public function getLatest(int $n = 3, bool $viewInternal = false, array $filters = []): array
+    {
+        $params = [
+            'limit'     => $n,
+            'page'      => 1,
+            'orderBy'   => ['created'],
+            'ascending' => 0,
+        ];
+
+        if (!empty($filters)) {
+            $params['filters'] = $filters;
+        }
+
+        $result = $this->ess->searchAndAggregate($params, $viewInternal);
+
+        $latest = [];
+        foreach ($result['data'] ?? [] as $item) {
+            $latest[] = [
+                'id'    => $item['id'],
+                'label' => $item['incipit'] ?? '[no incipit]',
+                'date'  => isset($item['created']) ? new \DateTime($item['created']) : null,
+                'route' => 'occurrence_get',
+                'type'  => 'Occurrence',
+            ];
+        }
+
+        return $latest;
     }
 
 

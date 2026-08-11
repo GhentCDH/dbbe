@@ -132,7 +132,6 @@ class ElasticOccurrenceService extends ElasticEntityService
             }
 
             if (!$viewInternal) {
-                unset($result['data'][$key]['created']);
                 unset($result['data'][$key]['modified']);
             }
         }
@@ -331,12 +330,16 @@ class ElasticOccurrenceService extends ElasticEntityService
                 $result['date_range'][] = $date_result;
                 break;
             case 'management':
-                if (isset($filters['management_inverse']) && $filters['management_inverse']) {
-                    $result['nested_toggle'][$key] = [$value, false];
-                } else {
-                    $result['nested_toggle'][$key] = [$value, true];
-                }
-                break;
+                    $isInverse = false;
+                    if (isset($filters['management_inverse'])) {
+                        $isInverse = filter_var($filters['management_inverse'], FILTER_VALIDATE_BOOLEAN);
+                    }
+                    if ($isInverse) {
+                        $result['nested_toggle'][$key] = [$value, false];
+                    } else {
+                        $result['nested_toggle'][$key] = [$value, true];
+                    }
+                    break;
             case 'public_comment':
                 $result['multiple_text'][$key] = [
                     'public_comment'=> [
@@ -377,6 +380,15 @@ class ElasticOccurrenceService extends ElasticEntityService
             case 'dbbe':
                 $result['boolean'][$key] = ($value === '1');
                 break;
+            case 'exactly_dated':
+                    if ($value === true || $value === '1' || $value === 1 || $value === 'true') {
+                        $result['date_range'][] = [
+                            'floorField' => 'completion_floor',
+                            'ceilingField' => 'completion_ceiling',
+                            'type' => 'exactly_dated',
+                        ];
+                    }
+                    break;
             }
         }
         return $result;

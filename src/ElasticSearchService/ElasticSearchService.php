@@ -593,6 +593,33 @@ class ElasticSearchService implements ElasticSearchServiceInterface
                                 );
                             }
                         }
+                        // Exact date precision filter (month, year, or Byzantine year)
+                        if (isset($value['type']) && $value['type'] == 'exactly_dated') {
+                            $script = "if (doc['" . $value['floorField'] . "'].size() == 0 || doc['" . $value['ceilingField'] . "'].size() == 0) return false;
+                                def floor = doc['" . $value['floorField'] . "'].value;
+                                def ceiling = doc['" . $value['ceilingField'] . "'].value;
+                                
+                                // Check if same month
+                                boolean sameMonth = floor.getYear() == ceiling.getYear() && floor.getMonthValue() == ceiling.getMonthValue();
+                                
+                                // Check if exactly 1 calendar year (Jan 1 to Dec 31)
+                                boolean oneYear = floor.getYear() == ceiling.getYear() &&
+                                                 floor.getMonthValue() == 1 && floor.getDayOfMonth() == 1 &&
+                                                 ceiling.getMonthValue() == 12 && ceiling.getDayOfMonth() == 31;
+                                
+                                // Check if exactly 1 Byzantine year (Sept 1 to Aug 31 next year)
+                                boolean byzantineYear = floor.getMonthValue() == 9 && floor.getDayOfMonth() == 1 &&
+                                                       ceiling.getMonthValue() == 8 && ceiling.getDayOfMonth() == 31 &&
+                                                       ceiling.getYear() == floor.getYear() + 1;
+                                
+                                return sameMonth || oneYear || byzantineYear;
+                            ";
+                            $filterQuery->addFilter(
+                                new Query\Script(
+                                    new \Elastica\Script\Script($script, null, 'painless')
+                                )
+                            );
+                        }
                         // The data interval must overlap with the search interval
                         // floor or ceiling must be within range, or range must be between floor and ceiling
                         else {

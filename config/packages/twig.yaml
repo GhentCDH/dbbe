@@ -4,6 +4,8 @@ twig:
     globals:
         siteKey: '%env(SITEKEY)%'
         keycloakAdminUrl: '%env(KEYCLOAK_ADMIN_URL)%'
+        matomo_enabled: '%env(bool:MATOMO_ENABLED)%'
+        matomo_sitekey: '%env(MATOMO_SITEKEY)%'
 
 when@test:
     twig:

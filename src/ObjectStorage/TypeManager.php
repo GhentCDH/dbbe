@@ -445,7 +445,7 @@ class TypeManager extends PoemManager
             }
             if (property_exists($data, 'privateComment')) {
                 if (!is_string($data->privateComment)) {
-                    throw new BadRequestHttpException('Incorrect private comment data.');
+                    throw new BadRequestHttpException('Incorrect internal comment data.');
                 }
                 $changes['short'] = true;
                 $this->dbs->updatePrivateComment($id, $data->privateComment);
@@ -808,6 +808,35 @@ class TypeManager extends PoemManager
             fputcsv($stream,$row,';');
         }
         return $stream;
+    }
+
+    public function getLatest(int $n = 3, bool $viewInternal = false, array $filters = []): array
+    {
+        $params = [
+            'limit'     => $n,
+            'page'      => 1,
+            'orderBy'   => ['created'],
+            'ascending' => 0,
+        ];
+
+        if (!empty($filters)) {
+            $params['filters'] = $filters;
+        }
+
+        $result = $this->ess->searchAndAggregate($params, $viewInternal);
+
+        $latest = [];
+        foreach ($result['data'] ?? [] as $item) {
+            $latest[] = [
+                'id'    => $item['id'],
+                'label' => $item['incipit'] ?? '[no incipit]',
+                'date'  => isset($item['created']) ? new \DateTime($item['created']) : null,
+                'route' => 'type_get',
+                'type'  => 'Type',
+            ];
+        }
+
+        return $latest;
     }
 
 }

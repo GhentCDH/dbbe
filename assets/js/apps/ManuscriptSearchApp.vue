@@ -330,7 +330,8 @@ const model = ref({
   origin_op: 'or',
   comment_mode: ['latin'],
   acknowledgement: [],
-  acknowledgement_op: 'or'
+  acknowledgement_op: 'or',
+  exactly_dated: false,
 });
 
 const originalModel = ref({});
@@ -481,6 +482,7 @@ const tableFields = computed(() => {
     { key: 'name', label: 'Name', sortable: true },
     { key: 'date', label: 'Date', sortable: true },
     { key: 'content', label: 'Content' },
+    { key: 'created', label: 'Created', sortable: true },
   ];
 
   if (commentSearch.value) {
@@ -489,11 +491,17 @@ const tableFields = computed(() => {
 
   if (props.isViewInternal) {
     fields.push(
-        { key: 'occ', label: 'Occurrences', sortable: true },
-        { key: 'created', label: 'Created', sortable: true },
         { key: 'modified', label: 'Modified', sortable: true },
+        { key: 'occ', label: 'Occurrences', sortable: true },
         { key: 'actions', label: 'Actions' }
     );
+
+    const occIndex = fields.findIndex(f => f.key === 'occ');
+    const createdIndex = fields.findIndex(f => f.key === 'created');
+    if (occIndex !== -1 && createdIndex !== -1) {
+      const [occField] = fields.splice(occIndex, 1);
+      fields.splice(createdIndex, 0, occField);
+    }
   }
 
   return fields;
@@ -681,7 +689,7 @@ const {
   historyRequest
 });
 
-const { init, onData, setupCollapsibleLegends } = useSearchSession({
+const { init, onData, setupCollapsibleLegends, aggregationLoaded } = useSearchSession({
   urls,
   data,
   aggregation,
@@ -759,7 +767,13 @@ const modelUpdated = (fieldName) => {
 };
 
 const resetAllFilters = () => {
-  model.value = JSON.parse(JSON.stringify(originalModel));
+  model.value = JSON.parse(JSON.stringify(originalModel.value));
+  noHistory.value = true;
+  window.history.replaceState(
+      {},
+      document.title,
+      document.location.pathname
+  );
   onValidated(true);
 };
 
@@ -772,8 +786,10 @@ const downloadCSVHandler = async () => {
   }
 };
 
-watch(() => model.value.text_mode, (val, oldVal) => {
-  changeTextMode(val, oldVal, 'text');
+watch(() => model.value.management, (newVal) => {
+  if (!newVal || (Array.isArray(newVal) && newVal.length === 0)) {
+    model.value.management_inverse = false;
+  }
 });
 
 watch(() => model.value.comment_mode, (val, oldVal) => {
@@ -785,11 +801,7 @@ watch(elRef, (el) => {
 });
 
 watch(() => model.value.comment, (newValue) => {
-  if (newValue && newValue.trim().length > 0) {
-    commentSearch.value = true;
-  } else {
-    commentSearch.value = false;
-  }
+  commentSearch.value = !!(newValue && newValue.trim().length > 0);
 }, { immediate: true });
 
 setUpOperatorWatchers();

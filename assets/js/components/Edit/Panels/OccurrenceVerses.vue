@@ -292,11 +292,11 @@
 import { ref, computed, watch, nextTick, inject, onMounted } from 'vue';
 import axios from 'axios';
 import Sortable from 'sortablejs';
-import Alerts from '@/components/Alerts.vue';
-import Panel from '../Panel.vue';
-import VerseTable from './Components/VerseTable.vue';
 import { disableFields as disableFieldsHelper, enableFields as enableFieldsHelper } from '@/helpers/formFieldUtils';
-import validatorUtil from '@/helpers/validatorUtil';
+import Alerts from "@/components/Alerts.vue";
+import Panel from '../Panel'
+import VerseTable from './Components/VerseTable'
+import validatorUtil from "@/helpers/validatorUtil";
 
 const props = defineProps({
   urls: {
@@ -779,7 +779,7 @@ const searchVerseLinks = () => {
         console.log(error);
         alerts.value.push({
           type: 'error',
-          message: 'Something went wrong while searching for linkable verses.',
+          message: 'Something went wrong while searching for linkable verses. If you are searching for a verse with special characters, either remove them from the "Search linkable verses" field or prepend them with backslash (e.g. ἰω\\\\(άνν\\\\)\\\\(ης\\\\)\\\\:\\\\-)\'',
           login: parentIsLoginError(error),
         });
         editVerseModal.value = true;

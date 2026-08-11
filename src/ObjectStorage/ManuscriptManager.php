@@ -128,6 +128,27 @@ class ManuscriptManager extends DocumentManager
             }
         }
 
+        // Raw dates
+        $rawCompletionDates = $this->dbs->getCompletionDates($ids);
+        foreach ($rawCompletionDates as $raw) {
+            $manuscriptId = $raw['document_id'];
+            if (!isset($manuscripts[$manuscriptId])) {
+                continue;
+            }
+            if ($raw['completion_date'] !== null) {
+                $range=$raw['completion_date'];
+                $range = trim($range, '()');
+                [$floor, $ceiling] = array_map('trim', explode(',', $range));
+                $parsed = [
+                    'floor' => $floor !== '' ? $floor : null,
+                    'ceiling' => $ceiling !== '' ? $ceiling : null,
+                ];
+                $manuscripts[$manuscriptId]
+                    ->setCompletionFloor($parsed['floor'])
+                    ->setCompletionCeiling($parsed['ceiling']);
+            }
+        }
+
         $this->setAcknowledgements($manuscripts);
 
         $this->setIdentifications($manuscripts);
@@ -313,7 +334,7 @@ class ManuscriptManager extends DocumentManager
             }
             if (property_exists($data, 'privateComment')) {
                 if (!is_string($data->privateComment)) {
-                    throw new BadRequestHttpException('Incorrect private comment data.');
+                    throw new BadRequestHttpException('Incorrect internal comment data.');
                 }
                 $changes['short'] = true;
                 $this->dbs->updatePrivateComment($id, $data->privateComment);
@@ -510,5 +531,34 @@ class ManuscriptManager extends DocumentManager
             fputcsv($stream, $this->formatRow($item),';');
         }
         return $stream;
+    }
+
+    public function getLatest(int $n = 3, bool $viewInternal = false, array $filters = []): array
+    {
+        $params = [
+            'limit'     => $n,
+            'page'      => 1,
+            'orderBy'   => ['created'],
+            'ascending' => 0,
+        ];
+
+        if (!empty($filters)) {
+            $params['filters'] = $filters;
+        }
+
+        $result = $this->ess->searchAndAggregate($params, $viewInternal);
+
+        $latest = [];
+        foreach ($result['data'] ?? [] as $item) {
+            $latest[] = [
+                'id'    => $item['id'],
+                'label' => $item['name'] ?? '[unnamed manuscript]',
+                'date'  => isset($item['created']) ? new \DateTime($item['created']) : null,
+                'route' => 'manuscript_get',
+                'type'  => 'Manuscript',
+            ];
+        }
+
+        return $latest;
     }
 }

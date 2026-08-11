@@ -160,7 +160,7 @@
           />
         </template>
 
-        <template #numberOfOccurrences="{ row }">
+        <template #number_of_occurrences="{ row }">
           {{ row.number_of_occurrences }}
         </template>
 
@@ -181,7 +181,15 @@
           <i class="fa fa-pencil-square-o" />
           </a>
 
-         <a href="#"
+          <a :href="urls['type_edit'].replace('type_id', row.id) + '?clone=1'"
+             class="action"
+             title="Duplicate"
+          >
+            <i class="fa fa-files-o" />
+          </a>
+
+
+          <a href="#"
           class="action"
           title="Delete"
           @click.prevent="del(row)"
@@ -418,7 +426,8 @@ const tableFields = computed(() => {
   const fields = [
     { key: 'id', label: 'ID', sortable: true, thClass: 'no-wrap' },
     { key: 'incipit', label: 'Incipit', sortable: true },
-    { key: 'numberOfOccurrences', label: 'Number of Occurrences', sortable: true },
+    { key: 'number_of_occurrences', label: 'Number of Occurrences', sortable: true },
+    { key: 'created', label: 'Created', sortable: true },
   ];
 
   if (textSearch.value) {
@@ -432,7 +441,6 @@ const tableFields = computed(() => {
   }
   if (props.isViewInternal) {
     fields.push(
-        { key: 'created', label: 'Created', sortable: true },
         { key: 'modified', label: 'Modified', sortable: true },
         { key: 'actions', label: 'Actions' }
     );
@@ -835,17 +843,7 @@ const {
   onDataExtend
 }, 'TypeSearchConfig');
 
-watch(
-    () => aggregationLoaded.value,
-    (loaded) => {
-      if (loaded && !urlInitialized.value) {
-        initFromURL(aggregation.value);
-        urlInitialized.value = true;
-        nextTick(() => onValidated(true));
-      }
-    },
-    { immediate: true }
-);
+
 
 const { delDependencies, deleteModal } = useEditMergeMigrateDelete(props.initUrls, props.initData);
 
@@ -916,8 +914,16 @@ const modelUpdated = (fieldName) => {
   lastChangedField.value = fieldName;
 };
 
+
 const resetAllFilters = () => {
-  model.value = JSON.parse(JSON.stringify(originalModel));
+  model.value = JSON.parse(JSON.stringify(originalModel.value));
+  noHistory.value = true;
+  window.history.replaceState(
+      {},
+      document.title,
+      document.location.pathname
+  );
+
   onValidated(true);
 };
 

@@ -369,7 +369,7 @@
           <td>{{ mergeModel.primaryFull.publicComment }}</td>
         </tr>
         <tr>
-          <td>Private comment</td>
+          <td>Internal comment</td>
           <td>{{ mergeModel.primaryFull.privateComment }}</td>
         </tr>
         </tbody>
@@ -590,6 +590,7 @@ const tableFields = computed(() => {
     { key: 'self_designation', label: '(Self) designation' },
     { key: 'office', label: 'Office' },
     { key: 'date', label: 'Date', sortable: true },
+    { key: 'created', label: 'Created', sortable: true }
   ];
 
   if (commentSearch.value) {
@@ -598,7 +599,6 @@ const tableFields = computed(() => {
 
   if (props.isViewInternal) {
     fields.push(
-        { key: 'created', label: 'Created', sortable: true },
         { key: 'modified', label: 'Modified', sortable: true },
         { key: 'actions', label: 'Actions' }
     );
@@ -1128,9 +1128,15 @@ const modelUpdated = (fieldName) => {
 
 const resetAllFilters = () => {
   model.value = JSON.parse(JSON.stringify(originalModel.value));
+  noHistory.value = true;
+  window.history.replaceState(
+      {},
+      document.title,
+      document.location.pathname
+  );
+
   onValidated(true);
 };
-
 const downloadCSVHandler = async () => {
   try {
     await downloadCSV(urls, 'persons');

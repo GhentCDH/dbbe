@@ -140,7 +140,7 @@
             </ol>
           </template>
           <template v-if="row.private_comment">
-            <em>Private comment</em>
+            <em>Internal comment</em>
             <ol>
               <li
                   v-for="(item, index) in row.private_comment"
@@ -372,6 +372,7 @@ const model = ref({
   manuscript_content_op: 'or',
   acknowledgement: [],
   acknowledgement_op: 'or',
+  exactly_dated: false
 });
 
 const perPage = ref(25);
@@ -382,6 +383,8 @@ const tableFields = computed(() => {
     { key: 'incipit', label: 'Incipit', sortable: true },
     { key: 'manuscript', label: 'Manuscript', sortable: true },
     { key: 'date', label: 'Date', sortable: true },
+    { key: 'created', label: 'Created', sortable: true },
+
   ];
 
   if (textSearch.value) {
@@ -392,7 +395,6 @@ const tableFields = computed(() => {
   }
   if (props.isViewInternal) {
     fields.push(
-        { key: 'created', label: 'Created', sortable: true },
         { key: 'modified', label: 'Modified', sortable: true },
         { key: 'actions', label: 'Actions' }
     );
@@ -588,6 +590,16 @@ const buildSchema = () => {
     ],
   };
 
+
+  fields.exactly_dated = {
+    type: 'checkbox',
+    label: 'Exactly dated',
+    labelClasses: 'control-label',
+    styleClasses: 'has-warning',
+    model: 'exactly_dated',
+    default: false,
+  }
+
   fields.person = createMultiSelect('Person', {}, {
     multiple: true,
     closeOnSelect: false,
@@ -688,6 +700,8 @@ const fields = computed(() => {
       }
     });
   }
+  res.exactly_dated = schema.value.fields.exactly_dated;
+
   return res;
 });
 
@@ -757,19 +771,13 @@ const { init, onData, setupCollapsibleLegends, aggregationLoaded } = useSearchSe
   onDataExtend
 }, 'OccurrenceSearchConfig');
 
-const urlInitialized = ref(false);
 
-watch(
-    () => aggregationLoaded.value,
-    (loaded) => {
-      if (loaded && !urlInitialized.value) {
-        initFromURL(aggregation.value);
-        urlInitialized.value = true;
-        nextTick(() => onValidated(true));
-      }
-    },
-    { immediate: true }
-);
+watch(() => model.value.management, (newVal) => {
+  if (!newVal || (Array.isArray(newVal) && newVal.length === 0)) {
+    model.value.management_inverse = false;
+  }
+});
+
 const {
   collectionArray,
   collectionToggleAll,
@@ -847,7 +855,14 @@ const modelUpdated = (fieldName) => {
 };
 
 const resetAllFilters = () => {
-  model.value = JSON.parse(JSON.stringify(originalModel));
+  model.value = JSON.parse(JSON.stringify(originalModel.value));
+  noHistory.value = true;
+  window.history.replaceState(
+      {},
+      document.title,
+      document.location.pathname
+  );
+
   onValidated(true);
 };
 

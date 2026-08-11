@@ -118,6 +118,14 @@ export function useSearchFields(model, schema, fields, aggregation, {
         const value = model.value[currentKey];
         const label = field.label;
 
+        if (currentKey === 'management_inverse') {
+            const hasManagement = model.value.management &&
+                (Array.isArray(model.value.management) ? model.value.management.length > 0 : model.value.management);
+            if (!hasManagement) {
+                return show;
+            }
+        }
+
         const isIgnored =
             currentKey === 'text_combination' ||
             currentKey === 'text_fields' ||
@@ -130,6 +138,18 @@ export function useSearchFields(model, schema, fields, aggregation, {
             value === '' ||
             (typeof value === 'number' && isNaN(value)) ||
             isIgnored) {
+            return show;
+        }
+
+        if (currentKey === 'exactly_dated') {
+            if (value === true) {
+                show.push({
+                    key: currentKey,
+                    value: [{ name: 'Yes' }],
+                    label,
+                    type: 'boolean',
+                });
+            }
             return show;
         }
         if (currentKey.endsWith('_op')) {
@@ -169,6 +189,8 @@ export function useSearchFields(model, schema, fields, aggregation, {
     function deleteActiveFilter({ key, valueIndex }, onValidated) {
         if (key === 'year_from' || key === 'year_to') {
             model.value[key] = undefined;
+        } else if (key === 'exactly_dated') {
+            model.value[key] = false;
         } else if (valueIndex === -1) {
             model.value[key] = 'or';
         } else if (valueIndex === -2) {

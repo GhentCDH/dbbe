@@ -98,7 +98,7 @@ const schema = reactive({
     privateComment: {
       type: 'textArea',
       styleClasses: 'has-warning',
-      label: 'Private comment',
+      label: 'Internal comment',
       labelClasses: 'control-label',
       model: 'privateComment',
       rows: 4,
