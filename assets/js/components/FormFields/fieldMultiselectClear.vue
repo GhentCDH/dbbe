@@ -325,6 +325,7 @@ function onEscStopPrevent() {
 // Expose methods that might be called from parent
 defineExpose({
   validate,
-  clearValidationErrors
+  clearValidationErrors,
+  schema: props.schema
 });
 </script>

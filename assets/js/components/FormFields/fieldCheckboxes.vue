@@ -361,7 +361,8 @@ function formatValueToModel(val) {
 
 defineExpose({
   validate,
-  clearValidationErrors
+  clearValidationErrors,
+  schema: props.schema
 });
 </script>
 
