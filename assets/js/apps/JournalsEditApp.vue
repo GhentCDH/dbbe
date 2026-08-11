@@ -42,7 +42,6 @@
       <UrlPanel
           v-if="submitModel.journal"
           id="urls"
-          ref="urls"
           header="Urls"
           v-slot:extra
           :model="submitModel.journal"
@@ -58,7 +57,7 @@
         :original-merge-model="originalMergeModel"
         :alerts="mergeAlerts"
         @cancel="cancelMerge"
-        @reset="resetMerge"
+        @reset="resetMerge(mergeModel)"
         @confirm="submitMerge"
         @dismiss-alert="mergeAlerts.splice($event, 1)"
     >

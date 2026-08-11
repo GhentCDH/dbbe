@@ -15,16 +15,13 @@
     </panel>
 </template>
 <script>
-import Vue from 'vue';
 import {
   createMultiSelect, disableFields, enableFields,
   removeGreekAccents
 } from '@/helpers/formFieldUtils';
-import Panel from '../Panel'
 import validatorUtil from "@/helpers/validatorUtil";
 import {calcChanges} from "@/helpers/modelChangeUtil";
 
-Vue.component('panel', Panel);
 
 validatorUtil.name = function(value, field, model) {
     if (

@@ -1,24 +1,26 @@
 import GenresEditApp from '@/apps/GenresEditApp'
-import VueFormGenerator from 'vue-form-generator'
-import Vue from 'vue';
+import VueFormGenerator from 'vue3-form-generator-legacy'
+import { createApp } from 'vue';
 import VueMultiselect from 'vue-multiselect';
 import fieldMultiselectClear from '@/components/FormFields/fieldMultiselectClear.vue';
 import * as uiv from 'uiv';
-
-Vue.use(uiv);
-Vue.component('multiselect', VueMultiselect);
-Vue.component('field-multiselect', fieldMultiselectClear);
-Vue.use(VueFormGenerator);
-// Patch Vue.prototype.$emit to log all emitted events with their arguments
-const originalEmit = Vue.prototype.$emit;
-
-Vue.prototype.$emit = function(event, ...args) {
-    return originalEmit.apply(this, [event, ...args]);
-};
-
-new Vue({
+const app = createApp({
     el: '#genres-edit-app',
     components: {
         GenresEditApp
     }
-})
+});
+
+
+app.use(uiv);
+app.component('multiselect', VueMultiselect);
+app.component('field-multiselect', fieldMultiselectClear);
+app.use(VueFormGenerator);
+app.config.globalProperties.$emit = function (event, ...args) {
+    console.log('Emitted event:', event, 'Args:', args)
+    if (this.$.emit) {
+        return this.$.emit(event, ...args)
+    }
+}
+app.component('FieldMultiselectClear', fieldMultiselectClear)
+app.mount('#genres-edit-app');

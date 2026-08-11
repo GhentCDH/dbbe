@@ -33,8 +33,14 @@
         :submit-model="submitModel"
         :original-submit-model="originalSubmitModel"
         :alerts="editAlerts"
-        @cancel="cancelEdit"
-        @reset="resetEdit(submitModel)"
+        @cancel="() => {
+          cancelEdit(submitModel);
+          $nextTick(() => editRef?.validate());
+        }"
+        @reset="() => {
+          resetEdit(submitModel);
+          $nextTick(() => editRef?.validate());
+        }"
         @confirm="submitEdit"
         @dismiss-alert="editAlerts.splice($event, 1)"
         ref="editRef"
@@ -47,13 +53,13 @@
         :original-merge-model="originalMergeModel"
         :alerts="mergeAlerts"
         @cancel="cancelMerge"
-        @reset="resetMerge"
+        @reset="resetMerge(mergeModel)"
         @confirm="submitMerge"
         @dismiss-alert="mergeAlerts.splice($event, 1)"
     >
+      <template #preview>
       <table
           v-if="mergeModel.primary && mergeModel.secondary"
-          slot="preview"
           class="table table-striped table-hover"
       >
         <thead>
@@ -69,6 +75,7 @@
         </tr>
         </tbody>
       </table>
+      </template>
     </Merge>
 
     <Delete
@@ -86,7 +93,7 @@
 <script setup>
 import { reactive, computed, watch, onMounted, ref, nextTick } from 'vue'
 import axios from 'axios'
-import VueFormGenerator from 'vue-form-generator'
+import VueFormGenerator from 'vue3-form-generator-legacy'
 
 import Edit from '@/components/Edit/Modals/Edit.vue'
 import Merge from '@/components/Edit/Modals/Merge.vue'
@@ -207,14 +214,11 @@ if (!values.value) {
   values.value = offices.value
 }
 
-// Watchers with guards to prevent infinite loops
 watch(() => model.office, (newOffice, oldOffice) => {
-  // Prevent unnecessary updates if values are the same
   if (JSON.stringify(newOffice) === JSON.stringify(oldOffice)) {
     return
   }
 
-  // Set full parent, so the name can be formatted correctly
   if (newOffice != null && newOffice.parent != null) {
     const safeValues = Array.isArray(values.value) ? values.value : Object.values(values.value || {})
     const fullParent = safeValues.find((officeWithParents) => officeWithParents.id === newOffice.parent.id)
@@ -225,7 +229,6 @@ watch(() => model.office, (newOffice, oldOffice) => {
 })
 
 watch(() => submitModel.office?.individualName, (newName, oldName) => {
-  // Prevent unnecessary updates
   if (newName === oldName) return
 
   if (newName === '' && originalSubmitModel.office?.individualName == null) {
@@ -234,10 +237,8 @@ watch(() => submitModel.office?.individualName, (newName, oldName) => {
 })
 
 watch(values, (newValues, oldValues) => {
-  // Prevent update during our own update process
   if (isUpdating.value) return
 
-  // Only update if values actually changed
   if (JSON.stringify(newValues) === JSON.stringify(oldValues)) return
 
   const safeValues = Array.isArray(newValues) ? newValues : Object.values(newValues || {})
@@ -245,7 +246,6 @@ watch(values, (newValues, oldValues) => {
 }, { immediate: true, deep: true })
 
 onMounted(() => {
-  // Ensure values are set and schema is initialized
   if (!values.value || values.value.length === 0) {
     values.value = offices.value
   }

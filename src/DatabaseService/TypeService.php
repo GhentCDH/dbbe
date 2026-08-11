@@ -921,6 +921,11 @@ class TypeService extends PoemService
                     $id,
                 ]
             );
+            $this->conn->executeUpdate(
+                'DELETE from data.document_acknowledgement
+                where iddocument = ?',
+                [$id]
+            );
             $delete = $this->conn->executeUpdate(
                 'DELETE from data.document
                 where document.identity = ?',

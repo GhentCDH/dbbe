@@ -4,7 +4,7 @@
     <tr>
       <slot name="actionsPreRowHeader">
       </slot>
-      <th v-for="field in fieldData" :key="field.key" :class="getFieldHeaderClass(field)" @click="changeSort(field)">
+      <th v-for="field in fieldData" :key="field.key" :class="getFieldHeaderClass(field)" @click.native="changeSort(field)">
         <div class="b-header-content">
           <span class="b-heading-label">{{ field.label }}</span>
           <template v-if="field.sortable">

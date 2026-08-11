@@ -19,7 +19,7 @@
       <li v-for="(item, index) in items" :key="index" class="dropdown-item d-flex justify-content-evenly align-items-center">
         <slot name="preItem" :item="item" :index="index"></slot>
         <slot name="item" :item="item" :index="index">
-          <span @click="itemClicked(index)">{{ item }}</span>
+          <span @click.native="itemClicked(index)">{{ item }}</span>
         </slot>
         <slot name="postItem" :item="item" :index="index"></slot>
       </li>

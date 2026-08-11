@@ -1,18 +1,20 @@
-import Vue from 'vue';
+import { createApp } from 'vue';
 import StatusesEditApp from '@/apps/StatusesEditApp'
-import VueFormGenerator from 'vue-form-generator'
+import VueFormGenerator from 'vue3-form-generator-legacy'
 import VueMultiselect from 'vue-multiselect';
 import fieldMultiselectClear from '@/components/FormFields/fieldMultiselectClear.vue';
 import * as uiv from 'uiv';
-
-Vue.use(uiv);
-Vue.component('multiselect', VueMultiselect);
-Vue.component('field-multiselect', fieldMultiselectClear);
-Vue.use(VueFormGenerator);
-
-new Vue({
+const app = createApp({
     el: '#statuses-edit-app',
     components: {
         StatusesEditApp
     }
-})
+});
+
+
+app.use(uiv);
+app.component('multiselect', VueMultiselect);
+app.component('field-multiselect', fieldMultiselectClear);
+app.use(VueFormGenerator);
+app.component('FieldMultiselectClear', fieldMultiselectClear)
+app.mount('#statuses-edit-app');

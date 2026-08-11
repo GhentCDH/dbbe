@@ -178,7 +178,7 @@
       <btn
           id="actions"
           type="warning"
-          :disabled="data.clone ? JSON.stringify(originalModel) !== JSON.stringify(model) : diff.length === 0"
+          :disabled="data.clone ? JSON.stringify(originalModel) === JSON.stringify(model) : diff.length === 0"
           @click="resetModal = true"
       >
         Reset
@@ -187,7 +187,7 @@
           v-if="type"
           type="success"
           :disabled="(diff.length === 0)"
-          @click="saveButton()"
+          @click.native="saveButton()"
       >
         Save changes
       </btn>
@@ -195,7 +195,7 @@
           v-else
           type="success"
           :disabled="(diff.length === 0)"
-          @click="saveButton()"
+          @click.native="saveButton()"
       >
         Save
       </btn>
@@ -1005,8 +1005,8 @@ const reloadSimpleItems = (reloadType,items) => {
   reloadItems(
       reloadType,
       [reloadType],
-      [items], // Note: Using eval as in original - consider a better approach
-      urls[reloadType.split(/(?=[A-Z])/).join('_').toLowerCase() + '_get'] // convert camel case to snake case
+      [items],
+      urls[reloadType.split(/(?=[A-Z])/).join('_').toLowerCase() + '_get']
   )
 }
 

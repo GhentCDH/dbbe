@@ -10,7 +10,7 @@
             <div class="pbottom-default">
                 <btn
                     class="action"
-                    @click="edit()"
+                    @click.native="edit()"
                 >
                     <i class="fa fa-plus" /> Add a new news item or event
                 </btn>
@@ -72,7 +72,7 @@
             </draggable>
             <btn
                 :disabled="JSON.stringify(data) === JSON.stringify(originalData) || saveDisabled"
-                @click="save()"
+                @click.native="save()"
             >
                 Save changes
             </btn>
@@ -113,29 +113,29 @@
                     </span>
                 </div>
             </div>
-            <div slot="footer">
-                <btn @click="editModal=false">Cancel</btn>
+          <template #footer>
+                <btn @click.native="editModal=false">Cancel</btn>
                 <btn
                     type="success"
                     :disabled="invalid || submitDisabled"
-                    @click="submit()"
+                    @click.native="submit()"
                 >
                     {{ editModel.index != null ? 'Update' : 'Add' }}
                 </btn>
-            </div>
+          </template>
         </modal>
         <modal v-model="delModal">
             <h6>Are you sure you want to delete "{{ editModel.title }}"</h6>
-            <div slot="footer">
-                <btn @click="delModal=false">Cancel</btn>
+          <template #footer>
+                <btn @click.native="delModal=false">Cancel</btn>
                 <btn
                     type="danger"
                     :disabled="submitDelDisabled"
-                    @click="submitDel()"
+                    @click.native="submitDel()"
                 >
                     Delete
                 </btn>
-            </div>
+          </template>
         </modal>
         <div
             v-if="openRequests"
@@ -148,21 +148,15 @@
 <script>
 import axios from 'axios';
 
-import Vue from 'vue';
-import draggable from 'vuedraggable'
-import * as uiv from 'uiv'
-import VueFormGenerator from 'vue-form-generator'
-import VueCkeditor from 'vue-ckeditor2'
 
+import VueFormGenerator from 'vue3-form-generator-legacy'
+import VueCkeditor from 'vue-ckeditor2'
 import Alerts from '../components/Alerts'
 
-Vue.use(uiv);
-Vue.use(VueFormGenerator);
 
 export default {
     components: {
         'alerts': Alerts,
-        'draggable': draggable,
         'vue-ckeditor': VueCkeditor,
     },
     props: {

@@ -1079,6 +1079,11 @@ class PersonService extends EntityService
                 where factoid.subject_identity = ?',
                 [$id]
             );
+            $this->conn->executeUpdate(
+                'DELETE from data.document_acknowledgement
+                where iddocument = ?',
+                [$id]
+            );
             $delete = $this->conn->executeUpdate(
                 'DELETE from data.person
                 where person.identity = ?',

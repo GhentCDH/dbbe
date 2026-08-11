@@ -10,15 +10,11 @@
     </panel>
 </template>
 <script>
-import Vue from 'vue';
 
-
-import Panel from '../Panel'
 import {calcChanges} from "@/helpers/modelChangeUtil";
 import {disableFields, enableFields} from "@/helpers/formFieldUtils";
 import validatorUtil from "@/helpers/validatorUtil";
 
-Vue.component('panel', Panel)
 
 export default {
   props: {
