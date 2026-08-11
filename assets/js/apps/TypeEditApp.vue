@@ -178,7 +178,7 @@
       <btn
           id="actions"
           type="warning"
-          :disabled="data.clone ? JSON.stringify(originalModel) !== JSON.stringify(model) : diff.length === 0"
+          :disabled="data.clone ? JSON.stringify(originalModel) === JSON.stringify(model) : diff.length === 0"
           @click="resetModal = true"
       >
         Reset
