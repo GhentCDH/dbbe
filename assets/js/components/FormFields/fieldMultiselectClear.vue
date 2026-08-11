@@ -49,7 +49,7 @@
           @mousedown.prevent.stop="props.toggle()"
         )
       template(#option="props") {{ getOptionLabel(props.option) }}
-      span.badge(v-if="props.option.count != null") {{ props.option.count }}
+        span.badge(v-if="props.option.count != null") {{ props.option.count }}
 </template>
 
 <script setup>
