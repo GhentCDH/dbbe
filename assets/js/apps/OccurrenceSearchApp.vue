@@ -771,6 +771,20 @@ const { init, onData, setupCollapsibleLegends, aggregationLoaded } = useSearchSe
   onDataExtend
 }, 'OccurrenceSearchConfig');
 
+const urlInitialized = ref(false);
+
+watch(
+    () => aggregationLoaded.value,
+    (loaded) => {
+      if (loaded && !urlInitialized.value) {
+        initFromURL(aggregation.value);
+        urlInitialized.value = true;
+        nextTick(() => onValidated(true));
+      }
+    },
+    { immediate: true }
+);
+
 
 watch(() => model.value.management, (newVal) => {
   if (!newVal || (Array.isArray(newVal) && newVal.length === 0)) {
