@@ -1,27 +1,30 @@
 <template>
-    <panel
-        :header="header"
-        :links="links"
-        :reloads="reloads"
-        @reload="reload"
-    >
-        <vue-form-generator
-            ref="form"
-            :schema="schema"
-            :model="model"
-            :options="formOptions"
-            @validated="validated"
-        />
-    </panel>
+  <panel
+      :header="header"
+      :links="links"
+      :reloads="reloads"
+      @reload="reload"
+  >
+    <vue-form-generator
+        ref="form"
+        :schema="schema"
+        :model="model"
+        :options="formOptions"
+        @validated="validated"
+        @model-updated="validated"
+    />
+
+  </panel>
 </template>
 <script>
 import {
   createMultiSelect, disableFields, enableFields,
   removeGreekAccents
 } from '@/helpers/formFieldUtils';
+import Panel from '../Panel'
 import validatorUtil from "@/helpers/validatorUtil";
 import {calcChanges} from "@/helpers/modelChangeUtil";
-
+import alternativeNameField from "../../FormFields/alternativeNameField.vue"
 
 validatorUtil.name = function(value, field, model) {
     if (
@@ -115,6 +118,11 @@ export default {
                         labelClasses: 'control-label',
                         model: 'lastName',
                         validator: [validatorUtil.string, validatorUtil.name],
+                    },
+                    alternativeNames: {
+                      type: 'alternativeNames',
+                      label: 'Alternative Names',
+                      model: 'alternativeNames',
                     },
                     selfDesignations: createMultiSelect(
                         '(Self) designation',

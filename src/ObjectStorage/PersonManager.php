@@ -80,6 +80,11 @@ class PersonManager extends ObjectEntityManager
                     }
                 }
             }
+            if (!empty($rawPerson['alternative_names'])) {
+                $altNames = json_decode($rawPerson['alternative_names'], true);
+                $altNames = array_map(fn($alt) => array_merge($alt, ['alternative' => true]), $altNames);
+                $person->setAlternativeNames($altNames);
+            }
             $person->sortAttestedDatesAndIntervals();
 
             $persons[$rawPerson['person_id']] = $person;
@@ -642,6 +647,44 @@ class PersonManager extends ObjectEntityManager
                 $changes['mini'] = true;
                 $this->dbs->updateLastName($id, $data->lastName);
             }
+            if (property_exists($data, 'alternativeNames')) {
+                if (!is_array($data->alternativeNames)) {
+                    throw new BadRequestHttpException('Incorrect alternativeNames data.');
+                }
+
+                foreach ($data->alternativeNames as $alternativeName) {
+                    if (!is_object($alternativeName)) {
+                        throw new BadRequestHttpException('Each alternative name must be an object.');
+                    }
+
+                    if (
+                        !property_exists($alternativeName, 'firstName') ||
+                        !is_string($alternativeName->firstName)
+                    ) {
+                        throw new BadRequestHttpException('Incorrect alternative first name data.');
+                    }
+
+                    if (
+                        !property_exists($alternativeName, 'lastName') ||
+                        !is_string($alternativeName->lastName)
+                    ) {
+                        throw new BadRequestHttpException('Incorrect alternative last name data.');
+                    }
+
+                }
+                $this->dbs->deleteAlternativeNames($id);
+                foreach ($data->alternativeNames as $alternativeName) {
+                    $this->dbs->updateAlternativeName(
+                        $id,
+                        $alternativeName->firstName,
+                        $alternativeName->lastName
+                    );
+                }
+
+                $changes['mini'] = true;
+            }
+
+
             if (property_exists($data, 'selfDesignations')) {
                 if (!is_array($data->selfDesignations)) {
                     throw new BadRequestHttpException('Incorrect self designation data.');

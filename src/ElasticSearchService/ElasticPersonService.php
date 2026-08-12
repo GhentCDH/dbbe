@@ -39,6 +39,9 @@ class ElasticPersonService extends ElasticEntityService
                     ],
                 ],
             ],
+            'alternative_name' => [
+                'type' => 'text',
+            ],
             'role' => ['type' => 'nested'],
             'self_designation' => ['type' => 'nested'],
             'office' => ['type' => 'nested'],
@@ -219,6 +222,17 @@ class ElasticPersonService extends ElasticEntityService
                     }
                     break;
                 case 'name':
+                    $result['multiple_text'][$key] = [
+                        'name' => [
+                            'text' => $value,
+                            'combination' => 'any',
+                        ],
+                        'alternative_name' => [
+                            'text' => $value,
+                            'combination' => 'any',
+                        ],
+                    ];
+                    break;
                 case 'public_comment':
                     $result['text'][$key] = [
                         'text' => $value,

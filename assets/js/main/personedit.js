@@ -5,6 +5,7 @@ import VueFormGenerator from 'vue3-form-generator-legacy'
 import fieldMultiselectClear from '@/components/FormFields/fieldMultiselectClear.vue';
 import VueMultiselect from 'vue-multiselect';
 import Panel from "@/components/Edit/Panel.vue";
+import alternativeNameField from "@/components/FormFields/alternativeNameField.vue";
 const app = createApp({
     el: '#person-edit-app',
     components: {
@@ -18,4 +19,5 @@ app.use(VueFormGenerator);
 app.component('field-multiselectClear', fieldMultiselectClear)
 app.component('multiselect', VueMultiselect);
 app.component('panel',Panel);
+app.component('field-alternativeNames', alternativeNameField)
 app.mount('#person-edit-app');

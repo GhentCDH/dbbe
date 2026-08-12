@@ -282,6 +282,7 @@ const model = reactive({
   basic: {
     firstName: null,
     lastName: null,
+    alternativeNames:[],
     selfDesignations: [],
     offices: [],
     origin: null,
@@ -380,6 +381,7 @@ const setData = () => {
     model.basic = {
       firstName: person.value.firstName,
       lastName: person.value.lastName,
+      alternativeNames: person.value.alternativeNames ?? [],
       selfDesignations: person.value.selfDesignations,
       offices: person.value.officesWithParents,
       origin: person.value.origin,
