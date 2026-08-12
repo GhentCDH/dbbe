@@ -1,10 +1,3 @@
---
--- PostgreSQL database dump
---
-
--- Dumped from database version 16.1 (Debian 16.1-1.pgdg120+1)
--- Dumped by pg_dump version 16.1 (Debian 16.1-1.pgdg120+1)
-
 SET statement_timeout = 0;
 SET lock_timeout = 0;
 SET idle_in_transaction_session_timeout = 0;
@@ -15,11 +8,6 @@ SET check_function_bodies = false;
 SET xmloption = content;
 SET client_min_messages = warning;
 SET row_security = off;
-
---
--- Data for Name: factoid_type; Type: TABLE DATA; Schema: data; Owner: -
---
-
 COPY data.factoid_type (description, "group", idfactoid_type, type, idinverse) FROM stdin;
 \N	\N	1	completed at	\N
 \N	\N	2	reconstruction of	\N
@@ -42,11 +30,6 @@ COPY data.factoid_type (description, "group", idfactoid_type, type, idinverse) F
 \N	reconstructed_poem_related_to_reconstructed_poem	12	Is part of	16
 \N	reconstructed_poem_related_to_reconstructed_poem	16	Consists of	12
 \.
-
-
---
--- Data for Name: genre; Type: TABLE DATA; Schema: data; Owner: -
---
 
 COPY data.genre (idgenre, idparentgenre, genre, description, is_content, idperson) FROM stdin;
 1	\N	DBBE system	This genre was created to group all original "poem genres".	\N	\N
@@ -149,11 +132,6 @@ COPY data.genre (idgenre, idparentgenre, genre, description, is_content, idperso
 276	36	Psaltikon	\N	t	\N
 \.
 
-
---
--- Data for Name: identifier; Type: TABLE DATA; Schema: data; Owner: -
---
-
 COPY data.identifier (ididentifier, type, system_name, name, ids, regex, description, is_primary, "order", link, created, modified, extra, link_type, extra_required) FROM stdin;
 9	{type}	ptb	Paratexts of the Bible (Pinakes)	{4}	^[\\d]+$	E.g., "17761" (without quotes)	t	2	https://pinakes.irht.cnrs.fr/notices/oeuvre/	2019-05-15 11:49:44.269431+00	2019-05-15 11:49:44.269431+00	f	online_source	f
 16	{manuscript}	manuscripta_biblica	Paratexts of the Bible (manuscripta biblica)	{31754}	^[\\d]+$	E.g., "16302" (without quotes)	f	1	https://www.manuscripta-biblica.org/manuscript/?diktyon=	2020-09-01 12:02:08.88674+00	2020-09-01 12:02:08.88674+00	f	online_source	f
@@ -173,11 +151,6 @@ COPY data.identifier (ididentifier, type, system_name, name, ids, regex, descrip
 6	{manuscript}	diktyon	Diktyon (Pinakes)	{1}	^[\\d]+$	E.g., "16302" (without quotes)	t	0	https://pinakes.irht.cnrs.fr/notices/cote/	2019-05-15 11:49:44.269431+00	2019-05-15 11:49:44.269431+00	f	online_source	f
 17	{person}	pinakes_person	Pinakes (Person)	{11538}	^(CPA|A|S)\\.\\d{1,5}$	Use <b>CPA.111</b> for copiste, possesseur et autre, use <b>A.111</b> for auteur and use <b>S.111</b> for saints.	t	6	\N	2025-04-01 09:21:02.820344+00	2025-04-01 09:21:02.820344+00	f	online_source	f
 \.
-
-
---
--- Data for Name: language; Type: TABLE DATA; Schema: data; Owner: -
---
 
 COPY data.language (idlanguage, name, code, description) FROM stdin;
 1	Unknown	?	This should not be present but is used during migration / data cleanup.
@@ -199,11 +172,6 @@ COPY data.language (idlanguage, name, code, description) FROM stdin;
 17	Hungarian	HU	\N
 \.
 
-
---
--- Data for Name: meter; Type: TABLE DATA; Schema: data; Owner: -
---
-
 COPY data.meter (idmeter, name) FROM stdin;
 1	Dodecasyllable
 2	Dactylic hexameter
@@ -218,11 +186,6 @@ COPY data.meter (idmeter, name) FROM stdin;
 11	Heptasyllable
 \.
 
-
---
--- Data for Name: occupation; Type: TABLE DATA; Schema: data; Owner: -
---
-
 COPY data.occupation (idoccupation, occupation, created, modified, idparentoccupation, idregion) FROM stdin;
 57781	anagnostes	2010-11-08 11:24:48+00	2019-05-15 11:49:44.269431+00	\N	\N
 57782	monachos	2010-11-08 13:40:08+00	2019-05-15 11:49:44.269431+00	\N	\N
@@ -230,22 +193,12 @@ COPY data.occupation (idoccupation, occupation, created, modified, idparentoccup
 57784	proximos scholes parthenou	2010-11-09 11:41:47+00	2019-05-15 11:49:44.269431+00	\N	\N
 \.
 
-
---
--- Data for Name: reference_type; Type: TABLE DATA; Schema: data; Owner: -
---
-
 COPY data.reference_type (idreference_type, type) FROM stdin;
 1	Text source
 2	Primary source
 3	Secondary source
 4	To be revised
 \.
-
-
---
--- Data for Name: role; Type: TABLE DATA; Schema: data; Owner: -
---
 
 COPY data.role (idrole, type, system_name, name, created, modified, is_contributor_role, has_rank, "order") FROM stdin;
 3	{manuscript,occurrence}	patron	Patron	2019-05-15 11:49:44.269431+00	2019-05-15 11:49:44.269431+00	f	f	\N
@@ -263,11 +216,6 @@ COPY data.role (idrole, type, system_name, name, created, modified, is_contribut
 13	{manuscript}	illuminator	Illuminator	2024-12-09 08:45:37.796397+00	2024-12-09 08:45:37.796397+00	f	f	\N
 \.
 
-
---
--- Data for Name: self_designation; Type: TABLE DATA; Schema: data; Owner: -
---
-
 COPY data.self_designation (id, name) FROM stdin;
 3	μέγας δούξ
 5	διάκονος
@@ -279,11 +227,6 @@ COPY data.self_designation (id, name) FROM stdin;
 9	ἀρχιθύτης
 10	ἄρχων
 \.
-
-
---
--- Data for Name: status; Type: TABLE DATA; Schema: data; Owner: -
---
 
 COPY data.status (idstatus, status, type) FROM stdin;
 1	Autopsy of the manuscript	occurrence_source
@@ -303,97 +246,30 @@ COPY data.status (idstatus, status, type) FROM stdin;
 24	Manuscript has been viewed	occurrence_record
 \.
 
-
---
--- Data for Name: transliterationsystem; Type: TABLE DATA; Schema: data; Owner: -
---
-
 COPY data.transliterationsystem (idtransliterationsystem, name) FROM stdin;
 \.
 
-
---
--- Name: factoid_type_idfactoid_type_seq; Type: SEQUENCE SET; Schema: data; Owner: -
---
-
 SELECT pg_catalog.setval('data.factoid_type_idfactoid_type_seq', 23, true);
-
-
---
--- Name: genre_idgenre_seq; Type: SEQUENCE SET; Schema: data; Owner: -
---
 
 SELECT pg_catalog.setval('data.genre_idgenre_seq', 297, true);
 
-
---
--- Name: identifier_ididentifier_seq; Type: SEQUENCE SET; Schema: data; Owner: -
---
-
 SELECT pg_catalog.setval('data.identifier_ididentifier_seq', 17, true);
-
-
---
--- Name: language_idlanguage_seq; Type: SEQUENCE SET; Schema: data; Owner: -
---
 
 SELECT pg_catalog.setval('data.language_idlanguage_seq', 17, true);
 
-
---
--- Name: meter_idmeter_seq; Type: SEQUENCE SET; Schema: data; Owner: -
---
-
 SELECT pg_catalog.setval('data.meter_idmeter_seq', 13, true);
-
-
---
--- Name: occupation_idoccupation_seq; Type: SEQUENCE SET; Schema: data; Owner: -
---
 
 SELECT pg_catalog.setval('data.occupation_idoccupation_seq', 58229, true);
 
-
---
--- Name: reference_type_idreference_type_seq; Type: SEQUENCE SET; Schema: data; Owner: -
---
-
 SELECT pg_catalog.setval('data.reference_type_idreference_type_seq', 4, true);
-
-
---
--- Name: role_idrole_seq; Type: SEQUENCE SET; Schema: data; Owner: -
---
 
 SELECT pg_catalog.setval('data.role_idrole_seq', 13, true);
 
-
---
--- Name: self_designation_id_seq; Type: SEQUENCE SET; Schema: data; Owner: -
---
-
 SELECT pg_catalog.setval('data.self_designation_id_seq', 331, true);
-
-
---
--- Name: status_idstatus_seq; Type: SEQUENCE SET; Schema: data; Owner: -
---
 
 SELECT pg_catalog.setval('data.status_idstatus_seq', 28, true);
 
-
---
--- Name: transliterationsystem_idtransliterationsystem_seq; Type: SEQUENCE SET; Schema: data; Owner: -
---
-
 SELECT pg_catalog.setval('data.transliterationsystem_idtransliterationsystem_seq', 1, false);
-
-
---
--- Synthetic data: acknowledgement, management
--- (the real tables carry real contributors' names / internal workflow
--- labels, so these are hand-written placeholders instead of a data dump)
---
 
 COPY data.acknowledgement (id, acknowledgement) FROM stdin;
 1	Information on the type courtesy of Test Scholar.
@@ -409,8 +285,163 @@ COPY data.management (id, name) FROM stdin;
 
 SELECT pg_catalog.setval('data.management_id_seq', 2, true);
 
+SET search_path TO data;
 
---
--- PostgreSQL database dump complete
---
+INSERT INTO region (name, is_city) VALUES ('Testland', false) RETURNING identity \gset region_country_
+INSERT INTO region (name, is_city, parent_idregion) VALUES ('Testville', true, :region_country_identity) RETURNING identity \gset region_city_
 
+INSERT INTO institution (idregion, name, name_abbreviated) VALUES (:region_city_identity, 'Test National Library', 'TNL') RETURNING identity \gset institution_
+INSERT INTO library (identity) VALUES (:institution_identity);
+
+SELECT idlocation FROM location WHERE idinstitution = :institution_identity \gset library_location_
+
+
+INSERT INTO person (is_historical, is_modern, is_dbbe) VALUES (true, false, false) RETURNING identity \gset person_author_
+INSERT INTO name (idperson, first_name, last_name, is_primary) VALUES (:person_author_identity, 'Ioannes', 'Testopoulos', true);
+
+INSERT INTO person (is_historical, is_modern, is_dbbe) VALUES (true, false, false) RETURNING identity \gset person_scribe_
+INSERT INTO name (idperson, first_name, last_name, is_primary) VALUES (:person_scribe_identity, 'Nikolaos', 'Grapheus', true);
+
+
+INSERT INTO manuscript DEFAULT VALUES RETURNING identity \gset manuscript_
+
+INSERT INTO document_title (iddocument, idlanguage, title)
+SELECT :manuscript_identity, idlanguage, 'Testville, Test National Library, Test MS 1'
+FROM language WHERE name = 'Unknown';
+
+INSERT INTO located_at (iddocument, idlocation, identification)
+VALUES (:manuscript_identity, :library_location_idlocation, 'Test MS 1');
+
+INSERT INTO bibrole (idperson, iddocument, idrole)
+SELECT :person_scribe_identity, :manuscript_identity, idrole FROM role WHERE system_name = 'scribe';
+
+INSERT INTO document_status (iddocument, idstatus)
+SELECT :manuscript_identity, idstatus FROM status WHERE status = 'consulted on-site' AND type = 'manuscript';
+
+INSERT INTO entity_management (identity, idmanagement) VALUES (:manuscript_identity, 1);
+
+
+INSERT INTO original_poem DEFAULT VALUES RETURNING identity \gset occurrence_
+
+UPDATE poem SET incipit = 'Χαῖρε τέκνον, χαῖρε καλὸν φῶς', verses = 4 WHERE identity = :occurrence_identity;
+
+INSERT INTO original_poem_verse (idoriginal_poem, verse, "order") VALUES
+                                                                      (:occurrence_identity, 'Χαῖρε τέκνον, χαῖρε καλὸν φῶς ἐμοῖς ὀφθαλμοῖς', 1),
+                                                                      (:occurrence_identity, 'ὃν ἡ φύσις ἐκόσμησε κάλλει καὶ χάριτι', 2),
+                                                                      (:occurrence_identity, 'σοφίᾳ τε καὶ λόγῳ καὶ πάσῃ ἀρετῇ', 3),
+                                                                      (:occurrence_identity, 'εὐλογημένος εἴης εἰς αἰῶνας ἀμήν', 4);
+
+INSERT INTO document_title (iddocument, idlanguage, title)
+SELECT :occurrence_identity, idlanguage, 'Test epigram on a benefactor'
+FROM language WHERE name = 'Unknown';
+
+INSERT INTO document_genre (iddocument, idgenre)
+SELECT :occurrence_identity, idgenre FROM genre WHERE genre = 'Author-related epigram';
+
+INSERT INTO poem_meter (idpoem, idmeter)
+SELECT :occurrence_identity, idmeter FROM meter WHERE name = 'Dodecasyllable';
+
+INSERT INTO bibrole (idperson, iddocument, idrole)
+SELECT :person_author_identity, :occurrence_identity, idrole FROM role WHERE system_name = 'author';
+
+INSERT INTO document_contains (idcontainer, idcontent, page_start, page_end)
+VALUES (:manuscript_identity, :occurrence_identity, '1r', '1v');
+
+INSERT INTO document_status (iddocument, idstatus)
+SELECT :occurrence_identity, idstatus FROM status WHERE status = 'Text completely known' AND type = 'occurrence_text';
+
+INSERT INTO document_acknowledgement (iddocument, idacknowledgement) VALUES (:occurrence_identity, 1);
+
+INSERT INTO entity_management (identity, idmanagement) VALUES (:occurrence_identity, 1);
+
+
+INSERT INTO reconstructed_poem DEFAULT VALUES RETURNING identity \gset type_
+
+UPDATE poem SET incipit = 'Χαῖρε τέκνον, χαῖρε καλὸν φῶς', verses = 4 WHERE identity = :type_identity;
+
+INSERT INTO document_title (iddocument, idlanguage, title)
+SELECT :type_identity, idlanguage, 'Test epigram on a benefactor (reconstructed)'
+FROM language WHERE name = 'Unknown';
+
+INSERT INTO document_genre (iddocument, idgenre)
+SELECT :type_identity, idgenre FROM genre WHERE genre = 'Author-related epigram';
+
+INSERT INTO poem_meter (idpoem, idmeter)
+SELECT :type_identity, idmeter FROM meter WHERE name = 'Dodecasyllable';
+
+INSERT INTO document_status (iddocument, idstatus)
+SELECT :type_identity, idstatus FROM status WHERE status = 'Critical text' AND type = 'type_critical';
+
+INSERT INTO entity_management (identity, idmanagement) VALUES (:type_identity, 1);
+
+INSERT INTO factoid (subject_identity, object_identity, idfactoid_type)
+SELECT :type_identity, :occurrence_identity, idfactoid_type FROM factoid_type WHERE type = 'based on';
+
+SET search_path TO data;
+
+SELECT p.identity FROM person p JOIN name n ON n.idperson = p.identity WHERE n.last_name = 'Testopoulos' \gset person_author_
+
+INSERT INTO keyword (keyword, is_subject) VALUES ('test subject keyword', true);
+INSERT INTO keyword (keyword, is_subject) VALUES ('another test subject keyword', true);
+INSERT INTO keyword (keyword, is_subject) VALUES ('test tag', false);
+INSERT INTO keyword (keyword, is_subject) VALUES ('another test tag', false);
+
+INSERT INTO journal DEFAULT VALUES RETURNING identity \gset journal_
+INSERT INTO document_title (iddocument, idlanguage, title)
+SELECT :journal_identity, idlanguage, 'Test Journal of Byzantine Studies' FROM language WHERE name = 'Unknown';
+
+INSERT INTO journal_issue (idjournal, year, volume) VALUES (:journal_identity, '2020', '1') RETURNING identity \gset journal_issue_
+INSERT INTO document_title (iddocument, idlanguage, title)
+SELECT :journal_issue_identity, idlanguage, 'Test Journal of Byzantine Studies, vol. 1' FROM language WHERE name = 'Unknown';
+
+INSERT INTO article DEFAULT VALUES RETURNING identity \gset article_
+INSERT INTO document_title (iddocument, idlanguage, title)
+SELECT :article_identity, idlanguage, 'A test article about a test epigram' FROM language WHERE name = 'Unknown';
+INSERT INTO document_contains (idcontainer, idcontent, page_start, page_end)
+VALUES (:journal_issue_identity, :article_identity, '1', '10');
+INSERT INTO bibrole (idperson, iddocument, idrole)
+SELECT :person_author_identity, :article_identity, idrole FROM role WHERE system_name = 'author';
+
+INSERT INTO book (city, year) VALUES ('Testville', 2020) RETURNING identity \gset book_
+INSERT INTO document_title (iddocument, idlanguage, title)
+SELECT :book_identity, idlanguage, 'A Test Book on Byzantine Epigrams' FROM language WHERE name = 'Unknown';
+INSERT INTO bibrole (idperson, iddocument, idrole)
+SELECT :person_author_identity, :book_identity, idrole FROM role WHERE system_name = 'author';
+
+INSERT INTO bookchapter DEFAULT VALUES RETURNING identity \gset bookchapter_
+INSERT INTO document_title (iddocument, idlanguage, title)
+SELECT :bookchapter_identity, idlanguage, 'A test chapter about a test epigram' FROM language WHERE name = 'Unknown';
+INSERT INTO document_contains (idcontainer, idcontent, page_start, page_end)
+VALUES (:book_identity, :bookchapter_identity, '11', '20');
+INSERT INTO bibrole (idperson, iddocument, idrole)
+SELECT :person_author_identity, :bookchapter_identity, idrole FROM role WHERE system_name = 'author';
+
+INSERT INTO institution (name) VALUES ('Test Online Source') RETURNING identity \gset online_source_
+INSERT INTO online_source (identity, url) VALUES (:online_source_identity, 'https://example.invalid/test');
+
+INSERT INTO blog (url) VALUES ('https://example.invalid/test-blog') RETURNING identity \gset blog_
+INSERT INTO document_title (iddocument, idlanguage, title)
+SELECT :blog_identity, idlanguage, 'A Test Blog on Byzantine Epigrams' FROM language WHERE name = 'Unknown';
+
+INSERT INTO blog_post (url, post_date) VALUES ('https://example.invalid/test-blog/post-1', '2020-01-01') RETURNING identity \gset blog_post_
+INSERT INTO document_title (iddocument, idlanguage, title)
+SELECT :blog_post_identity, idlanguage, 'A test post about a test epigram' FROM language WHERE name = 'Unknown';
+INSERT INTO document_contains (idcontainer, idcontent)
+VALUES (:blog_identity, :blog_post_identity);
+INSERT INTO bibrole (idperson, iddocument, idrole)
+SELECT :person_author_identity, :blog_post_identity, idrole FROM role WHERE system_name = 'author';
+
+INSERT INTO phd (city, year) VALUES ('Testville', 2020) RETURNING identity \gset phd_
+INSERT INTO document_title (iddocument, idlanguage, title)
+SELECT :phd_identity, idlanguage, 'A Test PhD Thesis on Byzantine Epigrams' FROM language WHERE name = 'Unknown';
+INSERT INTO bibrole (idperson, iddocument, idrole)
+SELECT :person_author_identity, :phd_identity, idrole FROM role WHERE system_name = 'author';
+
+INSERT INTO bib_varia (year, city) VALUES (2020, 'Testville') RETURNING identity \gset bib_varia_
+INSERT INTO document_title (iddocument, idlanguage, title)
+SELECT :bib_varia_identity, idlanguage, 'A Test Miscellaneous Reference' FROM language WHERE name = 'Unknown';
+INSERT INTO bibrole (idperson, iddocument, idrole)
+SELECT :person_author_identity, :bib_varia_identity, idrole FROM role WHERE system_name = 'author';
+
+INSERT INTO person (is_historical, is_modern, is_dbbe) VALUES (false, true, true) RETURNING identity \gset person_dbbe_
+INSERT INTO name (idperson, first_name, last_name, is_primary) VALUES (:person_dbbe_identity, 'Jane', 'Testerson', true);

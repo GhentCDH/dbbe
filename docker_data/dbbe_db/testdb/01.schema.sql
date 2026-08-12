@@ -24,7 +24,6 @@ CREATE FUNCTION data.delete_entity() RETURNS trigger
     LANGUAGE plpgsql
     AS $$
 BEGIN
-
 	IF OLD.identity IS NOT NULL THEN
 		DELETE FROM entity WHERE identity = OLD.identity;
 	ELSE
@@ -37,38 +36,26 @@ CREATE FUNCTION data.ensure_document_presence() RETURNS trigger
     LANGUAGE plpgsql
     AS $$
 BEGIN
-
 	IF NEW.identity IS NULL THEN
-
 		INSERT INTO document DEFAULT values returning identity into NEW.identity;
-
 	END IF;
-
 	RETURN NEW;
-
 END;$$;
 CREATE FUNCTION data.ensure_entity_presence() RETURNS trigger
     LANGUAGE plpgsql
     AS $$DECLARE
-
 	resultid integer;
 
 BEGIN
-
 	IF NEW.identity IS NULL THEN
-
 		INSERT INTO entity DEFAULT VALUES returning identity into NEW.identity;
-
 	END IF;
-
 	RETURN NEW;
-
 END;$$;
 CREATE FUNCTION data.ensure_fund_has_location() RETURNS trigger
     LANGUAGE plpgsql
     AS $$
 BEGIN
-
 	IF NEW.idfund IS NOT NULL THEN
 
 		INSERT INTO location (idfund) values (NEW.idfund);
@@ -194,97 +181,51 @@ DECLARE
 	res varchar[];
 
 BEGIN
-
 	select into res regexp_matches(inputstring, romannumeralregex);
-
 	result := 1000*length(res[1]);
-
 	IF length(res[2])=0 THEN
-
 	ELSIF res[2] = 'CD' THEN
-
 		result:=result+400;
-
 	ELSIF res[2] = 'CM' THEN
-
 		result:=result+900;
-
 	ELSIF res[2] = 'D' THEN
-
 		result:=result+500;
-
 	ELSIF res[2] ~ 'DC+' THEN
-
 		result:=result+500+(length(res[2])-1)*100;
-
 	ELSIF res[2] ~ 'C+' THEN
-
 		result:=result+(length(res[2])*100);
-
 	ELSE
-
 		RAISE EXCEPTION 'Not a valid roman numeral.';
-
 	END IF;
-
 	IF length(res[3])=0 THEN
-
 	ELSIF res[3] = 'XC' THEN
-
 		result:=result+90;
-
 	ELSIF res[3] = 'XL' THEN
-
 		result:=result+40;
-
 	ELSIF res[3] = 'L' THEN
-
 		result:=result+50;
-
 	ELSIF res[3] ~ 'LX+' THEN
-
 		result:=result+50+10*(length(res[3])-1);
-
 	ELSIF res[3] ~ 'X+' THEN
-
 		result:=result+10*length(res[3]);
-
 	ELSE
-
 		RAISE EXCEPTION 'Not a valid roman numeral.';
-
 	END IF;
-
 	IF length(res[4])=0 THEN
-
 	ELSIF res[4] = 'IX' THEN
-
 		result:=result+9;
-
 	ELSIF res[4] = 'IV' THEN
-
 		result:=result+4;
-
 	ELSIF res[4] = 'V' THEN
-
 		result:=result+5;
-
 	ELSIF res[4] ~ 'VI+' THEN
-
 		result:=result+5+(length(res[4])-1);
-
 	ELSIF res[4] ~ 'I+' THEN
-
 		result:=result+length(res[4]);
-
 	ELSE
-
 		RAISE EXCEPTION 'Not a valid roman numeral.';
-
 	END IF;
-
 	return result;
-
 END;
 
 $_$;
