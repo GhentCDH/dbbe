@@ -269,6 +269,13 @@ export default {
         },
         init() {
           this.originalModel = JSON.parse(JSON.stringify(this.model));
+          if (this.originalModel.alternativeNames) {
+            this.originalModel.alternativeNames.forEach(name => {
+              name.name = [name.firstName, name.lastName]
+                  .filter(Boolean)
+                  .join(' ')
+            })
+          }
           this.enableFields();
         },
         reload(type) {
