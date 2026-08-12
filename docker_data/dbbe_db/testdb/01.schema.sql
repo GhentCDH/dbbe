@@ -1165,6 +1165,7 @@ ALTER TABLE ONLY logic.revision ALTER COLUMN idrevision SET DEFAULT nextval('log
 ALTER TABLE ONLY logic.revision_2019_05_15 ALTER COLUMN idrevision SET DEFAULT nextval('logic.revision_idrevision_seq1'::regclass);
 ALTER TABLE ONLY logic.revision_old ALTER COLUMN idrevision SET DEFAULT nextval('logic.revision_idrevision_seq'::regclass);
 ALTER TABLE ONLY logic."user" ALTER COLUMN id SET DEFAULT nextval('logic.user_id_seq'::regclass);
+ALTER TABLE ONLY migration.manuscripts_to_manuscript ADD CONSTRAINT pk_mtm PRIMARY KEY (old_id, identity);
 ALTER TABLE ONLY data.identifier
     ADD CONSTRAINT identifier_system_name_key UNIQUE (system_name);
 ALTER TABLE ONLY data.lemma_cache
