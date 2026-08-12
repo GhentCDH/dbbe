@@ -1,0 +1,18 @@
+# Lightweight local dev database, seeded from the small committed
+# fixture in docker_data/dbbe_db/testdb/ instead of the (gitignored,
+# multi-hundred-MB) real dump in docker_data/dbbe_db/initdb/.
+#
+# Usage:
+#   docker-compose -f docker-compose.yml -f docker-compose.testdb.yml --env-file .env.dev up -d
+#
+# The data directory is separate from the regular dev volume
+# (docker_data/dbbe_db/data), so this can be used side by side with a
+# normal checkout without clobbering a real seeded database. Postgres
+# only runs the files in docker-entrypoint-initdb.d on first creation
+# of an empty data directory -- to reseed from scratch, remove
+# docker_data/dbbe_db/testdb_data/ and start again.
+services:
+  database:
+    volumes:
+      - ./docker_data/dbbe_db/testdb_data:/var/lib/postgresql/data
+      - ./docker_data/dbbe_db/testdb:/docker-entrypoint-initdb.d
