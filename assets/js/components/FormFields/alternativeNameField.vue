@@ -11,7 +11,7 @@
             type="text"
             class="form-control"
             placeholder="First Name"
-            @input="$emit('model-updated', value, schema.model)"
+            @input="updateName(altName)"
         />
       </div>
       <div class="col-sm-5">
@@ -20,7 +20,7 @@
             type="text"
             class="form-control"
             placeholder="Last Name"
-            @input="$emit('model-updated', value, schema.model)"
+            @input="updateName(altName)"
         />
       </div>
       <div class="col-sm-2">
@@ -38,6 +38,7 @@
 <script>
 import { abstractField } from 'vue3-form-generator-legacy'
 
+
 export default {
   mixins: [abstractField],
   methods: {
@@ -45,13 +46,19 @@ export default {
       if (!this.value) {
         this.model[this.schema.model] = []
       }
-      this.value.push({ firstName: '', lastName: '', alternative: true })
+      this.value.push({ firstName: '', lastName: '', name: '', alternative: true })
       this.$emit('model-updated', this.value, this.schema.model)
     },
     remove(index) {
       this.value.splice(index, 1)
       this.$emit('model-updated', this.value, this.schema.model)
     },
+    updateName(altName) {
+      altName.name = [altName.firstName, altName.lastName]
+          .filter(Boolean)
+          .join(' ')
+      this.$emit('model-updated', this.value, this.schema.model)
+    }
   }
 }
 </script>
