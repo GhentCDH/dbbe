@@ -36,14 +36,14 @@
 </template>
 
 <script>
-import { abstractField } from 'vue-form-generator'
+import { abstractField } from 'vue3-form-generator-legacy'
 
 export default {
   mixins: [abstractField],
   methods: {
     add() {
       if (!this.value) {
-        this.$set(this.model, this.schema.model, [])
+        this.model[this.schema.model] = []
       }
       this.value.push({ firstName: '', lastName: '', alternative: true })
       this.$emit('model-updated', this.value, this.schema.model)

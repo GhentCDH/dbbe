@@ -1,12 +1,7 @@
 import { ref, reactive } from 'vue';
 import axios from 'axios';
 import { isLoginError } from '@/helpers/errorUtil';
-import Vue from 'vue';
-import VueMultiselect from 'vue-multiselect'
-import fieldMultiselectClear from '../../components/FormFields/fieldMultiselectClear.vue'
 
-Vue.component('multiselect', VueMultiselect)
-Vue.component('fieldMultiselectClear', fieldMultiselectClear)
 
 export function useEditMergeMigrateDelete(initUrls = '{}', initData = '{}', depUrls = {}) {
     const urls = reactive(JSON.parse(initUrls));
@@ -19,12 +14,12 @@ export function useEditMergeMigrateDelete(initUrls = '{}', initData = '{}', depU
     const migrateAlerts = ref([]);
     const deleteAlerts = ref([]);
 
-    const delDependencies = reactive({});
+    const delDependencies = ref({});
 
-    const deleteModal = ref(false);
-    const editModalValue = ref(false);
-    const mergeModal = ref(false);
-    const migrateModal = ref(false);
+    const deleteModal = ref(null);
+    const editModalValue = ref(null);
+    const mergeModal = ref(null);
+    const migrateModal = ref(null);
 
     const originalMergeModel = reactive({});
     const originalMigrateModel = reactive({});
@@ -35,8 +30,8 @@ export function useEditMergeMigrateDelete(initUrls = '{}', initData = '{}', depU
     function resetEdit(submitModel) {
         Object.assign(submitModel, JSON.parse(JSON.stringify(originalSubmitModel)));
     }
-    function resetMerge() {
-        Object.assign(originalMergeModel, JSON.parse(JSON.stringify(originalMergeModel)));
+    function resetMerge(mergeModel) {
+        Object.assign(mergeModel, JSON.parse(JSON.stringify(originalMergeModel)));
     }
     function resetMigrate() {
         Object.assign(originalMigrateModel, JSON.parse(JSON.stringify(originalMigrateModel)));
@@ -49,12 +44,12 @@ export function useEditMergeMigrateDelete(initUrls = '{}', initData = '{}', depU
         axios
             .all(depUrlsEntries.map(([_, depUrlCat]) => axios.get(depUrlCat.depUrl)))
             .then(results => {
-                Object.keys(delDependencies).forEach(k => delete delDependencies[k]); // clear
+                delDependencies.value = {};  // ← Change: clear by reassigning
                 results.forEach((response, index) => {
                     const data = response.data;
                     if (data.length > 0) {
                         const [category, depUrlCat] = depUrlsEntries[index];
-                        delDependencies[category] = {
+                        delDependencies.value[category] = {  // ← Change: add .value
                             list: data,
                             ...(depUrlCat.url && { url: depUrlCat.url }),
                             ...(depUrlCat.urlIdentifier && { urlIdentifier: depUrlCat.urlIdentifier }),
@@ -74,21 +69,23 @@ export function useEditMergeMigrateDelete(initUrls = '{}', initData = '{}', depU
                 console.error(error);
             });
     }
-
-    function cancelEdit() {
-        editModalValue.value = false;
+    function cancelEdit(submitModel) {
+        if (submitModel) {
+            Object.assign(submitModel, JSON.parse(JSON.stringify(originalSubmitModel)));
+        }
+        editModalValue.value = null;
         editAlerts.value = [];
     }
     function cancelMerge() {
-        mergeModal.value = false;
+        mergeModal.value = null;
         mergeAlerts.value = [];
     }
     function cancelMigrate() {
-        migrateModal.value = false;
+        migrateModal.value = null;
         migrateAlerts.value = [];
     }
     function cancelDelete() {
-        deleteModal.value = false;
+        deleteModal.value = null;
         deleteAlerts.value = [];
     }
     function isOrIsChild(valueFromList, value, visited = new Set()) {

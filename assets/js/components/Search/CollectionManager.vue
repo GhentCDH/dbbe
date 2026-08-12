@@ -10,7 +10,7 @@
                 <div class="col-sm-6">
                     <btn
                         :disabled="collectionModel.managementCollection.length === 0 || collectionArray.length === 0"
-                        @click="$emit('addManagementsToSelection', collectionModel.managementCollection)"
+                        @click.native="$emit('addManagementsToSelection', collectionModel.managementCollection)"
                     >
                         Add to selection
                     </btn>
@@ -18,7 +18,7 @@
                 <div class="col-sm-6">
                     <btn
                         :disabled="collectionModel.managementCollection.length === 0 || collectionArray.length === 0"
-                        @click="$emit('removeManagementsFromSelection', collectionModel.managementCollection)"
+                        @click.native="$emit('removeManagementsFromSelection', collectionModel.managementCollection)"
                     >
                         Remove from selection
                     </btn>
@@ -28,7 +28,7 @@
                 <div class="col-sm-6">
                     <btn
                         :disabled="collectionModel.managementCollection.length === 0"
-                        @click="$emit('addManagementsToResults', collectionModel.managementCollection)"
+                        @click.native="$emit('addManagementsToResults', collectionModel.managementCollection)"
                     >
                         Add to all results
                     </btn>
@@ -36,7 +36,7 @@
                 <div class="col-sm-6">
                     <btn
                         :disabled="collectionModel.managementCollection.length === 0"
-                        @click="$emit('removeManagementsFromResults', collectionModel.managementCollection)"
+                        @click.native="$emit('removeManagementsFromResults', collectionModel.managementCollection)"
                     >
                         Remove from all results
                     </btn>

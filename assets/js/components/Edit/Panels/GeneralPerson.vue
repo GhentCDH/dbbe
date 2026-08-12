@@ -15,16 +15,12 @@
     </panel>
 </template>
 <script>
-import Vue from 'vue';
-
 import {
   createMultiSelect, disableFields, enableFields,
 } from '@/helpers/formFieldUtils';
-import Panel from '../Panel'
 import {calcChanges} from "@/helpers/modelChangeUtil";
 import validatorUtil from "@/helpers/validatorUtil";
 
-Vue.component('panel', Panel);
 
 export default {
     props: {

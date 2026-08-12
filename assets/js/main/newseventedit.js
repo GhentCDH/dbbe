@@ -1,9 +1,10 @@
-import Vue from 'vue';
+import { createApp } from 'vue';
 import NewsEventEditApp from '@/apps/NewsEventEditApp'
-
-new Vue({
+const app = createApp({
     el: '#news-event-edit-app',
     components: {
         NewsEventEditApp
     }
-})
+});
+
+app.mount('#news-event-edit-app');

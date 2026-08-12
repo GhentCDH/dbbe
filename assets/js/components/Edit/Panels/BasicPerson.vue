@@ -17,7 +17,6 @@
   </panel>
 </template>
 <script>
-import Vue from 'vue';
 import {
   createMultiSelect, disableFields, enableFields,
   removeGreekAccents
@@ -25,9 +24,8 @@ import {
 import Panel from '../Panel'
 import validatorUtil from "@/helpers/validatorUtil";
 import {calcChanges} from "@/helpers/modelChangeUtil";
-import alternativeNameField from "../../FormFields/alternativeNameField.vue";
-Vue.component('panel', Panel);
-Vue.component('field-alternativeNames', alternativeNameField)
+import alternativeNameField from "../../FormFields/alternativeNameField.vue"
+
 validatorUtil.name = function(value, field, model) {
     if (
         (model.firstName == null || model.firstName === '')

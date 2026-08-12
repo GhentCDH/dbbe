@@ -230,7 +230,7 @@
         </div>
 
 <!--        <div style="position: absolute; right: 0; top: 50%; transform: translateY(-50%);">-->
-<!--          <button @click="downloadCSVHandler"-->
+<!--          <button @click.native="downloadCSVHandler"-->
 <!--                  class="btn btn-primary"-->
 <!--                  :title="!isViewInternal ? 'For anonymous users, download is limited to 1000 results' : 'Download results as csv'"-->
 <!--                  style="position: absolute; top: 50%; right: 1rem; transform: translateY(-50%);">-->
@@ -257,7 +257,7 @@
     </div>
     <Delete
         :show="deleteModal"
-        :del-dependencies="delDependencies.value"
+        :del-dependencies="delDependencies"
         :submit-model="submitModel"
         @cancel="deleteModal=false"
         @confirm="submitDelete()"

@@ -1,9 +1,11 @@
 <template>
   <div>
     <div class="col-xs-12">
-      <alerts :alerts="alerts" @dismiss="alerts.splice($event, 1)" />
+      <Alerts
+          :alerts="alerts"
+          @dismiss="alerts.splice($event, 1)"
+      />
     </div>
-
     <aside class="col-sm-3">
       <div class="bg-tertiary padding-default">
         <vue-form-generator
@@ -16,7 +18,6 @@
         />
       </div>
     </aside>
-
     <article class="col-sm-9 search-page">
       <active-filters
           :filters="notEmptyFields"
@@ -149,21 +150,20 @@
         </template>
 
         <template #actions="{ row }" v-if="isViewInternal">
-          <a
-              :href="urls['manuscript_edit'].replace('manuscript_id', row.id)"
-              class="action"
-              title="Edit"
+
+          <a :href="urls['manuscript_edit'].replace('manuscript_id', row.id)"
+          class="action"
+          title="Edit"
           >
-            <i class="fa fa-pencil-square-o" />
+          <i class="fa fa-pencil-square-o" />
           </a>
 
-          <a
-              href="#"
-              class="action"
-              title="Delete"
-              @click.prevent="del(row)"
+          <a href="#"
+          class="action"
+          title="Delete"
+          @click.prevent="del(row)"
           >
-            <i class="fa fa-trash-o" />
+          <i class="fa fa-trash-o" />
           </a>
         </template>
       </b-table>
@@ -173,11 +173,17 @@
           class="collection-select-all bottom"
           style="margin-top: 1rem; clear: both;"
       >
-        <a href="#" @click.prevent="clearCollection()">
+
+        <a href="#"
+           @click.prevent="clearCollection()"
+        >
           clear selection
         </a>
         |
-        <a href="#" @click.prevent="collectionToggleAll()">
+
+        <a href="#"
+           @click.prevent="collectionToggleAll()"
+        >
           (un)select all on this page
         </a>
       </div>
@@ -192,14 +198,14 @@
           />
         </div>
 
-        <!--        <div style="position: absolute; right: 0; top: 50%; transform: translateY(-50%);">-->
-        <!--          <button @click="downloadCSVHandler"-->
-        <!--                  class="btn btn-primary"-->
-        <!--                  :title="!isViewInternal ? 'For anonymous users, download is limited to 1000 results' : 'Download results as csv'"-->
-        <!--                  style="position: absolute; top: 50%; right: 1rem; transform: translateY(-50%);">-->
-        <!--            Download results CSV-->
-        <!--          </button>-->
-        <!--        </div>-->
+<!--        <div style="position: absolute; right: 0; top: 50%; transform: translateY(-50%);">-->
+<!--          <button @click.native="downloadCSVHandler"-->
+<!--                  class="btn btn-primary"-->
+<!--                  :title="!isViewInternal ? 'For anonymous users, download is limited to 1000 results' : 'Download results as csv'"-->
+<!--                  style="position: absolute; top: 50%; right: 1rem; transform: translateY(-50%);">-->
+<!--            Download results CSV-->
+<!--          </button>-->
+<!--        </div>-->
       </div>
 
       <collectionManager
@@ -220,7 +226,7 @@
     </div>
     <Delete
         :show="deleteModal"
-        :del-dependencies="delDependencies"
+        :del-dependencies="delDependencies.value"
         :submit-model="submitModel"
         @cancel="deleteModal=false"
         @confirm="submitDelete()"
@@ -238,24 +244,14 @@
 
 <script setup>
 import { computed, onMounted, reactive, ref, watch } from 'vue';
-import qs from 'qs';
-
 import Delete from '../components/Edit/Modals/Delete.vue';
 import Alerts from "@/components/Alerts.vue";
-import ActiveFilters from '../components/Search/ActiveFilters.vue';
-import CollectionManager from '../components/Search/CollectionManager.vue';
+import qs from 'qs';
 
-import {
-  createLanguageToggle,
-  createMultiMultiSelect,
-  createMultiSelect,
-} from '@/helpers/formFieldUtils';
-import { formatDate, greekFont, YEAR_MAX, YEAR_MIN } from "@/helpers/formatUtil";
+import ActiveFilters from '../components/Search/ActiveFilters.vue';
+import {createLanguageToggle, createMultiMultiSelect, createMultiSelect} from '@/helpers/formFieldUtils';
+import {formatDate, greekFont, YEAR_MAX, YEAR_MIN} from "@/helpers/formatUtil";
 import { isLoginError } from "@/helpers/errorUtil";
-import { downloadCSV } from "@/helpers/downloadUtil";
-import { constructFilterValues } from "@/helpers/searchAppHelpers/filterUtil";
-import { popHistory, pushHistory } from "@/helpers/searchAppHelpers/historyUtil";
-import { fetchDependencies } from "@/helpers/searchAppHelpers/fetchDependencies";
 
 import { useRequestTracker } from "@/composables/searchAppComposables/useRequestTracker";
 import { usePaginationCount } from "@/composables/searchAppComposables/usePaginationCount";
@@ -263,6 +259,11 @@ import { useFormValidation } from "@/composables/searchAppComposables/useFormVal
 import { useEditMergeMigrateDelete } from "@/composables/editAppComposables/useEditMergeMigrateDelete";
 import { useSearchFields } from "@/composables/searchAppComposables/useSearchFields";
 import { useCollectionManagement } from "@/composables/searchAppComposables/useCollectionManagement";
+import CollectionManager from '../components/Search/CollectionManager.vue';
+import { constructFilterValues } from "@/helpers/searchAppHelpers/filterUtil";
+import { popHistory, pushHistory } from "@/helpers/searchAppHelpers/historyUtil";
+import { fetchDependencies } from "@/helpers/searchAppHelpers/fetchDependencies";
+import { downloadCSV } from "@/helpers/downloadUtil";
 import { useSearchSession } from "@/composables/searchAppComposables/useSearchSession";
 import BTable from '@/components/Bootstrap/BTable.vue';
 import BPagination from '@/components/Bootstrap/BPagination.vue';
@@ -304,6 +305,7 @@ const data = JSON.parse(props.initData);
 const identifiers = JSON.parse(props.initIdentifiers);
 const managements = JSON.parse(props.initManagements);
 
+// Add pagination state
 const currentPage = ref(1);
 const sortBy = ref('name');
 const sortAscending = ref(true);
@@ -334,20 +336,73 @@ const model = ref({
 
 const originalModel = ref({});
 
+const tableOptions = ref({
+  headings: {
+    comment: 'Comment (matching lines only)',
+  },
+  filterable: false,
+  orderBy: {
+    column: 'name',
+  },
+  perPage: 25,
+  perPageValues: [25, 50, 100],
+  sortable: ['name', 'date', 'occ', 'created', 'modified'],
+  customFilters: ['filters'],
+  rowClassCallback(row) {
+    return row.public == null || row.public ? '' : 'warning';
+  },
+});
+
+const submitModel = reactive({
+  submitType: 'manuscript',
+  manuscript: {},
+});
+
+const defaultOrdering = ref('name');
+const initialized = ref(false);
+const noHistory = ref(false);
+const tableCancel = ref(false);
+const resultTableRef = ref(null);
+const aggregation = ref({});
+const historyRequest = ref(null);
+const elRef = ref(null);
+
+const idList = [];
+for (const identifier of identifiers) {
+  idList.push(createMultiSelect(
+      `${identifier.name} available?`,
+      { model: `${identifier.systemName}_available` },
+      {
+        customLabel: ({ name }) => name === 'true' ? 'Yes' : 'No',
+      }
+  ));
+
+  idList.push(createMultiSelect(
+      identifier.name,
+      {
+        dependency: `${identifier.systemName}_available`,
+        model: identifier.systemName,
+      },
+      {
+        optionsLimit: 7000,
+      }
+  ));
+}
+
 const schema = ref({
   fields: {},
   groups: [],
 });
 
-const buildSchema = () => {
-  const fields = {};
+const buildSchemaFields = () => {
+  const schemaFields = {};
 
-  fields.city = createMultiSelect('City');
-  fields.library = createMultiSelect('Library', { dependency: 'city' });
-  fields.collection = createMultiSelect('Collection', { dependency: 'library' });
-  fields.shelf = createMultiSelect('Shelf number', { model: 'shelf', dependency: 'collection' });
+  schemaFields.city = createMultiSelect('City');
+  schemaFields.library = createMultiSelect('Library', { dependency: 'city' });
+  schemaFields.collection = createMultiSelect('Collection', { dependency: 'library' });
+  schemaFields.shelf = createMultiSelect('Shelf number', { model: 'shelf', dependency: 'collection' });
 
-  fields.year_from = {
+  schemaFields.year_from = {
     type: 'input',
     inputType: 'number',
     label: 'Year from',
@@ -357,7 +412,7 @@ const buildSchema = () => {
     validator: validatorUtil.number,
   };
 
-  fields.year_to = {
+  schemaFields.year_to = {
     type: 'input',
     inputType: 'number',
     label: 'Year to',
@@ -367,7 +422,7 @@ const buildSchema = () => {
     validator: validatorUtil.number,
   };
 
-  fields.date_search_type = {
+  schemaFields.date_search_type = {
     type: 'checkboxes',
     styleClasses: 'field-checkboxes-labels-only field-checkboxes-lg',
     label: 'The occurrence date interval must ... the search date interval:',
@@ -379,32 +434,23 @@ const buildSchema = () => {
     ],
   };
 
-  fields.exactly_dated = {
-    type: 'checkbox',
-    label: 'Exactly dated:',
-    labelClasses: 'control-label',
-    styleClasses: 'has-warning',
-    model: 'exactly_dated',
-    default: false,
-  };
+  [schemaFields.content_op, schemaFields.content] = createMultiMultiSelect('Content');
 
-  [fields.content_op, fields.content] = createMultiMultiSelect('Content');
-
-  fields.person = createMultiSelect('Person', {}, {
+  schemaFields.person = createMultiSelect('Person', {}, {
     multiple: true,
     closeOnSelect: false,
   });
 
-  fields.role = createMultiSelect('Role', { dependency: 'person' }, {
+  schemaFields.role = createMultiSelect('Role', { dependency: 'person' }, {
     multiple: true,
     closeOnSelect: false,
   });
 
-  [fields.origin_op, fields.origin] = createMultiMultiSelect('Origin');
+  [schemaFields.origin_op, schemaFields.origin] = createMultiMultiSelect('Origin');
 
-  fields.comment_mode = createLanguageToggle('comment');
+  schemaFields.comment_mode = createLanguageToggle('comment');
 
-  fields.comment = {
+  schemaFields.comment = {
     type: 'input',
     inputType: 'text',
     label: 'Comment',
@@ -412,80 +458,25 @@ const buildSchema = () => {
     validator: validatorUtil.string,
   };
 
-  [fields.acknowledgement_op, fields.acknowledgement] = createMultiMultiSelect('Acknowledgements', {
+  [schemaFields.acknowledgement_op, schemaFields.acknowledgement] = createMultiMultiSelect('Acknowledgements', {
     model: 'acknowledgement',
   });
 
-  if (props.isViewInternal) {
-    fields.public = createMultiSelect('Public', {
-      styleClasses: 'has-warning',
-    }, {
-      customLabel: ({ name }) => name === 'true' ? 'Public only' : 'Internal only',
-    });
-
-    fields.management = createMultiSelect('Management collection', {
-      model: 'management',
-      styleClasses: 'has-warning',
-    });
-
-    fields.management_inverse = {
-      type: 'checkbox',
-      styleClasses: 'has-warning',
-      label: 'Inverse management collection selection',
-      labelClasses: 'control-label',
-      model: 'management_inverse',
-    };
-  }
-
-  schema.value.fields = fields;
-
-  const idList = [];
-  for (const identifier of identifiers) {
-    idList.push(createMultiSelect(
-        `${identifier.name} available?`,
-        { model: `${identifier.systemName}_available` },
-        {
-          customLabel: ({ name }) => name === 'true' ? 'Yes' : 'No',
-        }
-    ));
-    idList.push(createMultiSelect(
-        identifier.name,
-        {
-          dependency: `${identifier.systemName}_available`,
-          model: identifier.systemName,
-        },
-        {
-          optionsLimit: 7000,
-        }
-    ));
-  }
-
-  schema.value.groups = [{
-    styleClasses: 'collapsible collapsed',
-    legend: 'External identifiers',
-    fields: idList,
-  }];
+  return schemaFields;
 };
 
-buildSchema();
-
-const submitModel = reactive({
-  submitType: 'manuscript',
-  manuscript: {},
+schema.value.fields = buildSchemaFields();
+schema.value.groups.push({
+  styleClasses: 'collapsible collapsed',
+  legend: 'External identifiers',
+  fields: idList,
 });
 
-const deleteModal = ref(false);
-const delDependencies = ref({});
+const getRowClass = (row) => {
+  return (row.public == null || row.public) ? '' : 'warning';
+};
 
-const defaultOrdering = ref('name');
-const initialized = ref(false);
-const noHistory = ref(false);
-const tableCancel = ref(false);
-const resultTableRef = ref(null);
-const aggregation = ref({});
-const historyRequest = ref(null);
-const elRef = ref(null);
-
+// Computed for table fields
 const tableFields = computed(() => {
   const fields = [
     { key: 'name', label: 'Name', sortable: true },
@@ -516,118 +507,7 @@ const tableFields = computed(() => {
   return fields;
 });
 
-const getRowClass = (row) => {
-  return (row.public == null || row.public) ? '' : 'warning';
-};
-
-// ── Fields computed ──────────────────────────────────────────────────────────
-const fields = computed(() => {
-  const res = {};
-  if (schema.value) {
-    if (schema.value.fields) {
-      Object.values(schema.value.fields).forEach(field => {
-        if (!field.multiple || field.multi === true) {
-          res[field.model] = field;
-        }
-      });
-    }
-    if (schema.value.groups) {
-      schema.value.groups.forEach(group => {
-        if (group.fields) {
-          group.fields.forEach(field => {
-            res[field.model] = field;
-          });
-        }
-      });
-    }
-  }
-  return res;
-});
-
-const depUrls = computed(() => ({
-  Occurrences: {
-    depUrl: urls.occurrence_deps_by_manuscript.replace(
-        'manuscript_id',
-        submitModel.manuscript.id
-    ),
-    url: urls.occurrence_get,
-    urlIdentifier: 'occurrence_id',
-  },
-}));
-
-const { countRecords, updateCountRecords } = usePaginationCount(resultTableRef);
-
-const {
-  openRequests,
-  alerts,
-  startRequest,
-  endRequest,
-  cleanParams,
-  handleError,
-  axiosGet,
-} = useRequestTracker();
-
-const {
-  onValidated,
-  lastChangedField,
-  actualRequest,
-  initFromURL,
-} = useFormValidation({
-  model,
-  fields,
-  resultTableRef,
-  defaultOrdering,
-  emitFilter: () => {
-    currentPage.value = 1;
-    fetchData();
-  },
-  historyRequest,
-});
-
-const {
-  notEmptyFields,
-  changeTextMode,
-  setUpOperatorWatchers,
-  onLoaded,
-  deleteActiveFilter,
-  onDataExtend,
-  commentSearch,
-} = useSearchFields(model, schema, fields, aggregation, {
-  multiple: true,
-  updateCountRecords,
-  initFromURL,
-  endRequest,
-  historyRequest,
-});
-
-const { init, onData, setupCollapsibleLegends, aggregationLoaded } = useSearchSession({
-  urls,
-  data,
-  aggregation,
-  emit,
-  elRef,
-  onDataExtend,
-}, 'ManuscriptSearchConfig');
-
-const {
-  collectionArray,
-  collectionToggleAll,
-  clearCollection,
-  addManagementsToSelection,
-  removeManagementsFromSelection,
-  addManagementsToResults,
-  removeManagementsFromResults,
-} = useCollectionManagement({
-  data,
-  urls,
-  constructFilterValues,
-  resultTableRef,
-  alerts,
-  startRequest,
-  endRequest,
-  noHistory,
-});
-
+// Fetch data function
 const fetchData = async () => {
   startRequest();
 
@@ -652,14 +532,14 @@ const fetchData = async () => {
       ascending: sortAscending.value ? 1 : 0,
       page: currentPage.value,
       limit: perPage.value,
-      filters: constructFilterValues(model.value, fields.value),
+      filters: constructFilterValues(model.value, fields.value)
     });
 
     const response = await axiosGet(
         url,
         {
           params,
-          paramsSerializer: qs.stringify,
+          paramsSerializer: qs.stringify
         },
         tableCancel,
         onData,
@@ -680,6 +560,8 @@ const fetchData = async () => {
   }
 };
 
+
+// Pagination handlers
 const updatePage = (page) => {
   currentPage.value = page;
   fetchData();
@@ -691,34 +573,155 @@ const updatePerPage = (newPerPage) => {
   fetchData();
 };
 
+// Sorting handler
 const handleSort = ({ sortBy: newSortBy, sortAscending: newSortAscending }) => {
   sortBy.value = newSortBy;
   sortAscending.value = newSortAscending;
   fetchData();
 };
 
+// Collection toggle handler
 const handleCollectionToggleAll = () => {
   const currentData = { data: tableData.value };
   collectionToggleAll(currentData);
 };
 
-const del = async (row) => {
-  submitModel.manuscript = row;
-  startRequest();
-  const depUrlsEntries = Object.entries(depUrls.value);
-  try {
-    delDependencies.value = await fetchDependencies(depUrlsEntries);
-    deleteModal.value = true;
-  } catch (error) {
-    alerts.value.push({
-      type: 'error',
-      message: 'Something went wrong while checking for dependencies.',
-      login: isLoginError(error),
-    });
-    console.error(error);
-  } finally {
-    endRequest();
+const fields = computed(() => {
+  const res = {};
+  const addField = (field) => {
+    if (!field.multiple || field.multi === true) {
+      res[field.model] = field;
+    }
+  };
+
+  if (schema.value) {
+    if (schema.value.fields) {
+      Object.values(schema.value.fields).forEach(addField);
+    }
+    if (schema.value.groups) {
+      schema.value.groups.forEach(group => {
+        if (group.fields) {
+          group.fields.forEach(field => {
+            res[field.model] = field;
+          });
+        }
+      });
+    }
   }
+
+  if (props.isViewInternal) {
+    res.public = createMultiSelect('Public', {
+      styleClasses: 'has-warning',
+    }, {
+      customLabel: ({ name }) => name === 'true' ? 'Public only' : 'Internal only',
+    });
+
+    res.management = createMultiSelect('Management collection', {
+      model: 'management',
+      styleClasses: 'has-warning',
+    });
+
+    res.management_inverse = {
+      type: 'checkbox',
+      styleClasses: 'has-warning',
+      label: 'Inverse management collection selection',
+      labelClasses: 'control-label',
+      model: 'management_inverse',
+    };
+  }
+
+  return res;
+});
+
+const depUrls = computed(() => ({
+  Occurrences: {
+    depUrl: urls.occurrence_deps_by_manuscript.replace(
+        'manuscript_id',
+        submitModel.manuscript.id
+    ),
+    url: urls.occurrence_get,
+    urlIdentifier: 'occurrence_id',
+  },
+}));
+
+const { countRecords, updateCountRecords } = usePaginationCount(resultTableRef);
+
+const {
+  openRequests,
+  alerts,
+  startRequest,
+  endRequest,
+  cleanParams,
+  handleError,
+  axiosGet
+} = useRequestTracker();
+
+const {
+  onValidated,
+  lastChangedField,
+  actualRequest,
+  initFromURL
+} = useFormValidation({
+  model,
+  fields,
+  resultTableRef,
+  defaultOrdering: ref('name'),
+  emitFilter: (filters) => {
+    currentPage.value = 1;
+    fetchData();
+  },
+  historyRequest
+});
+
+const {
+  notEmptyFields,
+  changeTextMode,
+  setUpOperatorWatchers,
+  onLoaded,
+  deleteActiveFilter,
+  onDataExtend,
+  commentSearch
+} = useSearchFields(model, schema, fields, aggregation, {
+  multiple: true,
+  updateCountRecords,
+  initFromURL,
+  endRequest,
+  historyRequest
+});
+
+const { init, onData, setupCollapsibleLegends, aggregationLoaded } = useSearchSession({
+  urls,
+  data,
+  aggregation,
+  emit,
+  elRef,
+  onDataExtend
+}, 'ManuscriptSearchConfig');
+
+const { delDependencies, deleteModal } = useEditMergeMigrateDelete(props.initUrls, props.initData);
+
+const {
+  collectionArray,
+  collectionToggleAll,
+  clearCollection,
+  addManagementsToSelection,
+  removeManagementsFromSelection,
+  addManagementsToResults,
+  removeManagementsFromResults,
+} = useCollectionManagement({
+  data,
+  urls,
+  constructFilterValues,
+  resultTableRef,
+  alerts,
+  startRequest,
+  endRequest,
+  noHistory
+});
+
+const handleDeletedActiveFilter = (field) => {
+  deleteActiveFilter(field);
+  onValidated(true);
 };
 
 const submitDelete = async () => {
@@ -740,13 +743,27 @@ const submitDelete = async () => {
   }
 };
 
-const modelUpdated = (fieldName) => {
-  lastChangedField.value = fieldName;
+const del = async (row) => {
+  submitModel.manuscript = row;
+  startRequest();
+  const depUrlsEntries = Object.entries(depUrls.value);
+  try {
+    delDependencies.value = await fetchDependencies(depUrlsEntries);
+    deleteModal.value = true;
+  } catch (error) {
+    alerts.value.push({
+      type: 'error',
+      message: 'Something went wrong while checking for dependencies.',
+      login: isLoginError(error),
+    });
+    console.error(error);
+  } finally {
+    endRequest();
+  }
 };
 
-const handleDeletedActiveFilter = (field) => {
-  deleteActiveFilter(field);
-  onValidated(true);
+const modelUpdated = (fieldName) => {
+  lastChangedField.value = fieldName;
 };
 
 const resetAllFilters = () => {

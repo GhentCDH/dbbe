@@ -77,7 +77,7 @@
 
 <script setup>
 import { reactive, computed, watch, onMounted } from 'vue'
-import VueFormGenerator from 'vue-form-generator'
+import VueFormGenerator from 'vue3-form-generator-legacy'
 import axios from 'axios'
 import Panel from '@/components/Edit/Panel.vue'
 
