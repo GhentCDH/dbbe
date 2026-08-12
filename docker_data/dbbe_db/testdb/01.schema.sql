@@ -8,9 +8,6 @@ SET check_function_bodies = false;
 SET xmloption = content;
 SET client_min_messages = warning;
 SET row_security = off;CREATE SCHEMA data;
-CREATE SCHEMA julie;
-COMMENT ON SCHEMA julie IS 'Contains a LIVE database. Is used by julie for substring annotations.';
-CREATE SCHEMA julie_before_2019_12_11;
 CREATE SCHEMA logic;
 CREATE SCHEMA migration;
 CREATE TYPE data.fuzzydate AS (
@@ -29,15 +26,10 @@ CREATE FUNCTION data.delete_entity() RETURNS trigger
 BEGIN
 
 	IF OLD.identity IS NOT NULL THEN
-
 		DELETE FROM entity WHERE identity = OLD.identity;
-
 	ELSE
-
 		RAISE EXCEPTION 'identity field not set in row to be deleted, could not delete entity.';
-
 	END IF;
-
 	RETURN NULL;
 
 END;$$;
@@ -57,7 +49,7 @@ BEGIN
 END;$$;
 CREATE FUNCTION data.ensure_entity_presence() RETURNS trigger
     LANGUAGE plpgsql
-    AS $$DECLARE 
+    AS $$DECLARE
 
 	resultid integer;
 
@@ -1029,50 +1021,6 @@ CREATE SEQUENCE data.transliterationsystem_idtransliterationsystem_seq
     NO MAXVALUE
     CACHE 1;
 ALTER SEQUENCE data.transliterationsystem_idtransliterationsystem_seq OWNED BY data.transliterationsystem.idtransliterationsystem;
-CREATE TABLE julie.substringannotation (
-    idoccurrence integer NOT NULL,
-    startindex integer,
-    endindex integer,
-    "substring" character varying,
-    idsubstringannotation integer NOT NULL,
-    key character varying,
-    value character varying,
-    old_idoccurrence integer
-);
-CREATE SEQUENCE julie.annotation_idannotation_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-ALTER SEQUENCE julie.annotation_idannotation_seq OWNED BY julie.substringannotation.idsubstringannotation;
-CREATE TABLE julie.poemannotation (
-    idoccurrence integer NOT NULL,
-    prosodycorrect boolean,
-    old_idoccurrence integer
-);
-CREATE TABLE julie_before_2019_12_11.substringannotation (
-    idoccurrence integer NOT NULL,
-    startindex integer,
-    endindex integer,
-    "substring" character varying,
-    idsubstringannotation integer NOT NULL,
-    key character varying,
-    value character varying,
-    old_idoccurrence integer
-);
-CREATE SEQUENCE julie_before_2019_12_11.annotation_idannotation_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-ALTER SEQUENCE julie_before_2019_12_11.annotation_idannotation_seq OWNED BY julie_before_2019_12_11.substringannotation.idsubstringannotation;
-CREATE TABLE julie_before_2019_12_11.poemannotation (
-    idoccurrence integer NOT NULL,
-    prosodycorrect boolean,
-    old_idoccurrence integer
-);
 CREATE TABLE logic.contributor_of (
     iduser integer NOT NULL,
     iddocument integer NOT NULL
@@ -2119,8 +2067,6 @@ ALTER TABLE ONLY data.role ALTER COLUMN idrole SET DEFAULT nextval('data.role_id
 ALTER TABLE ONLY data.self_designation ALTER COLUMN id SET DEFAULT nextval('data.self_designation_id_seq'::regclass);
 ALTER TABLE ONLY data.status ALTER COLUMN idstatus SET DEFAULT nextval('data.status_idstatus_seq'::regclass);
 ALTER TABLE ONLY data.transliterationsystem ALTER COLUMN idtransliterationsystem SET DEFAULT nextval('data.transliterationsystem_idtransliterationsystem_seq'::regclass);
-ALTER TABLE ONLY julie.substringannotation ALTER COLUMN idsubstringannotation SET DEFAULT nextval('julie.annotation_idannotation_seq'::regclass);
-ALTER TABLE ONLY julie_before_2019_12_11.substringannotation ALTER COLUMN idsubstringannotation SET DEFAULT nextval('julie_before_2019_12_11.annotation_idannotation_seq'::regclass);
 ALTER TABLE ONLY logic.feedback ALTER COLUMN id SET DEFAULT nextval('logic.feedback_id_seq'::regclass);
 ALTER TABLE ONLY logic.news_event ALTER COLUMN id SET DEFAULT nextval('logic.news_event_id_seq'::regclass);
 ALTER TABLE ONLY logic.page ALTER COLUMN id SET DEFAULT nextval('logic.page_id_seq'::regclass);
@@ -2295,14 +2241,6 @@ ALTER TABLE ONLY data.role
     ADD CONSTRAINT role_system_name_key UNIQUE (system_name);
 ALTER TABLE ONLY data.person_email
     ADD CONSTRAINT unq_email UNIQUE (email);
-ALTER TABLE ONLY julie.substringannotation
-    ADD CONSTRAINT pk_annotation PRIMARY KEY (idsubstringannotation);
-ALTER TABLE ONLY julie.poemannotation
-    ADD CONSTRAINT pk_poemannotation PRIMARY KEY (idoccurrence);
-ALTER TABLE ONLY julie_before_2019_12_11.substringannotation
-    ADD CONSTRAINT pk_annotation PRIMARY KEY (idsubstringannotation);
-ALTER TABLE ONLY julie_before_2019_12_11.poemannotation
-    ADD CONSTRAINT pk_poemannotation PRIMARY KEY (idoccurrence);
 ALTER TABLE ONLY logic.feedback
     ADD CONSTRAINT feedback_pkey PRIMARY KEY (id);
 ALTER TABLE ONLY logic.fos_user
