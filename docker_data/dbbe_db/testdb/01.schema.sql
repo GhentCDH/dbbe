@@ -73,79 +73,50 @@ CREATE FUNCTION data.ensure_institution_has_location() RETURNS trigger
     LANGUAGE plpgsql
     AS $$
 BEGIN
-
 	IF NEW.identity IS NOT NULL THEN
-
 		INSERT INTO location (idinstitution) values (NEW.identity);
-
 		RETURN NEW;
-
 	ELSE
-
 		RAISE EXCEPTION 'Could not add entry to location, no identity field set.';
-
 	END IF;
-
 END;$$;
 CREATE FUNCTION data.ensure_institution_presence() RETURNS trigger
     LANGUAGE plpgsql
     AS $$
 BEGIN
-
 	IF NEW.identity IS NULL THEN
-
 		INSERT INTO institution DEFAULT values returning identity into NEW.identity;
-
 	END IF;
-
 	RETURN NEW;
-
 END;$$;
 CREATE FUNCTION data.ensure_person_presence() RETURNS trigger
     LANGUAGE plpgsql
     AS $$
 BEGIN
-
 	IF NEW.identity IS NULL THEN
-
 		INSERT INTO person DEFAULT values returning identity into NEW.identity;
-
 	END IF;
-
 	RETURN NEW;
-
 END;$$;
 CREATE FUNCTION data.ensure_poem_presence() RETURNS trigger
     LANGUAGE plpgsql
     AS $$
 BEGIN
-
 	IF NEW.identity IS NULL THEN
-
 		INSERT INTO poem DEFAULT values returning identity into NEW.identity;
-
 	END IF;
-
 	RETURN NEW;
-
 END;$$;
 CREATE FUNCTION data.ensure_region_has_location() RETURNS trigger
     LANGUAGE plpgsql
     AS $$
 BEGIN
-
 	IF NEW.identity IS NOT NULL THEN
-
 		INSERT INTO location (idregion) values (NEW.identity);
-
 		RETURN NEW;
-
 	ELSE
-
 		RAISE EXCEPTION 'Could not add entry to location, no identity field set.';
-
 	END IF;
-
 END;$$;
 CREATE FUNCTION data.is_roman_numeral(character varying) RETURNS boolean
     LANGUAGE plpgsql
@@ -155,7 +126,6 @@ DECLARE
 	romannumeralregex varchar := '^(M{0,4})(CM|CD|D?C{0,3})(XC|XL|L?X{0,3})(IX|IV|V?I{0,3})$';
 	result integer := 0;
 	res varchar[];
-
 BEGIN
 	return (select inputstring ~ romannumeralregex);
 END;
