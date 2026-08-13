@@ -55,8 +55,8 @@ services:
     ports:
       - "127.0.0.1:${DATABASE_EXTERNAL_PORT:-15432}:5432"
     volumes:
-      - ./docker_data/dbbe_db/data:/var/lib/postgresql/data
-      - ./docker_data/dbbe_db/initdb:/docker-entrypoint-initdb.d
+      - ./docker_data/dbbe_db/testdb_data:/var/lib/postgresql/data
+      - ./docker_data/dbbe_db/testdb:/docker-entrypoint-initdb.d
     environment:
       POSTGRES_USER: $DATABASE_USER
       POSTGRES_PASSWORD: $DATABASE_PASSWORD
