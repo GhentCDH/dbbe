@@ -962,10 +962,6 @@ CREATE SEQUENCE data.transliterationsystem_idtransliterationsystem_seq
     NO MAXVALUE
     CACHE 1;
 ALTER SEQUENCE data.transliterationsystem_idtransliterationsystem_seq OWNED BY data.transliterationsystem.idtransliterationsystem;
-CREATE TABLE logic.contributor_of (
-    iduser integer NOT NULL,
-    iddocument integer NOT NULL
-);
 CREATE TABLE logic.feedback (
     id integer NOT NULL,
     url character varying(4000) NOT NULL,
@@ -981,32 +977,6 @@ CREATE SEQUENCE logic.feedback_id_seq
     NO MAXVALUE
     CACHE 1;
 ALTER SEQUENCE logic.feedback_id_seq OWNED BY logic.feedback.id;
-CREATE TABLE logic.fos_user (
-    id integer NOT NULL,
-    username character varying(180) NOT NULL,
-    username_canonical character varying(180) NOT NULL,
-    email character varying(180) NOT NULL,
-    email_canonical character varying(180) NOT NULL,
-    enabled boolean NOT NULL,
-    salt character varying(255) DEFAULT NULL::character varying,
-    password character varying(255) NOT NULL,
-    last_login timestamp(0) without time zone DEFAULT NULL::timestamp without time zone,
-    confirmation_token character varying(180) DEFAULT NULL::character varying,
-    password_requested_at timestamp(0) without time zone DEFAULT NULL::timestamp without time zone,
-    roles text NOT NULL,
-    full_name character varying(255) DEFAULT NULL::character varying,
-    start_tenure date,
-    end_tenure date,
-    created timestamp(0) without time zone NOT NULL,
-    modified timestamp(0) without time zone NOT NULL
-);
-COMMENT ON COLUMN logic.fos_user.roles IS '(DC2Type:array)';
-CREATE SEQUENCE logic.fos_user_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
 CREATE TABLE logic.news_event (
     id integer NOT NULL,
     created timestamp with time zone DEFAULT now() NOT NULL,
@@ -1053,38 +1023,18 @@ CREATE TABLE logic.revision (
     new_value character varying,
     user_email character varying(254) NOT NULL
 );
-CREATE TABLE logic.revision_2019_05_15 (
-    idrevision integer NOT NULL,
-    type character varying,
-    identity integer NOT NULL,
-    created timestamp with time zone DEFAULT now() NOT NULL,
-    iduser integer NOT NULL,
-    old_value character varying,
-    new_value character varying
-);
-CREATE TABLE logic.revision_old (
-    idrevision integer NOT NULL,
-    type character varying,
-    identity integer NOT NULL,
-    created timestamp with time zone DEFAULT now() NOT NULL,
-    iduser integer NOT NULL,
-    old_value character varying,
-    new_value character varying
-);
 CREATE SEQUENCE logic.revision_idrevision_seq
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
     NO MAXVALUE
     CACHE 1;
-ALTER SEQUENCE logic.revision_idrevision_seq OWNED BY logic.revision_old.idrevision;
 CREATE SEQUENCE logic.revision_idrevision_seq1
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
     NO MAXVALUE
     CACHE 1;
-ALTER SEQUENCE logic.revision_idrevision_seq1 OWNED BY logic.revision_2019_05_15.idrevision;
 CREATE SEQUENCE logic.revision_idrevision_seq2
     START WITH 1
     INCREMENT BY 1
@@ -1108,12 +1058,6 @@ CREATE SEQUENCE logic.user_id_seq
     NO MAXVALUE
     CACHE 1;
 ALTER SEQUENCE logic.user_id_seq OWNED BY logic."user".id;
-CREATE TABLE logic.user_old (
-    identity integer NOT NULL,
-    password_hash character varying NOT NULL,
-    start_tenure date,
-    end_tenure date
-);
 CREATE TABLE logic.working_on (
     iduser integer NOT NULL,
     iddocument integer NOT NULL
@@ -1162,8 +1106,6 @@ ALTER TABLE ONLY logic.feedback ALTER COLUMN id SET DEFAULT nextval('logic.feedb
 ALTER TABLE ONLY logic.news_event ALTER COLUMN id SET DEFAULT nextval('logic.news_event_id_seq'::regclass);
 ALTER TABLE ONLY logic.page ALTER COLUMN id SET DEFAULT nextval('logic.page_id_seq'::regclass);
 ALTER TABLE ONLY logic.revision ALTER COLUMN idrevision SET DEFAULT nextval('logic.revision_idrevision_seq2'::regclass);
-ALTER TABLE ONLY logic.revision_2019_05_15 ALTER COLUMN idrevision SET DEFAULT nextval('logic.revision_idrevision_seq1'::regclass);
-ALTER TABLE ONLY logic.revision_old ALTER COLUMN idrevision SET DEFAULT nextval('logic.revision_idrevision_seq'::regclass);
 ALTER TABLE ONLY logic."user" ALTER COLUMN id SET DEFAULT nextval('logic.user_id_seq'::regclass);
 ALTER TABLE ONLY migration.manuscripts_to_manuscript ADD CONSTRAINT pk_mtm PRIMARY KEY (old_id, identity);
 ALTER TABLE ONLY data.identifier
@@ -1300,27 +1242,18 @@ ALTER TABLE ONLY data.person_email
     ADD CONSTRAINT unq_email UNIQUE (email);
 ALTER TABLE ONLY logic.feedback
     ADD CONSTRAINT feedback_pkey PRIMARY KEY (id);
-ALTER TABLE ONLY logic.fos_user
-    ADD CONSTRAINT fos_user_pkey PRIMARY KEY (id);
-ALTER TABLE ONLY logic.contributor_of
-    ADD CONSTRAINT pk_contributor_of PRIMARY KEY (iduser, iddocument);
 ALTER TABLE ONLY logic.news_event
     ADD CONSTRAINT pk_news_event PRIMARY KEY (id);
 ALTER TABLE ONLY logic.page
     ADD CONSTRAINT pk_page PRIMARY KEY (id);
 ALTER TABLE ONLY logic.revision
     ADD CONSTRAINT pk_revision PRIMARY KEY (idrevision);
-ALTER TABLE ONLY logic.user_old
-    ADD CONSTRAINT pk_user PRIMARY KEY (identity);
 ALTER TABLE ONLY logic.working_on
     ADD CONSTRAINT pk_working_on PRIMARY KEY (iduser, iddocument);
 ALTER TABLE ONLY logic."user"
     ADD CONSTRAINT user_pkey PRIMARY KEY (id);
 
 CREATE INDEX fki_factoid_factoid_type_new ON data.factoid USING btree (idfactoid_type);
-CREATE UNIQUE INDEX uniq_a9f818c092fc23a8 ON logic.fos_user USING btree (username_canonical);
-CREATE UNIQUE INDEX uniq_a9f818c0a0d96fbf ON logic.fos_user USING btree (email_canonical);
-CREATE UNIQUE INDEX uniq_a9f818c0c05fb297 ON logic.fos_user USING btree (confirmation_token);
 CREATE TRIGGER delete_entity_instead_of_bib_varia AFTER DELETE ON data.bib_varia FOR EACH ROW EXECUTE FUNCTION data.delete_entity();
 CREATE TRIGGER delete_entity_instead_of_blog AFTER DELETE ON data.blog FOR EACH ROW EXECUTE FUNCTION data.delete_entity();
 CREATE TRIGGER delete_entity_instead_of_blog_post AFTER DELETE ON data.blog_post FOR EACH ROW EXECUTE FUNCTION data.delete_entity();
@@ -1542,9 +1475,3 @@ ALTER TABLE ONLY data.translation_of
     ADD CONSTRAINT fk_translation_of_document FOREIGN KEY (iddocument) REFERENCES data.document(identity) ON UPDATE CASCADE ON DELETE CASCADE;
 ALTER TABLE ONLY data.translation_of
     ADD CONSTRAINT fk_translation_of_translation FOREIGN KEY (idtranslation) REFERENCES data.translation(identity) ON UPDATE CASCADE ON DELETE CASCADE;
-ALTER TABLE ONLY logic.contributor_of
-    ADD CONSTRAINT fk_contributor_of_user FOREIGN KEY (iduser) REFERENCES logic.user_old(identity) ON UPDATE CASCADE ON DELETE CASCADE;
-ALTER TABLE ONLY logic.revision_old
-    ADD CONSTRAINT fk_revision_fos_user FOREIGN KEY (iduser) REFERENCES logic.fos_user(id) ON UPDATE RESTRICT ON DELETE RESTRICT;
-ALTER TABLE ONLY logic.working_on
-    ADD CONSTRAINT fk_working_on_user FOREIGN KEY (iduser) REFERENCES logic.user_old(identity) ON UPDATE CASCADE ON DELETE CASCADE;
