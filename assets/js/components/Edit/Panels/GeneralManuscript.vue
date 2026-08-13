@@ -80,7 +80,7 @@ const schema = reactive({
           closeOnSelect: false,
         }
     ),
-    statuses: createMultiSelect(
+    status: createMultiSelect(
         'Status',
         {
           values: props.values?.statuses || [],
@@ -168,8 +168,8 @@ watch(
 watch(
     () => props.values?.statuses,
     (newVal) => {
-      if (newVal && newVal.length > 0 && schema.fields.statuses) {
-        schema.fields.statuses.values = newVal
+      if (newVal && newVal.length > 0 && schema.fields.status) {
+        schema.fields.status.values = newVal
       }
     },
     { deep: true } // Add deep option for array watching
