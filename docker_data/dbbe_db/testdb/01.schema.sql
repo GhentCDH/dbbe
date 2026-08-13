@@ -57,15 +57,10 @@ CREATE FUNCTION data.ensure_fund_has_location() RETURNS trigger
     AS $$
 BEGIN
 	IF NEW.idfund IS NOT NULL THEN
-
 		INSERT INTO location (idfund) values (NEW.idfund);
-
 		RETURN NEW;
-
 	ELSE
-
 		RAISE EXCEPTION 'Could not add entry to location, no idfund field set.';
-
 	END IF;
 
 END;$$;
