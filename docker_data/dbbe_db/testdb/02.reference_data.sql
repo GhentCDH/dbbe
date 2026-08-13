@@ -244,6 +244,11 @@ COPY data.status (idstatus, status, type) FROM stdin;
 22	Information from catalogue has been entered	occurrence_record
 23	Information has been checked against other sources	occurrence_record
 24	Manuscript has been viewed	occurrence_record
+-- This is mapped to a constant in Status.php based on string matching... Should change.
+25	Verses correctly divided	occurrence_divided
+26	Verses incorrectly divided	occurrence_divided
+27	consulted on-site	manuscript
+28	consulted online	manuscript
 \.
 
 COPY data.transliterationsystem (idtransliterationsystem, name) FROM stdin;
@@ -287,8 +292,8 @@ SELECT pg_catalog.setval('data.management_id_seq', 2, true);
 
 SET search_path TO data;
 
-INSERT INTO region (name, is_city) VALUES ('Testland', false) RETURNING identity \gset region_country_
-INSERT INTO region (name, is_city, parent_idregion) VALUES ('Testville', true, :region_country_identity) RETURNING identity \gset region_city_
+INSERT INTO region (name, historical_name, is_city) VALUES ('Testland', 'Testlandia', false) RETURNING identity \gset region_country_
+INSERT INTO region (name, historical_name, is_city, parent_idregion) VALUES ('Testville', 'Testvillopolis', true, :region_country_identity) RETURNING identity \gset region_city_
 
 INSERT INTO institution (idregion, name, name_abbreviated) VALUES (:region_city_identity, 'Test National Library', 'TNL') RETURNING identity \gset institution_
 INSERT INTO library (identity) VALUES (:institution_identity);
