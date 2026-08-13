@@ -244,15 +244,12 @@ COPY data.status (idstatus, status, type) FROM stdin;
 22	Information from catalogue has been entered	occurrence_record
 23	Information has been checked against other sources	occurrence_record
 24	Manuscript has been viewed	occurrence_record
--- This is mapped to a constant in Status.php based on string matching... Should change.
 25	Verses correctly divided	occurrence_divided
 26	Verses incorrectly divided	occurrence_divided
 27	consulted on-site	manuscript
 28	consulted online	manuscript
 \.
 
-COPY data.transliterationsystem (idtransliterationsystem, name) FROM stdin;
-\.
 
 SELECT pg_catalog.setval('data.factoid_type_idfactoid_type_seq', 23, true);
 
@@ -273,8 +270,6 @@ SELECT pg_catalog.setval('data.role_idrole_seq', 13, true);
 SELECT pg_catalog.setval('data.self_designation_id_seq', 331, true);
 
 SELECT pg_catalog.setval('data.status_idstatus_seq', 28, true);
-
-SELECT pg_catalog.setval('data.transliterationsystem_idtransliterationsystem_seq', 1, false);
 
 COPY data.acknowledgement (id, acknowledgement) FROM stdin;
 1	Information on the type courtesy of Test Scholar.

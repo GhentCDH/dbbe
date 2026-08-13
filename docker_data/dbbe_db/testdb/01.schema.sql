@@ -151,19 +151,13 @@ CREATE FUNCTION data.is_roman_numeral(character varying) RETURNS boolean
     LANGUAGE plpgsql
     AS $_$
 DECLARE
-
 	inputstring ALIAS FOR $1;
-
 	romannumeralregex varchar := '^(M{0,4})(CM|CD|D?C{0,3})(XC|XL|L?X{0,3})(IX|IV|V?I{0,3})$';
-
 	result integer := 0;
-
 	res varchar[];
 
 BEGIN
-
 	return (select inputstring ~ romannumeralregex);
-
 END;
 
 $_$;
@@ -171,15 +165,10 @@ CREATE FUNCTION data.roman_numeral_to_integer(character varying) RETURNS integer
     LANGUAGE plpgsql
     AS $_$
 DECLARE
-
 	inputstring ALIAS FOR $1;
-
 	romannumeralregex varchar := '^(M{0,4})(CM|CD|D?C{0,3})(XC|XL|L?X{0,3})(IX|IV|V?I{0,3})$';
-
 	result integer := 0;
-
 	res varchar[];
-
 BEGIN
 	select into res regexp_matches(inputstring, romannumeralregex);
 	result := 1000*length(res[1]);
@@ -951,25 +940,17 @@ CREATE TABLE data.translation_of (
     idtranslation integer NOT NULL,
     iddocument integer NOT NULL
 );
-CREATE TABLE data.transliterationsystem (
-    idtransliterationsystem integer NOT NULL,
-    name character varying
-);
-CREATE SEQUENCE data.transliterationsystem_idtransliterationsystem_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-ALTER SEQUENCE data.transliterationsystem_idtransliterationsystem_seq OWNED BY data.transliterationsystem.idtransliterationsystem;
+--
+
 CREATE TABLE logic.feedback (
-    id integer NOT NULL,
-    url character varying(4000) NOT NULL,
-    email character varying(4000) NOT NULL,
-    message character varying(4000) NOT NULL,
-    created timestamp(0) without time zone DEFAULT now() NOT NULL,
-    status character varying(40) DEFAULT 'new'::character varying NOT NULL
+                                id integer NOT NULL,
+                                url character varying(4000) NOT NULL,
+                                email character varying(4000) NOT NULL,
+                                message character varying(4000) NOT NULL,
+                                created timestamp(0) without time zone DEFAULT now() NOT NULL,
+                                status character varying(40) DEFAULT 'new'::character varying NOT NULL
 );
+
 CREATE SEQUENCE logic.feedback_id_seq
     START WITH 1
     INCREMENT BY 1
@@ -1101,7 +1082,6 @@ ALTER TABLE ONLY data.reference_type ALTER COLUMN idreference_type SET DEFAULT n
 ALTER TABLE ONLY data.role ALTER COLUMN idrole SET DEFAULT nextval('data.role_idrole_seq'::regclass);
 ALTER TABLE ONLY data.self_designation ALTER COLUMN id SET DEFAULT nextval('data.self_designation_id_seq'::regclass);
 ALTER TABLE ONLY data.status ALTER COLUMN idstatus SET DEFAULT nextval('data.status_idstatus_seq'::regclass);
-ALTER TABLE ONLY data.transliterationsystem ALTER COLUMN idtransliterationsystem SET DEFAULT nextval('data.transliterationsystem_idtransliterationsystem_seq'::regclass);
 ALTER TABLE ONLY logic.feedback ALTER COLUMN id SET DEFAULT nextval('logic.feedback_id_seq'::regclass);
 ALTER TABLE ONLY logic.news_event ALTER COLUMN id SET DEFAULT nextval('logic.news_event_id_seq'::regclass);
 ALTER TABLE ONLY logic.page ALTER COLUMN id SET DEFAULT nextval('logic.page_id_seq'::regclass);
@@ -1234,8 +1214,6 @@ ALTER TABLE ONLY data.translation
     ADD CONSTRAINT pk_translation PRIMARY KEY (identity);
 ALTER TABLE ONLY data.translation_of
     ADD CONSTRAINT pk_translation_of PRIMARY KEY (idtranslation, iddocument);
-ALTER TABLE ONLY data.transliterationsystem
-    ADD CONSTRAINT pk_transliterationsystem PRIMARY KEY (idtransliterationsystem);
 ALTER TABLE ONLY data.role
     ADD CONSTRAINT role_system_name_key UNIQUE (system_name);
 ALTER TABLE ONLY data.person_email
@@ -1423,8 +1401,6 @@ ALTER TABLE ONLY data.monastery
     ADD CONSTRAINT fk_monastery_institution FOREIGN KEY (identity) REFERENCES data.institution(identity) ON UPDATE CASCADE ON DELETE CASCADE;
 ALTER TABLE ONLY data.name
     ADD CONSTRAINT fk_name_person FOREIGN KEY (idperson) REFERENCES data.person(identity) ON UPDATE CASCADE ON DELETE CASCADE;
-ALTER TABLE ONLY data.name
-    ADD CONSTRAINT fk_name_transliterationsystem FOREIGN KEY (idtransliterationsystem) REFERENCES data.transliterationsystem(idtransliterationsystem);
 ALTER TABLE ONLY data.node
     ADD CONSTRAINT fk_node_document FOREIGN KEY (iddocument) REFERENCES data.document(identity);
 ALTER TABLE ONLY data.node
