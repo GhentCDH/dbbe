@@ -302,9 +302,6 @@ SET default_table_access_method = heap;CREATE TABLE data.acknowledgement (
     id integer NOT NULL,
     acknowledgement character varying NOT NULL
 );
-CREATE TABLE data.acknowledgement_expression (
-    expression_text text NOT NULL
-);
 CREATE SEQUENCE data.acknowledgement_id_seq
     START WITH 1
     INCREMENT BY 1
@@ -497,16 +494,6 @@ CREATE TABLE data.factoid (
     idfactoid_type integer NOT NULL,
     rank integer,
     CONSTRAINT date_interval_exclusive CHECK ((NOT ((date IS NOT NULL) AND ("interval" IS NOT NULL))))
-);
-CREATE TABLE data.factoid_backup_26082025 (
-    idfactoid integer,
-    subject_identity integer,
-    object_identity integer,
-    date data.fuzzydate,
-    "interval" data.fuzzyinterval,
-    idlocation integer,
-    idfactoid_type integer,
-    rank integer
 );
 CREATE SEQUENCE data.factoid_idfactoid_seq
     START WITH 1
