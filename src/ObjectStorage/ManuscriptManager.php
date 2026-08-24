@@ -513,7 +513,8 @@ class ManuscriptManager extends DocumentManager
     public function generateCsvStream(
         array $params,
         ElasticManuscriptService $elasticManuscriptService,
-        bool $isAuthorized
+        bool $isAuthorized,
+        array $ids = []
     ) {
         $stream = fopen('php://temp', 'r+');
         fwrite($stream, "\xEF\xBB\xBF");
@@ -525,6 +526,9 @@ class ManuscriptManager extends DocumentManager
         $params['limit'] = $maxResults;
         $result = $elasticManuscriptService->runFullSearch($params, $isAuthorized);
         $data = $result['data'] ?? [];
+        if (!empty($ids)) {
+            $data = array_filter($data, fn ($item) => in_array($item['id'], $ids));
+        }
         $totalFetched = 0;
         foreach ($data as $item) {
             if ($totalFetched++ >= $maxResults) break;

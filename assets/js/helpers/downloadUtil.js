@@ -2,10 +2,14 @@
 import qs from 'qs';
 import { getSearchParams } from '@/helpers/searchParamUtil';
 
-export async function downloadCSV(urls, type) {
+export async function downloadCSV(urls, type, selectedIds = []) {
     const params = getSearchParams();
     params.limit = 10000;
     params.page = 1;
+
+    if (selectedIds && selectedIds.length) {
+        params.ids = selectedIds;
+    }
 
     const queryString = qs.stringify(params, { encode: true, arrayFormat: 'brackets' });
     const url = `${urls[type + '_export_csv']}?${queryString}`;

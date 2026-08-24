@@ -779,7 +779,7 @@ const resetAllFilters = () => {
 
 const downloadCSVHandler = async () => {
   try {
-    await downloadCSV(urls, 'manuscripts');
+    await downloadCSV(urls, 'manuscripts', collectionArray.value);
   } catch (error) {
     console.error(error);
     alerts.value.push({ type: 'error', message: 'Error downloading CSV.' });

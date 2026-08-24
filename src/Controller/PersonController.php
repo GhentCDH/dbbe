@@ -71,7 +71,8 @@ class PersonController extends BaseController
         $this->denyAccessUnlessGranted(Roles::ROLE_VIEW_INTERNAL);
         $isAuthorized = $this->isGranted(Roles::ROLE_EDITOR_VIEW);
         $params = $this->sanitize($request->query->all(),$identifierManager);
-        $csvStream = $this->manager->generateCsvStream($params, $elasticPersonService, $isAuthorized);
+        $ids = array_map('intval', array_filter($request->query->all('ids'), 'is_numeric'));
+        $csvStream = $this->manager->generateCsvStream($params, $elasticPersonService, $isAuthorized, $ids);
         rewind($csvStream);
         return new Response(stream_get_contents($csvStream), 200, [
             'Content-Type' => 'text/csv',

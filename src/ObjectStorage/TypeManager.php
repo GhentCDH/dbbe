@@ -789,7 +789,8 @@ class TypeManager extends PoemManager
     public function generateCsvStream(
         array $params,
         ElasticTypeService $elasticTypeService,
-        bool $isAuthorized
+        bool $isAuthorized,
+        array $ids = []
     ) {
         $stream = fopen('php://temp', 'r+');
         fwrite($stream, "\xEF\xBB\xBF");
@@ -801,6 +802,9 @@ class TypeManager extends PoemManager
         $result = $elasticTypeService->runFullSearch($params, $isAuthorized);
 
         $data = $result['data'] ?? [];
+        if (!empty($ids)) {
+            $data = array_filter($data, fn ($item) => in_array($item['id'], $ids));
+        }
         $totalFetched = 0;
         foreach ($data as $item) {
             if ($totalFetched++ >= $maxResults) break;

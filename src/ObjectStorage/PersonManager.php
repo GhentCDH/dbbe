@@ -1596,7 +1596,8 @@ class PersonManager extends ObjectEntityManager
     public function generateCsvStream(
         array $params,
         ElasticPersonService $elasticPersonService,
-        bool $isAuthorized
+        bool $isAuthorized,
+        array $ids = []
     ) {
         $stream = fopen('php://temp', 'r+');
         fwrite($stream, "\xEF\xBB\xBF");
@@ -1608,6 +1609,9 @@ class PersonManager extends ObjectEntityManager
         $params['limit'] = $maxResults;
         $result = $elasticPersonService->runFullSearch($params, $isAuthorized);
         $data = $result['data'] ?? [];
+        if (!empty($ids)) {
+            $data = array_filter($data, fn ($item) => in_array($item['id'], $ids));
+        }
         $totalFetched = 0;
         foreach ($data as $item) {
             if ($totalFetched++ >= $maxResults) break;
