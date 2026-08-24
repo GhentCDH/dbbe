@@ -121,8 +121,9 @@ class OccurrenceController extends BaseController
         ElasticOccurrenceService $elasticOccurrenceService,
         ElasticVerseService $elasticVerseService
     ): Response {
-        $params = $this->sanitize($request->query->all());
+        $this->denyAccessUnlessGranted(Roles::ROLE_VIEW_INTERNAL);
         $isAuthorized = $this->isGranted(Roles::ROLE_EDITOR_VIEW);
+        $params = $this->sanitize($request->query->all());
         $csvStream = $this->manager->generateCsvStream($params, $elasticOccurrenceService, $elasticVerseService, $isAuthorized);
         rewind($csvStream);
         return new Response(stream_get_contents($csvStream), 200, [

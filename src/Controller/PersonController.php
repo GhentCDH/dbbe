@@ -68,8 +68,9 @@ class PersonController extends BaseController
         IdentifierManager $identifierManager,
         ElasticPersonService $elasticPersonService
     ): Response {
-        $params = $this->sanitize($request->query->all(),$identifierManager);
+        $this->denyAccessUnlessGranted(Roles::ROLE_VIEW_INTERNAL);
         $isAuthorized = $this->isGranted(Roles::ROLE_EDITOR_VIEW);
+        $params = $this->sanitize($request->query->all(),$identifierManager);
         $csvStream = $this->manager->generateCsvStream($params, $elasticPersonService, $isAuthorized);
         rewind($csvStream);
         return new Response(stream_get_contents($csvStream), 200, [
