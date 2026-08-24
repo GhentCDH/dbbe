@@ -1080,7 +1080,8 @@ class OccurrenceManager extends PoemManager
         array $params,
         ElasticOccurrenceService $occurrenceService,
         ElasticVerseService $verseService,
-        bool $isAuthorized
+        bool $isAuthorized,
+        array $ids = []
     ) {
         $stream = fopen('php://temp', 'r+');
 
@@ -1102,6 +1103,7 @@ class OccurrenceManager extends PoemManager
         $params['allow_large_results'] = true;
 
         $totalFetched = 0;
+        $idsFound = 0;
         $searchAfter = null;
 
         while (true) {
@@ -1117,7 +1119,9 @@ class OccurrenceManager extends PoemManager
                 break;
             }
 
-            foreach ($data as $item) {
+            $rows = empty($ids) ? $data : array_filter($data, fn ($item) => in_array($item['id'], $ids));
+
+            foreach ($rows as $item) {
                 if (!$isAuthorized && $totalFetched >= 1000) {
                     break 2;
                 }
@@ -1137,6 +1141,11 @@ class OccurrenceManager extends PoemManager
                 );
                 fwrite($stream, $line);
                 $totalFetched++;
+                $idsFound++;
+            }
+
+            if (!empty($ids) && $idsFound >= count($ids)) {
+                break;
             }
 
             $last = end($data);

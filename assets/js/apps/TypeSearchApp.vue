@@ -229,14 +229,14 @@
           />
         </div>
 
-<!--        <div style="position: absolute; right: 0; top: 50%; transform: translateY(-50%);">-->
-<!--          <button @click.native="downloadCSVHandler"-->
-<!--                  class="btn btn-primary"-->
-<!--                  :title="!isViewInternal ? 'For anonymous users, download is limited to 1000 results' : 'Download results as csv'"-->
-<!--                  style="position: absolute; top: 50%; right: 1rem; transform: translateY(-50%);">-->
-<!--            Download results CSV-->
-<!--          </button>-->
-<!--        </div>-->
+        <div v-if="isViewInternal" style="position: absolute; right: 0; top: 50%; transform: translateY(-50%);">
+          <button @click="downloadCSVHandler"
+                  class="btn btn-primary"
+                  title="Download results as csv"
+                  style="position: absolute; top: 50%; right: 1rem; transform: translateY(-50%);">
+            Download results CSV
+          </button>
+        </div>
       </div>
 
       <collectionManager
@@ -929,7 +929,7 @@ const resetAllFilters = () => {
 
 const downloadCSVHandler = async () => {
   try {
-    await downloadCSV(urls, 'types');
+    await downloadCSV(urls, 'types', collectionArray.value);
   } catch (error) {
     console.error(error);
     alerts.value.push({ type: 'error', message: 'Error downloading CSV.' });
