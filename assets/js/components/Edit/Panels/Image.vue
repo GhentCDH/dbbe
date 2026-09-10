@@ -319,9 +319,7 @@ const onDrop = async (acceptedFiles) => {
 // useDropzone composable
 const { getRootProps, getInputProps, isDragActive } = useDropzone({
   onDrop,
-  accept: {
-    'image/*': ['.png', '.jpg', '.jpeg', '.gif', '.webp', '.svg']
-  },
+  accept: 'image/*,.png,.jpg,.jpeg,.gif,.webp,.svg',
   maxSize: 10485760, // 10MB in bytes
   multiple: true,
 });
