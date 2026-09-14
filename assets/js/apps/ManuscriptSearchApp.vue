@@ -434,6 +434,15 @@ const buildSchemaFields = () => {
     ],
   };
 
+  schemaFields.exactly_dated = {
+    type: 'checkbox',
+    label: 'Exactly dated:',
+    labelClasses: 'control-label',
+    styleClasses: 'has-warning',
+    model: 'exactly_dated',
+    default: false,
+  };
+
   [schemaFields.content_op, schemaFields.content] = createMultiMultiSelect('Content');
 
   schemaFields.person = createMultiSelect('Person', {}, {
