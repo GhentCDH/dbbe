@@ -1,6 +1,6 @@
 # DBBE
 
-This repository contains the source code for the [DBBE database](https://www.dbbe.ugent.be/).
+This repository contains the source code for the [DBBE database](https://www.dbbe.ugent.be/). Latest releases are available via the GitHub Container Registry on https://github.com/GhentCDH/dbbe/pkgs/container/dbbe  . The GitHub Releases are no longer maintained
 
 The DBBE database consists of a Symphony back-end connected to a PostgreSQL database and Elasticsearch search engine. The search and edit pages consist of Vue.js applications.
 
@@ -114,6 +114,7 @@ Matomo is used for minimal tracking of page visits. By default, requests from lo
 - The `migration` schema was probably used when a large version update of dbbe happened. It is however still in use in the live application so that the website can display old IDs
 - The `logic` schema focuses on information linked to DBBE as a project rather than the processed data
 - The `public` schema does no longer seem to be used and probably contains data from the old project. This is, however, to be verified!
+
 
 #### Planned improvements
 Note that, at this point, the script does not run tests on inserts. It just navigates to every page without filling in forms. 
