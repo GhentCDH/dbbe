@@ -303,11 +303,7 @@ const onDrop = async (acceptedFiles) => {
       const formData = new FormData();
       formData.append('file', file);
 
-      const response = await axios.post(props.urls['image_post'], formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
+      const response = await axios.post(props.urls['image_post'], formData);
 
       fileAdded(response.data);
     } catch (error) {
@@ -319,9 +315,7 @@ const onDrop = async (acceptedFiles) => {
 // useDropzone composable
 const { getRootProps, getInputProps, isDragActive } = useDropzone({
   onDrop,
-  accept: {
-    'image/*': ['.png', '.jpg', '.jpeg', '.gif', '.webp', '.svg']
-  },
+  accept: '.png,.jpg,.jpeg,.gif,.webp,.svg',
   maxSize: 10485760, // 10MB in bytes
   multiple: true,
 });
