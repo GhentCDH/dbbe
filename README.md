@@ -11,22 +11,24 @@ The DBBE database consists of a Symphony back-end connected to a PostgreSQL data
 
 ## Getting started
 
-First download a dbbe database dump and place it in the `docker_data/dbbe_db/initdb` folder. SQL or bash scripts in this folder are executed only the first time the container is started. To rerun the import, delete the data directory
+A default database containing minimal Claude-generated data is included in `docker_data/dbbe_db/testdb`. Alternatively you can download a data dump and add it to the initdb folder to run against the full dataset. Note that the testdb contains the minimum required to get the application running: on one hand, the application does not fully start as long as some tables are empty. On the other, a lot of tables _can_ be empty without impacting the user flow. 
 
-Next run the following command to run the docker services:
-
-* PHP Symfony
-* Elasticsearch
-* DBBE postgres database
-* Keycloak authentication service
-* Keycloak postgres database
+Next, run the following command to run the docker services:
 
 ``````
 docker-compose --env-file .env.dev build
 docker-compose --env-file .env.dev up -d
 ``````
 
-The symfony_startup_script.sh automatically installs dependencies and runs an elastic search reindex process.
+This should start the following services:
+
+* dbbe-app: PHP Symfony back-end and Vue3/Twig based front-end
+* dbbe-elasticsearch: Elasticsearch indices, built using the data in the postgres database and used to present the data in a more intuitive format
+* DBBE postgres database
+* Keycloak authentication service: keycloak ui (see below, `customizing keycloak`)
+* Keycloak postgres database (keeps keycloak user info)
+
+The symfony_startup_script.sh triggered by the dbbe-app container automatically installs dependencies and runs an elastic search reindex process.
 
 ## Running with podman
 
