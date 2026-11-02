@@ -128,6 +128,9 @@ export default {
                         model: 'editor',
                         validator: VueFormGenerator.validators.string,
                         disabled: true,
+                        // Legacy free-text field, read-only since editors became person roles.
+                        // Only show it for older books that still have a value stored here.
+                        visible: (model) => model.editor != null && model.editor !== '',
                     },
                     publisher: {
                         type: 'input',

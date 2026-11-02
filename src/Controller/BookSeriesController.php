@@ -63,7 +63,7 @@ class BookSeriesController extends BaseController
      * @param Request $request
      * @return JsonResponse|Response
      */
-    #[Route(path: '/book_series/{id}', name: 'book_series_get', methods: ['GET'])]
+    #[Route(path: '/book_series/{id}', name: 'book_series_get', requirements: ['id' => '\d+'], methods: ['GET'])]
     public function getSingle(int $id, Request $request): JsonResponse|Response
     {
         return parent::getSingle($id, $request);
