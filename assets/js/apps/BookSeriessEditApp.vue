@@ -38,7 +38,6 @@
       <template #extra>
       <UrlPanel
           id="urls"
-          ref="urls"
           header="Urls"
           :model="submitModel.bookSeries"
           :as-slot="true"
