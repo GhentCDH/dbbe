@@ -63,10 +63,13 @@ class BookSeriesController extends BaseController
      * @param Request $request
      * @return JsonResponse|Response
      */
-    #[Route(path: '/book_series/{id}', name: 'book_series_get', requirements: ['id' => '\d+'], methods: ['GET'])]
-    public function getSingle(int $id, Request $request): JsonResponse|Response
+    #[Route(path: '/book_series/{id}', name: 'book_series_get', methods: ['GET'])]
+    public function getSingle(int|string $id, Request $request): JsonResponse|Response
     {
-        return parent::getSingle($id, $request);
+        if (!ctype_digit((string) $id)) {
+            throw $this->createNotFoundException();
+        }
+        return parent::getSingle((int) $id, $request);
     }
 
     /**
