@@ -85,7 +85,7 @@ class BookController extends BaseController
      * @param Request $request
      * @return JsonResponse
      */
-    #[Route(path: '/books/book_seriess/{id}', name: 'book_deps_by_book_series', methods: ['GET'])]
+    #[Route(path: '/books/book_series/{id}', name: 'book_deps_by_book_series', methods: ['GET'])]
     public function getDepsByBookSeries(int $id, Request $request): JsonResponse
     {
         return $this->getDependencies($id, $request, 'getBookSeriesDependencies');

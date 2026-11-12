@@ -148,6 +148,7 @@ const editModel = ref({
 })
 const originalEditModel = ref({})
 const hasFormChanges = ref(false)
+const formIsValid = ref(false)
 const isValid = ref(true)
 const originalModel = ref({})
 const editForm = ref(null)
@@ -159,7 +160,7 @@ const fields = computed(() => ({
   },
 }))
 
-const canSubmit = computed(() => isValid.value && hasFormChanges.value)
+const canSubmit = computed(() => formIsValid.value && hasFormChanges.value)
 
 const editSchema = ref({
   fields: {
@@ -242,7 +243,7 @@ const add = () => {
 
   originalEditModel.value = JSON.parse(JSON.stringify(editModel.value))
   hasFormChanges.value = false
-  isValid.value = false
+  formIsValid.value = false
 
   editModal.value = true
 }
@@ -256,7 +257,7 @@ const edit = (index) => {
 
   originalEditModel.value = JSON.parse(JSON.stringify(editModel.value))
   hasFormChanges.value = false
-  isValid.value = false
+  formIsValid.value = false
 
   editModal.value = true
 }
@@ -375,7 +376,7 @@ const validated = (isValidValue, errors) => {
 }
 
 const onFormValidated = (isValidValue) => {
-  isValid.value = isValidValue
+  formIsValid.value = isValidValue
 }
 
 const checkFormChanges = () => {
