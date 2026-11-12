@@ -22,7 +22,7 @@ class BookSeriesController extends BaseController
      * @param Request $request
      * @return JsonResponse
      */
-    #[Route(path: '/book_seriess', name: 'book_seriess_get', methods: ['GET'])]
+    #[Route(path: '/book_series', name: 'book_seriess_get', methods: ['GET'])]
     public function getAll(Request $request): JsonResponse
     {
         $this->denyAccessUnlessGranted(Roles::ROLE_EDITOR_VIEW);
@@ -33,7 +33,7 @@ class BookSeriesController extends BaseController
         );
     }
 
-    #[Route(path: '/book_seriess/edit', name: 'book_seriess_edit', methods: ['GET'])]
+    #[Route(path: '/book_series/edit', name: 'book_seriess_edit', methods: ['GET'])]
     public function edit()
     {
         $this->denyAccessUnlessGranted(Roles::ROLE_EDITOR_VIEW);
@@ -78,7 +78,7 @@ class BookSeriesController extends BaseController
      * @param Request $request
      * @return JsonResponse
      */
-    #[Route(path: '/book_seriess/{primaryId}/{secondaryId}', name: 'book_series_merge', methods: ['PUT'])]
+    #[Route(path: '/book_series/{primaryId}/{secondaryId}', name: 'book_series_merge', methods: ['PUT'])]
     public function merge(int $primaryId, int $secondaryId, Request $request): JsonResponse
     {
         return parent::merge($primaryId, $secondaryId, $request);
@@ -88,7 +88,7 @@ class BookSeriesController extends BaseController
      * @param Request $request
      * @return JsonResponse
      */
-    #[Route(path: '/book_seriess', name: 'book_series_post', methods: ['POST'])]
+    #[Route(path: '/book_series', name: 'book_series_post', methods: ['POST'])]
     public function post(Request $request): JsonResponse
     {
         return parent::post($request);
@@ -99,7 +99,7 @@ class BookSeriesController extends BaseController
      * @param Request $request
      * @return JsonResponse
      */
-    #[Route(path: '/book_seriess/{id}', name: 'book_series_put', methods: ['PUT'])]
+    #[Route(path: '/book_series/{id}', name: 'book_series_put', methods: ['PUT'])]
     public function put(int $id, Request $request): JsonResponse
     {
         return parent::put($id, $request);
@@ -110,7 +110,7 @@ class BookSeriesController extends BaseController
      * @param Request $request
      * @return JsonResponse
      */
-    #[Route(path: '/book_seriess/{id}', name: 'book_series_delete', methods: ['DELETE'])]
+    #[Route(path: '/book_series/{id}', name: 'book_series_delete', methods: ['DELETE'])]
     public function delete(int $id, Request $request): JsonResponse
     {
         return parent::delete($id, $request);
