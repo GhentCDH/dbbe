@@ -58,13 +58,13 @@
                 :schema="schema"
                 :model="editRelatedType"
                 :options="formOptions"
-                @validated="validated"
+                @validated="modalValidated"
             />
           <template #footer>
                 <btn @click.native="updateRelatedTypeModal=false">Cancel</btn>
                 <btn
                     type="alert"
-                    :disabled="!(isValid && editRelatedType != null && editRelatedType.type != null && editRelatedType.relationTypes != null && editRelatedType.relationTypes.length > 0)"
+                    :disabled="!(isModalValid && editRelatedType != null && editRelatedType.type != null && editRelatedType.relationTypes != null && editRelatedType.relationTypes.length > 0)"
                     @click.native="submitUpdateRelatedType()"
                 >
                     {{ relatedTypeIndex > -1 ? 'Update' : 'Add' }}
@@ -180,6 +180,7 @@ export default {
               validationSuccessClass: 'success',
             },
             isValid: true,
+            isModalValid: true,
             originalModel: {}
         }
     },
@@ -212,16 +213,17 @@ export default {
         },
         noDuplicateType(value, field, model) {
             if (
-                this.relatedTypeIndex === -1
-                && this.editRelatedType.type != null
-                && this.model.relatedTypes.map(x => x.type.id).includes(this.editRelatedType.type.id)
+                this.editRelatedType.type != null
+                && this.model.relatedTypes.some(
+                    (x, index) => index !== this.relatedTypeIndex && x.type.id === this.editRelatedType.type.id
+                )
             ) {
                 return ['There already is a relation with this type'];
             }
             return [];
         },
-        validated(isValid, errors) {
-            this.isValid = isValid;
+        modalValidated(isValid, errors) {
+            this.isModalValid = isValid;
         },
         newRelatedType() {
             this.relatedTypeIndex = -1
@@ -229,11 +231,13 @@ export default {
                 type: null,
                 relationTypes: [],
             }
+            this.isModalValid = true
             this.updateRelatedTypeModal = true
         },
         updateRelatedType(relatedType, index) {
             this.relatedTypeIndex = index
             this.editRelatedType = JSON.parse(JSON.stringify(relatedType))
+            this.isModalValid = true
             this.updateRelatedTypeModal = true
         },
         delRelatedType(index) {
@@ -242,7 +246,7 @@ export default {
         },
         submitUpdateRelatedType() {
             this.$refs.editForm.validate()
-            if (this.isValid) {
+            if (this.isModalValid) {
                 if (this.relatedTypeIndex > -1) {
                     // update existing
                     this.model.relatedTypes[this.relatedTypeIndex] = JSON.parse(JSON.stringify(this.editRelatedType))
