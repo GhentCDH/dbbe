@@ -380,7 +380,7 @@ class TranslationManager extends DocumentManager
                 && $old->getPublicComment() !== $data->publicComment
             )
         ) {
-            $update->publicComment = $data->publicComment;
+            $update->publicComment = property_exists($data, 'publicComment') ? $data->publicComment : '';
         }
 
         if (!empty((array)$update)) {

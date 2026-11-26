@@ -241,6 +241,7 @@ const editModel = reactive({
     bibVarias: [],
   },
   personRoles: createPersonRoles(),
+  id: undefined,
   index: undefined,
   language: undefined,
   text: undefined,
@@ -388,6 +389,7 @@ const add = () => {
   Object.assign(editModel, {
     bibliography: createBibliography(),
     personRoles: createPersonRoles(),
+    id: undefined,
     index: undefined,
     language: undefined,
     text: undefined,
@@ -420,6 +422,7 @@ const update = (item, index) => {
 
   editModel.bibliography = clonedItem.bibliography
   editModel.personRoles = clonedItem.personRoles
+  editModel.id = clonedItem.id
   editModel.language = clonedItem.language
   editModel.text = clonedItem.text
   editModel.publicComment = clonedItem.publicComment
@@ -451,6 +454,10 @@ const submitEdit = () => {
 
     if (!modelCopy.publicComment) {
       delete modelCopy.publicComment
+    }
+
+    if (editModel.index != null && editModel.id != null) {
+      modelCopy.id = editModel.id
     }
 
     if (editModel.index != null) {
